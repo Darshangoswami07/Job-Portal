@@ -32,7 +32,8 @@ export const register = async (req, res) => {
       sucess: true,
     });
   } catch (error) {
-    console.log(error in register);
+    console.log("Error in register:", error);
+
   }
 };
 
@@ -93,7 +94,8 @@ export const login = async (req, res) => {
         sucess: true,
       });
   } catch (error) {
-    console.log(error in login);
+    console.log("Error in login:", error);
+
   }
 };
 
@@ -111,7 +113,8 @@ export const logout = async (req, res) => {
         sucess: true,
       });
   } catch (error) {
-    console.log(error in logout);
+    console.log("Error in logout:", error);
+
   }
 }
 
@@ -119,16 +122,13 @@ export const updateProfile = async (req, res) => {
     try {
         const {fullname,email,phoneNumber,bio,skills}=req.body;
         const file =req.file;
-        if(!fullname || !email || !phoneNumber || !bio || !skills){
-            return res.status(400).json({
-                message:"something is missing",
-                sucess:false
-            });
-        }
 
         //for cloudinary upload
-
-        const skillsArray = skills.split(',');
+        let skillsArray;
+        if (skills){
+          skillsArray = skills.split(",");
+        }
+         
         const userId =req.id;
         let user = await User.findById(userId);
         if(!user){
@@ -137,11 +137,11 @@ export const updateProfile = async (req, res) => {
                 sucess:false
             });
         }
-        user.fullname=fullname;
-        user.email=email;
-        user.phoneNumber=phoneNumber;
-        user.profile.bio=bio;
-        user.profile.skills=skillsArray;
+        if (fullname) user.fullname = fullname;
+        if (email) user.email = email;
+        if (phoneNumber) user.phoneNumber = phoneNumber;
+        if (bio) user.profile.bio = bio;
+        if (skills) user.profile.skills = skillsArray;
 
         await user.save();  
 
@@ -160,6 +160,7 @@ export const updateProfile = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error in updateProfile);
+        console.log("Error in updateProfile:", error);
+
     }
 };
