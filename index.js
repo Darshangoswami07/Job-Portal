@@ -1,33 +1,33 @@
-import express from 'express';
-import cookieParser from 'cookie-parser';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import connectDB from './utils/db.js';
-import userRoutes from './routes/user.route.js';
-import companyRoutes from './routes/company.route.js';
-import jobroute from './routes/job.route.js';
+import express from "express";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+import dotenv from "dotenv";
+import connectDB from "./utils/db.js";
 
-dotenv.config({});
+import userRoutes from "./routes/user.route.js";
+import companyRoutes from "./routes/company.route.js";
+import jobRoutes from "./routes/job.route.js";
 
-const  app = express();
+dotenv.config();
 
+const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const corsOptions = {
-    origin: 'http://localhost:5173', // Adjust this to your frontend's origin
-    credentials: true,
-};
-app.use(cors(corsOptions));
-const PORT = process.env.PORT || 3000;
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true,
+}));
 
-app.use('/api/v1/user', userRoutes);
-app.use('/api/v1/company', companyRoutes);
-app.use('/api/v1/job', jobroute);
+app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/company", companyRoutes);
+app.use("/api/v1/job", jobRoutes);
 
-app.listen(PORT, ()=>{
-    connectDB();
-    console.log(`Server is running on port ${PORT}`);
-})
+const PORT = process.env.PORT || 8000;
+
+app.listen(PORT, () => {
+  connectDB();
+  console.log(`Server running on port ${PORT}`);
+});
