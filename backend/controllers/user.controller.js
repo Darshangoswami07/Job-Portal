@@ -5,19 +5,22 @@ import jwt from "jsonwebtoken";
 export const register = async (req, res) => {
   try {
     const { fullname, email, phoneNumber, password, role } = req.body;
+
     if (!fullname || !email || !phoneNumber || !password || !role) {
       return res.status(400).json({
         message: "something is missing",
-        sucess: false,
+        success: false,
       });
     }
+
     const user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({
         message: "user already exists with this email",
-        sucess: false,
+        success: false,
       });
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await User.create({
@@ -27,13 +30,13 @@ export const register = async (req, res) => {
       password: hashedPassword,
       role,
     });
+
     return res.status(201).json({
       message: "user registered successfully",
-      sucess: true,
+      success: true,
     });
   } catch (error) {
     console.log("Error in register:", error);
-
   }
 };
 
@@ -43,27 +46,27 @@ export const login = async (req, res) => {
     if (!email || !password || !role) {
       return res.status(400).json({
         message: "something is missing",
-        sucess: false,
+        success: false,
       });
     }
     let user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({
         message: "user does not exist with this email",
-        sucess: false,
+        success: false,
       });
     }
     const ispasswordMatch = await bcrypt.compare(password, user.password);
     if (!ispasswordMatch) {
       return res.status(400).json({
         message: "incorrect password",
-        sucess: false,
+        success: false,
       });
     }
     if (user.role !== role) {
       return res.status(400).json({
         message: `user is not registered as ${role}`,
-        sucess: false,
+        success: false,
       });
     }
     const tokenData = {
@@ -72,15 +75,15 @@ export const login = async (req, res) => {
     const token = jwt.sign(tokenData, process.env.SECRET_KEY, {
       expiresIn: "7d",
     });
-    
-    user ={
-        _id: user._id,
-        fullname: user.fullname,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        role: user.role,
-        profile: user.profile
-    }
+
+    user = {
+      _id: user._id,
+      fullname: user.fullname,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      role: user.role,
+      profile: user.profile,
+    };
     return res
       .status(200)
       .cookie("token", token, {
@@ -91,11 +94,10 @@ export const login = async (req, res) => {
       .json({
         message: `welcome back ${user.fullname}`,
         user,
-        sucess: true,
+        success: true,
       });
   } catch (error) {
     console.log("Error in login:", error);
-
   }
 };
 
@@ -114,53 +116,50 @@ export const logout = async (req, res) => {
       });
   } catch (error) {
     console.log("Error in logout:", error);
-
   }
-}
+};
 
 export const updateProfile = async (req, res) => {
-    try {
-        const {fullname,email,phoneNumber,bio,skills}=req.body;
-        const file =req.file;
+  try {
+    const { fullname, email, phoneNumber, bio, skills } = req.body;
+    const file = req.file;
 
-        //for cloudinary upload
-        let skillsArray;
-        if (skills){
-          skillsArray = skills.split(",");
-        }
-         
-        const userId =req.id;
-        let user = await User.findById(userId);
-        if(!user){
-            return res.status(400).json({
-                message:"user not found",
-                sucess:false
-            });
-        }
-        if (fullname) user.fullname = fullname;
-        if (email) user.email = email;
-        if (phoneNumber) user.phoneNumber = phoneNumber;
-        if (bio) user.profile.bio = bio;
-        if (skills) user.profile.skills = skillsArray;
-
-        await user.save();  
-
-        user ={
-            _id: user._id,
-            fullname: user.fullname,
-            email: user.email,
-            phoneNumber: user.phoneNumber,
-            role: user.role,
-            profile: user.profile
-        }
-        return res.status(200).json({
-            message:"profile updated successfully",
-            user,
-            sucess:true
-        });
-
-    } catch (error) {
-        console.log("Error in updateProfile:", error);
-
+    //for cloudinary upload
+    let skillsArray;
+    if (skills) {
+      skillsArray = skills.split(",");
     }
+
+    const userId = req.id;
+    let user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({
+        message: "user not found",
+        sucess: false,
+      });
+    }
+    if (fullname) user.fullname = fullname;
+    if (email) user.email = email;
+    if (phoneNumber) user.phoneNumber = phoneNumber;
+    if (bio) user.profile.bio = bio;
+    if (skills) user.profile.skills = skillsArray;
+
+    await user.save();
+
+    user = {
+      _id: user._id,
+      fullname: user.fullname,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      role: user.role,
+      profile: user.profile,
+    };
+    return res.status(200).json({
+      message: "profile updated successfully",
+      user,
+      sucess: true,
+    });
+  } catch (error) {
+    console.log("Error in updateProfile:", error);
+  }
 };
