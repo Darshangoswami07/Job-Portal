@@ -8,6 +8,8 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { USER_API_END_POINT } from "../utils/constant";
 import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
+import { setLoading } from "@/redux/authSlice";
 
 export default function Signup() {
   const [input, setInput] = useState({
@@ -18,6 +20,8 @@ export default function Signup() {
     role: "",
     file: "",
   });
+  const { loading } = useSelector((store) => store.auth);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   function changeEventHandler(e) {
     setInput({ ...input, [e.target.name]: e.target.value });
@@ -40,26 +44,20 @@ export default function Signup() {
     }
 
     try {
+      dispatch(setLoading(true));
       const res = await axios.post(`${USER_API_END_POINT}/register`, formData, {
         withCredentials: true,
       });
 
       if (res.data.success) {
         toast.success(res.data.message);
-
-        setInput({
-          fullname: "",
-          email: "",
-          phoneNumber: "",
-          password: "",
-          role: "",
-          file: "",
-        });
-
-        navigate("/login");
+        toast.success(res.data.message)
       }
     } catch (err) {
       console.log(err);
+      toast.error(err.response.data.message);
+    } finally {
+      dispatch(setLoading(false));
     }
   };
 
@@ -148,9 +146,17 @@ export default function Signup() {
               />
             </div>
           </div>
-          <Button className="w-full my-4 cursor-pointer" type="submit">
-            Signup
-          </Button>
+          {loading ? (
+            <Button className="w-full my-4">
+              {" "}
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              please wait{" "}
+            </Button>
+          ) : (
+            <Button className="w-full my-4" type="submit">
+              Signup
+            </Button>
+          )}
           <span className="text-sm">
             already have an account?{" "}
             <Link to="/login" className="text-blue-600">

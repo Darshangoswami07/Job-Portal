@@ -8,6 +8,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import axios from "axios";
 import { USER_API_END_POINT } from "../utils/constant";
+import { useDispatch, useSelector } from "react-redux";
+import { setLoading } from "@/redux/authSlice";
+import { Loader2 } from "lucide-react";
 
 export default function Login() {
   const [input, setInput] = useState({
@@ -15,37 +18,43 @@ export default function Login() {
     password: "",
     role: "",
   });
+  const { loading } = useSelector((store) => store.auth);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const changeEventHandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
   };
-  const submitHandler=async(e)=>{
-      e.preventDefault();
+  const submitHandler = async (e) => {
+    e.preventDefault();
 
-      try{
-        const res = await axios.post(`${USER_API_END_POINT}/login`, input, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true,
-        });
-        if(res.data.success){
-          navigate("/");
-          toast.success(res.data.message);
-        }
-      }catch(err){
-        console.log(err);
-        toast.error(err.response.data.message);
+    try {
+      dispatch(setLoading(true));
+      const res = await axios.post(`${USER_API_END_POINT}/login`, input, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      });
+      if (res.data.success) {
+        navigate("/");
+        toast.success(res.data.message);
       }
-      
+    } catch (err) {
+      console.log(err);
+      toast.error(err.response.data.message);
+    } finally {
+      dispatch(setLoading(false));
     }
-    
+  };
 
   return (
     <div>
       <Navbar />
       <div className="flex items-center justify-center max-w-7xl mx-auto">
-        <form onSubmit={submitHandler}className="w-1/2 border-gray-400 rounded-md p-4 my-10 ">
+        <form
+          onSubmit={submitHandler}
+          className="w-1/2 border-gray-400 rounded-md p-4 my-10 "
+        >
           <h1 className="font-bold text-xl mb-5">Login</h1>
           <div className="my-2">
             <Label>Email</Label>
@@ -93,9 +102,17 @@ export default function Login() {
               </div>
             </RadioGroup>
           </div>
-          <Button className="w-full my-4" type="submit">
-            Login
-          </Button>
+          {loading ? (
+            <Button className="w-full my-4">
+              {" "}
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              please wait{" "}
+            </Button>
+          ) : (
+            <Button className="w-full my-4" type="submit">
+              Login
+            </Button>
+          )}
           <span className="text-sm">
             Don't have an account?{" "}
             <Link to="/signup" className="text-blue-600">
