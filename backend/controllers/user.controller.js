@@ -87,7 +87,7 @@ export const login = async (req, res) => {
     return res
       .status(200)
       .cookie("token", token, {
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: 1 * 24 * 60 * 60 * 1000,
         httpOnly: true,
         sameSite: "strict",
       })
@@ -112,7 +112,7 @@ export const logout = async (req, res) => {
       })
       .json({
         message: "logged out successfully",
-        sucess: true,
+        success: true,
       });
   } catch (error) {
     console.log("Error in logout:", error);
@@ -135,7 +135,7 @@ export const updateProfile = async (req, res) => {
     if (!user) {
       return res.status(400).json({
         message: "user not found",
-        sucess: false,
+        success: false,
       });
     }
     if (fullname) user.fullname = fullname;
@@ -157,7 +157,7 @@ export const updateProfile = async (req, res) => {
     return res.status(200).json({
       message: "profile updated successfully",
       user,
-      sucess: true,
+      success: true,
     });
   } catch (error) {
     console.log("Error in updateProfile:", error);
