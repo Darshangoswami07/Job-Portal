@@ -17,9 +17,9 @@ export default function Navbar() {
         </div>
         <div className="flex items-center">
           <ul className="flex font-medium items-center gap-5">
-            <li className="inline-block mx-4">Home</li>
-            <li className="inline-block mx-4">Jobs</li>
-            <li className="inline-block mx-4">Browse</li>
+            <li className="inline-block mx-4"><Link to="/">Home</Link></li>
+            <li className="inline-block mx-4"><Link to="/jobs">Jobs</Link></li>
+            <li className="inline-block mx-4"><Link to="/browse">Browse</Link></li>
           </ul>
             {
                 !user ?(
