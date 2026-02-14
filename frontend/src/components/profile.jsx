@@ -36,7 +36,7 @@ export default function Profile() {
               </p>
             </div>
           </div>
-          <Button onClick={()=>setopen(true)} className="text-right " variant="outline">
+          <Button onClick={()=>setOpen(true)} className="text-right " variant="outline">
             <Pen />
           </Button>
         </div>
