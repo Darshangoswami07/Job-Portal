@@ -7,6 +7,8 @@ import Login from './components/auth/Login'
 import Signup from './components/auth/Signup'
 import Jobs from './components/Jobs'
 import Browse from './components/Browse'
+import Profile from './components/profile'
+import JobDescription from './components/JobDescription'
 
 
 
@@ -30,6 +32,14 @@ const appRouter =createBrowserRouter([
   {
     path:"/jobs",
     element:<Jobs/>
+  },
+  {
+    path:"/description/:id",
+    element:<JobDescription/>
+  },
+  {
+    path:"/profile",
+    element:<Profile />
   }
 ])
 

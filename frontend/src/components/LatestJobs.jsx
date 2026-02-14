@@ -9,7 +9,7 @@ export default function LatestJobs() {
         <h1 className='text-4xl font-bold'><span className='text-purple-500'>Latest</span> Job Opening</h1>
         <div className='grid grid-cols-3 gap-4 cols-3 my-5'>
         {
-            randomJobs.slice(0,6).map((item,index)=><LatestJobCard/>)
+            randomJobs.slice(0,6).map((item,index)=><LatestJobCard  key={item} />)
         }
         </div>
     </div>
