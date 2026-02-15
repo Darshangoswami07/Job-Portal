@@ -7,12 +7,14 @@ import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import AppliedJobTable from "./AppliedJobTable";
 import UpdateProfileDialogue from "./UpdateProfileDialogue";
+import { useSelector } from "react-redux";
 
-const skills = ["React", "Node.js", "Express", "MongoDB"];
+// const skills = ["React", "Node.js", "Express", "MongoDB"];
 const isHaveResume = true;
 
 export default function Profile() {
     const [open,setOpen]=useState(false);
+    const {user}=useSelector(store=>store.auth);
   
 
   return (
@@ -28,11 +30,9 @@ export default function Profile() {
               />
             </Avatar>
             <div>
-              <h1 className="text-xl font-medium mt-2">Full Name</h1>
+              <h1 className="text-xl font-medium mt-2">{user?.fullname}</h1>
               <p>
-                {" "}
-                Lorem ipsum dolor sit amet consectetur, adipisicing elit.
-                Dolore, numquam.
+                {user?.profile?.bio}
               </p>
             </div>
           </div>
@@ -43,18 +43,18 @@ export default function Profile() {
         <div className="my-5">
           <div className="flex gap-3 items-center my-2">
             <Mail />
-            <span>Darshan@gmail.com</span>
+            <span>{user?.email}</span>
           </div>
           <div className="flex gap-3 items-center my-2">
             <Contact />
-            <span className="ml-2">+91 1234567890</span>
+            <span className="ml-2">{user?.phoneNumber}</span>
           </div>
         </div>
         <div className="my-5">
           <h1 className="text-xl font-medium">Skills</h1>
           <div className="flex items-center gap-1">
-            {skills.length !== 0 ? (
-              skills.map((item, index) => (
+            {user?.profile?.skills.length !== 0 ? (
+              user?.profile?.skills.map((item, index) => (
                 <Badge key={index} className="mr-2">
                   {item}
                 </Badge>
