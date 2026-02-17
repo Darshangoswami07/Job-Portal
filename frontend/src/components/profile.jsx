@@ -72,8 +72,7 @@ export default function Profile() {
               target="blank"
               className="text-blue-500 w-full hover:underline cursor-pointer"
             >
-              {" "}
-              Darshan cv
+              {user?.profile?.resumeOriginalName}
             </a>
           ) : (
             <span>No resume uploaded</span>

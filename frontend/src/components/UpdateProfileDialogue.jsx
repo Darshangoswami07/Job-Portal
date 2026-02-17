@@ -44,6 +44,7 @@ export default function UpdateProfileDialogue({ open, setOpen }) {
       formData.append("file", input.file);
     }
     try {
+      setLoading(true);
       const res = await axios.post(
         `${USER_API_END_POINT}/updateprofile`,
         formData,
@@ -58,7 +59,8 @@ export default function UpdateProfileDialogue({ open, setOpen }) {
     } catch (error) {
       console.log(error);
       toast.error(error.response?.data?.message || "Update failed");
-
+    }finally{
+      setLoading(false);
     }
     setOpen(false);
     console.log(input);
