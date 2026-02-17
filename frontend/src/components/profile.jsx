@@ -13,9 +13,8 @@ import { useSelector } from "react-redux";
 const isHaveResume = true;
 
 export default function Profile() {
-    const [open,setOpen]=useState(false);
-    const {user}=useSelector(store=>store.auth);
-  
+  const [open, setOpen] = useState(false);
+  const { user } = useSelector((store) => store.auth);
 
   return (
     <div>
@@ -31,12 +30,14 @@ export default function Profile() {
             </Avatar>
             <div>
               <h1 className="text-xl font-medium mt-2">{user?.fullname}</h1>
-              <p>
-                {user?.profile?.bio}
-              </p>
+              <p>{user?.profile?.bio}</p>
             </div>
           </div>
-          <Button onClick={()=>setOpen(true)} className="text-right " variant="outline">
+          <Button
+            onClick={() => setOpen(true)}
+            className="text-right "
+            variant="outline"
+          >
             <Pen />
           </Button>
         </div>
@@ -68,8 +69,9 @@ export default function Profile() {
           <Label className="text-md font-bold">Resume</Label>
           {isHaveResume ? (
             <a
-              href=" https://google.com "
-              target="blank"
+              href={user?.profile?.resume}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-blue-500 w-full hover:underline cursor-pointer"
             >
               {user?.profile?.resumeOriginalName}
@@ -83,7 +85,7 @@ export default function Profile() {
         <h1 className="font-bold text-lg my-5">Applied Job</h1>
         <AppliedJobTable />
       </div>
-      <UpdateProfileDialogue open={open} setOpen={setOpen}/>
+      <UpdateProfileDialogue open={open} setOpen={setOpen} />
     </div>
   );
 }

@@ -152,7 +152,7 @@ export default function UpdateProfileDialogue({ open, setOpen }) {
                   id="file"
                   name="file"
                   type="file"
-                  accept="application/pdf"
+                  accept="application/pdf,image/*"
                   onChange={fileChangeHandler}
                   className="col-span-3"
                 />

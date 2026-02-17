@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 
-
 export const register = async (req, res) => {
   try {
     const { fullname, email, phoneNumber, password, role } = req.body;
@@ -15,6 +14,9 @@ export const register = async (req, res) => {
         success: false,
       });
     }
+    const file=req.file
+    const fileUri=getDataUri(file);
+    const cloudResponse=await cloudinary.uploader.upload(fileUri.content)
 
     const user = await User.findOne({ email });
     if (user) {
@@ -32,6 +34,9 @@ export const register = async (req, res) => {
       phoneNumber,
       password: hashedPassword,
       role,
+      profile:{
+        profilePhoto:cloudResponse.secure_url,
+      }
     });
 
     return res.status(201).json({
@@ -129,10 +134,19 @@ export const updateProfile = async (req, res) => {
     const file = req.file;
     let cloudResponse;
 
-    // Only upload if file exists
+
     if (file) {
       const fileUri = getDataUri(file);
-      cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+
+      if (file.mimetype === "application/pdf") {
+        cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+          resource_type: "raw",
+        });
+      } else {
+        cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+          resource_type: "image",
+        });
+      }
     }
 
     let skillsArray;
@@ -169,7 +183,6 @@ export const updateProfile = async (req, res) => {
       user,
       success: true,
     });
-
   } catch (error) {
     console.log("Error in updateProfile:", error);
   }
