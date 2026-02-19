@@ -1,5 +1,4 @@
 import React from 'react'
-import Navbar from './components/shared/Navbar'
 import './App.css'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Home from './components/Home'
@@ -9,6 +8,7 @@ import Jobs from './components/Jobs'
 import Browse from './components/Browse'
 import Profile from './components/profile'
 import JobDescription from './components/JobDescription'
+import Companies from './components/admin/Companies'
 
 
 
@@ -40,6 +40,12 @@ const appRouter =createBrowserRouter([
   {
     path:"/profile",
     element:<Profile />
+  },
+
+  //for admin now
+  {
+    path:"/admin/companies",
+    element:<Companies/>
   }
 ])
 
