@@ -24,6 +24,10 @@ const isAuthenticated = async (req, res, next) => {
     next();
   } catch (error) {
     console.log("Error in isAuthenticated middleware", error);
+    return res.status(401).json({
+      message: "Invalid token, please login again",
+      success: false,
+    });
   }
 };
 

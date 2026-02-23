@@ -14,16 +14,28 @@ export const register = async (req, res) => {
         success: false,
       });
     }
-    const file=req.file
-    const fileUri=getDataUri(file);
-    const cloudResponse=await cloudinary.uploader.upload(fileUri.content)
 
-    const user = await User.findOne({ email });
-    if (user) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
       return res.status(400).json({
         message: "user already exists with this email",
         success: false,
       });
+    }
+
+    const file = req.file;
+    let profilePhotoUrl = "";
+
+    if (file) {
+      const fileUri = getDataUri(file);
+
+      const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+        resource_type: "image",
+        format: "jpg",
+        quality: "auto",
+      });
+
+      profilePhotoUrl = cloudResponse.secure_url;
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -34,9 +46,9 @@ export const register = async (req, res) => {
       phoneNumber,
       password: hashedPassword,
       role,
-      profile:{
-        profilePhoto:cloudResponse.secure_url,
-      }
+      profile: {
+        profilePhoto: profilePhotoUrl, // safe
+      },
     });
 
     return res.status(201).json({
@@ -45,6 +57,10 @@ export const register = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in register:", error);
+    return res.status(500).json({
+      message: "Server error",
+      success: false,
+    });
   }
 };
 
@@ -95,9 +111,11 @@ export const login = async (req, res) => {
     return res
       .status(200)
       .cookie("token", token, {
-        maxAge: 1 * 24 * 60 * 60 * 1000,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "lax",
+        secure: false,
+        path: "/",
       })
       .json({
         message: `welcome back ${user.fullname}`,
@@ -116,7 +134,8 @@ export const logout = async (req, res) => {
       .cookie("token", "", {
         maxAge: 0,
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "none",
+        secure: false,
       })
       .json({
         message: "logged out successfully",
@@ -126,33 +145,9 @@ export const logout = async (req, res) => {
     console.log("Error in logout:", error);
   }
 };
-
 export const updateProfile = async (req, res) => {
   try {
     const { fullname, email, phoneNumber, bio, skills } = req.body;
-
-    const file = req.file;
-    let cloudResponse;
-
-
-    if (file) {
-      const fileUri = getDataUri(file);
-
-      if (file.mimetype === "application/pdf") {
-        cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
-          resource_type: "raw",
-        });
-      } else {
-        cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
-          resource_type: "image",
-        });
-      }
-    }
-
-    let skillsArray;
-    if (skills) {
-      skillsArray = skills.split(",");
-    }
 
     const userId = req.id;
     let user = await User.findById(userId);
@@ -168,12 +163,40 @@ export const updateProfile = async (req, res) => {
     if (email) user.email = email;
     if (phoneNumber) user.phoneNumber = phoneNumber;
     if (bio) user.profile.bio = bio;
-    if (skills) user.profile.skills = skillsArray;
 
-    // Only update resume if uploaded
-    if (cloudResponse) {
-      user.profile.resume = cloudResponse.secure_url;
-      user.profile.resumeOriginalName = file.originalname;
+    if (skills) {
+      user.profile.skills = skills.split(",");
+    }
+
+    const file = req.file;
+
+    if (file) {
+      const fileUri = getDataUri(file);
+
+      // 🔹 Resume Upload (PDF)
+      if (file.mimetype === "application/pdf") {
+        const cloudResponse = await cloudinary.uploader.upload(
+          fileUri.content,
+          {
+            resource_type: "raw",
+          },
+        );
+
+        user.profile.resume = cloudResponse.secure_url;
+        user.profile.resumeOriginalName = file.originalname;
+      } else {
+        // 🔹 Profile Image Upload (Convert to JPG)
+        const cloudResponse = await cloudinary.uploader.upload(
+          fileUri.content,
+          {
+            resource_type: "image",
+            format: "jpg", // 🔥 force convert HEIC to JPG
+            quality: "auto",
+          },
+        );
+
+        user.profile.profilePhoto = cloudResponse.secure_url;
+      }
     }
 
     await user.save();
@@ -185,5 +208,9 @@ export const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in updateProfile:", error);
+    return res.status(500).json({
+      message: "Server error",
+      success: false,
+    });
   }
 };
