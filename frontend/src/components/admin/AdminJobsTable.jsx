@@ -14,7 +14,7 @@ import { Edit2, MoreHorizontal } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-export default function CompanyTable() {
+export default function AdminJobsTable() {
   const { companies = [], searchCompanyByText = "" } =
   useSelector((store) => store.company || {});
   const navigate=useNavigate();

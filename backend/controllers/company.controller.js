@@ -74,34 +74,50 @@ export const getCompanyById = async (req, res) => {
 };
 
 export const updateCompany = async (req, res) => {
-    try {
-        const { name, description, website, location } = req.body;
-        const file=req.file;
+  try {
+    const { name, description, website, location } = req.body;
 
-        const fileUri =getDataUri(file);
-        const cloudResponse =await cloudinary.uploader.upload(fileUri.content);
-        const logo =cloudResponse.secure_url;
+    let updateData = { name, description, website, location };
 
+    if (req.file) {
+      const fileUri = getDataUri(req.file);
 
-        const updatedCompany = await Company.findByIdAndUpdate(
-            req.params.id,
-            { name, description, website, location,logo },
-            { new: true }
-        );
-
-        if (!updatedCompany) {
-            return res.status(404).json({
-                message: "Company not found",
-                success: false,
-            });
+      const cloudResponse = await cloudinary.uploader.upload(
+        fileUri.content,
+        {
+          resource_type: "image",
+          format: "jpg",
+          quality: "auto",
         }
+      );
 
-        return res.status(200).json({
-            message: "Company updated successfully",
-            success: true,
-            company: updatedCompany,
-        });
-    } catch (error) {
-        console.log("Error in updateCompany:", error);
+      updateData.logo = cloudResponse.secure_url;
     }
+
+    const updatedCompany = await Company.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    );
+
+    if (!updatedCompany) {
+      return res.status(404).json({
+        message: "Company not found",
+        success: false,
+      });
+    }
+
+    return res.status(200).json({
+      message: "Company updated successfully",
+      success: true,
+      company: updatedCompany,
+    });
+
+  } catch (error) {
+    console.log("Error in updateCompany:", error);
+    return res.status(500).json({
+      message: "Server error",
+      success: false,
+    });
+  }
 };

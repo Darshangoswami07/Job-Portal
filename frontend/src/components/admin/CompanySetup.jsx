@@ -9,8 +9,11 @@ import { COMPANY_API_END_POINT } from "@/utils/constant";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
+import useGetCompanyById from "@/hooks/useGetCompanyById";
 
 export default function CompanySetup() {
+  const params = useParams();
+   useGetCompanyById(params.id);
   const [input, setInput] = useState({
     name: "",
     description: "",
@@ -20,7 +23,6 @@ export default function CompanySetup() {
   });
   const {singleCompany}=useSelector(store=>store.company)
   const [loading, setLoading] = useState(false);
-  const params = useParams();
   const navigate = useNavigate();
 
   const changeEventHandler = (e) => {
@@ -69,14 +71,16 @@ export default function CompanySetup() {
   };
 
   useEffect(() => {
+  if (singleCompany) {
     setInput({
       name: singleCompany.name || "",
-      description:singleCompany.description|| "",
-      website:singleCompany.website|| "",
-      location:singleCompany.location|| "",
-      file:singleCompany.file|| null,
+      description: singleCompany.description || "",
+      website: singleCompany.website || "",
+      location: singleCompany.location || "",
+      file: null,
     });
-  },[singleCompany]);
+  }
+}, [singleCompany]);
   return (
     <div>
       <Navbar />
