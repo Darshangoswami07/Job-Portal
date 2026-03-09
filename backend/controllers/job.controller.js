@@ -103,13 +103,71 @@ export const getJobById = async (req, res) => {
 
 export const getAdminJobs = async (req, res) => {
   try {
-    const jobs = await Job.find({ created_by: req.id });
-
+    const adminId = req.id;
+    // populate the company field so frontend can display its name
+    const jobs = await Job.find({ created_by: adminId })
+      .populate({ path: "company" })
+      .sort({ createdAt: -1 });
+    if (!jobs || jobs.length === 0) {
+      return res.status(404).json({
+        message: "No jobs found for this admin",
+        success: false,
+      });
+    }
     return res.status(200).json({
-      success: true,
       jobs,
+      success: true,
     });
   } catch (error) {
     console.log("Error in getAdminJobs:", error);
+  }
+};
+
+// update job fields
+export const updateJob = async (req, res) => {
+  try {
+    const jobId = req.params.id;
+    const {
+      title,
+      description,
+      requirements,
+      location,
+      jobType,
+      salary,
+      experience,
+      position,
+      companyId,
+    } = req.body;
+
+    const updateData = {};
+    if (title) updateData.title = title;
+    if (description) updateData.description = description;
+    if (requirements) updateData.requirements = requirements.split(",");
+    if (location) updateData.location = location;
+    if (jobType) updateData.jobType = jobType;
+    if (salary) updateData.salary = Number(salary);
+    if (experience) updateData.experienceLevel = experience;
+    if (position) updateData.position = Number(position);
+    if (companyId) updateData.company = companyId;
+
+    const updated = await Job.findByIdAndUpdate(jobId, updateData, {
+      new: true,
+    }).populate({ path: "company" });
+
+    if (!updated) {
+      return res.status(404).json({
+        message: "Job not found",
+        success: false,
+      });
+    }
+
+    res.status(200).json({
+      message: "Job updated successfully",
+      success: true,
+      job: updated,
+    });
+  } catch (error) {
+    console.log("Error in updateJob:", error);
+    res.status(500).json({ message: "Server error", success: false });
   }
 };

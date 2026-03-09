@@ -11,6 +11,8 @@ import Companies from './components/admin/Companies'
 import CompanyCreate from './components/admin/CompanyCreate'
 import CompanySetup from './components/admin/CompanySetup'
 import AdminJobs from './components/admin/AdminJobs'
+import AdminJobCreate from './components/admin/AdminJobCreate'
+import AdminJobSetup from './components/admin/AdminJobSetup'
 
 
 
@@ -60,6 +62,14 @@ const appRouter =createBrowserRouter([
   {
     path:"/admin/jobs",
     element:<AdminJobs/>
+  },
+  {
+    path:"/admin/jobs/create",
+    element:<AdminJobCreate/>
+  },
+  {
+    path:"/admin/jobs/:id",
+    element:<AdminJobSetup/>
   },
 ])
 
