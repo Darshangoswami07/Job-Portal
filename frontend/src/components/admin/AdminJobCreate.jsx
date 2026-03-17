@@ -12,6 +12,7 @@ import { useSelector } from "react-redux";
 
 export default function AdminJobCreate() {
   const navigate = useNavigate();
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -24,7 +25,6 @@ export default function AdminJobCreate() {
     companyId: "",
   });
 
-  // load companies so user can choose which one the job belongs to
   useGetAllCompanies();
   const { companies = [] } = useSelector((store) => store.company || {});
 
@@ -46,115 +46,168 @@ export default function AdminJobCreate() {
         position: form.position,
         companyId: form.companyId,
       };
+
       const res = await axios.post(`${JOB_API_END_POINT}/post`, payload, {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
       });
+
       if (res.data.success) {
         toast.success(res.data.message);
         navigate("/admin/jobs");
       }
     } catch (error) {
-      console.log(error);
-      const msg = error?.response?.data?.message || "Failed to create job";
-      toast.error(msg);
+      toast.error(error?.response?.data?.message || "Failed to create job");
     }
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="max-w-4xl mx-auto my-10">
-        <h1 className="font-bold text-xl mb-4">Create New Job</h1>
-        <form onSubmit={submitHandler} className="space-y-4">
-          <div>
-            <Label>Title</Label>
-            <Input
-              name="title"
-              value={form.title}
-              onChange={changeHandler}
-            />
-          </div>
-          <div>
-            <Label>Description</Label>
-            <Input
-              name="description"
-              value={form.description}
-              onChange={changeHandler}
-            />
-          </div>
-          <div>
-            <Label>Requirements (comma separated)</Label>
-            <Input
-              name="requirements"
-              value={form.requirements}
-              onChange={changeHandler}
-            />
-          </div>
-          <div>
-            <Label>Location</Label>
-            <Input
-              name="location"
-              value={form.location}
-              onChange={changeHandler}
-            />
-          </div>
-          <div>
-            <Label>Job Type</Label>
-            <Input
-              name="jobType"
-              value={form.jobType}
-              onChange={changeHandler}
-            />
-          </div>
-          <div>
-            <Label>Salary</Label>
-            <Input
-              name="salary"
-              type="number"
-              value={form.salary}
-              onChange={changeHandler}
-            />
-          </div>
-          <div>
-            <Label>Experience Level</Label>
-            <Input
-              name="experience"
-              type="number"
-              value={form.experience}
-              onChange={changeHandler}
-            />
-          </div>
-          <div>
-            <Label>Open Positions</Label>
-            <Input
-              name="position"
-              type="number"
-              value={form.position}
-              onChange={changeHandler}
-            />
-          </div>
-          <div>
-            <Label>Company</Label>
-            <select
-              name="companyId"
-              value={form.companyId}
-              onChange={changeHandler}
-              className="block w-full p-2 border rounded"
-            >
-              <option value="">Select a company</option>
-              {companies.map((c) => (
-                <option key={c._id} value={c._id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate("/admin/jobs")}>Cancel</Button>
-            <Button type="submit">Create</Button>
-          </div>
-        </form>
+
+      <div className="max-w-5xl mx-auto py-10 px-4">
+
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">
+          Create New Job
+        </h1>
+
+        <div className="bg-white shadow-lg rounded-xl p-8 border">
+
+          {companies.length === 0 && (
+            <p className="text-red-600 font-semibold mb-6">
+              ⚠ Please register a company first before creating a job.
+            </p>
+          )}
+
+          <form onSubmit={submitHandler} className="space-y-6">
+
+            <div className="grid md:grid-cols-2 gap-6">
+
+              <div className="space-y-2">
+                <Label>Job Title</Label>
+                <Input
+                  name="title"
+                  value={form.title}
+                  onChange={changeHandler}
+                  placeholder="Frontend Developer"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Location</Label>
+                <Input
+                  name="location"
+                  value={form.location}
+                  onChange={changeHandler}
+                  placeholder="Delhi / Remote"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Job Type</Label>
+                <Input
+                  name="jobType"
+                  value={form.jobType}
+                  onChange={changeHandler}
+                  placeholder="Full Time / Internship"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Salary</Label>
+                <Input
+                  type="number"
+                  name="salary"
+                  value={form.salary}
+                  onChange={changeHandler}
+                  placeholder="50000"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Experience Level</Label>
+                <Input
+                  type="number"
+                  name="experience"
+                  value={form.experience}
+                  onChange={changeHandler}
+                  placeholder="2"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Open Positions</Label>
+                <Input
+                  type="number"
+                  name="position"
+                  value={form.position}
+                  onChange={changeHandler}
+                  placeholder="3"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Company</Label>
+                <select
+                  name="companyId"
+                  value={form.companyId}
+                  onChange={changeHandler}
+                  className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-black"
+                >
+                  <option value="">Select a company</option>
+                  {companies.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+            </div>
+
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={changeHandler}
+                className="w-full border rounded-md p-3"
+                placeholder="Write job description..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Requirements (comma separated)</Label>
+              <Input
+                name="requirements"
+                value={form.requirements}
+                onChange={changeHandler}
+                placeholder="React, Node.js, MongoDB"
+              />
+            </div>
+
+            <div className="flex gap-4 pt-4">
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/admin/jobs")}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                type="submit"
+                disabled={companies.length === 0}
+                className="bg-black text-white hover:bg-gray-800"
+              >
+                Create Job
+              </Button>
+
+            </div>
+
+          </form>
+        </div>
       </div>
     </div>
   );

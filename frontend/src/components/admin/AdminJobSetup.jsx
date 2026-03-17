@@ -99,6 +99,7 @@ export default function AdminJobSetup() {
               onClick={() => navigate("/admin/jobs")}
               variant="outline"
               className="flex items-center gap-2 text-gray-500 font-semibold"
+              type="button"
             >
               <ArrowLeft />
               <span>Back</span>

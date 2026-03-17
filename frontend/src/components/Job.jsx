@@ -25,7 +25,7 @@ export default function Job({job}) {
       <div className="flex items-center gap-2 my-2">
         <Button variant="outline" className="rounded-full p-5" size="icon">
           <Avatar>
-            <AvatarImage src="https://tse1.mm.bing.net/th/id/OIP.Tlxk3lOkAZgk5_8_03A8MwAAAA?rs=1&pid=ImgDetMain&o=7&rm=3" />
+            <AvatarImage src={job?.company?.logo} />
           </Avatar>
         </Button>
         <div>
