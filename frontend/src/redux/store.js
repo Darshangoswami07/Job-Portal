@@ -18,14 +18,15 @@ const persistConfig = {
   key: "root",
   version: 1,
   storage,
+  blacklist: ["job"],
 };
 
-const rootReducer= combineReducers({
-    auth:authSlice,
-    job:jobSlice,
-    company:companySlice,
-    application:applicationSlice
-})
+const rootReducer = combineReducers({
+  auth: authSlice,
+  job: jobSlice,
+  company: companySlice,
+  application: applicationSlice,
+});
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 const store = configureStore({

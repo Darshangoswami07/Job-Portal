@@ -44,7 +44,7 @@ export const applyjob = async (req, res) => {
       application: newApplication,
     });
   } catch (error) {
-    console.log("Error in applyjob:", error);
+    console.error("Error in applyjob:", error);
   }
 };
     export const getAppliedjobs =async (req, res) => {
@@ -69,7 +69,7 @@ export const applyjob = async (req, res) => {
                 success:true,                
               });
         }catch(error){
-            console.log("Error in getAppliedjobs:", error);
+            console.error("Error in getAppliedjobs:", error);
         }
     }
 //admin see how many applicants applied for a job
@@ -95,7 +95,7 @@ export const applyjob = async (req, res) => {
                     success:true,
                 });
         }catch(error){
-            console.log("Error in getApplicants:", error);
+            console.error("Error in getApplicants:", error);
         }
     }
 
@@ -127,6 +127,6 @@ export const applyjob = async (req, res) => {
                 success:true,
             });
         }catch(error){
-            console.log("Error in updateStatus:", error);
+            console.error("Error in updateStatus:", error);
         }
     }

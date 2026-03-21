@@ -9,13 +9,15 @@ export default function useGetAllAdminJobs() {
     useEffect(()=>{
         const fetchAllAdminJobs =async()=>{
             try{
-                const res =await axios.get(`${JOB_API_END_POINT}/getadminjobs`,{withCredentials:true});
-                if (res.data.success){
-                    dispatch(setAllAdminJobs(res.data.jobs));
+                const res = await axios.get(`${JOB_API_END_POINT}/getadminjobs`, { withCredentials: true });
+                if (res.data.success) {
+                    dispatch(setAllAdminJobs(res.data.jobs || []));
+                } else {
+                    dispatch(setAllAdminJobs([]));
                 }
-            }catch(error){
+            } catch (error) {
                 console.log(error);
-                
+                dispatch(setAllAdminJobs([]));
             }
         }
         fetchAllAdminJobs();

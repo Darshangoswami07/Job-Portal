@@ -2,23 +2,30 @@ import { JOB_API_END_POINT } from '@/utils/constant';
 import { setAllJobs } from '@/redux/jobSlice';
 import axios from 'axios';
 import  { useEffect } from 'react'
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 export default function useGetAllJobs() {
-    const dispatch =useDispatch();
-    useEffect(()=>{
-        const fetchAllJobs =async()=>{
-            try{
-                const res =await axios.get(`${JOB_API_END_POINT}/get`,{withCredentials:true});
-                if (res.data.success){
-                    dispatch(setAllJobs(res.data.jobs));
+    const dispatch = useDispatch();
+    const { searchedQuery } = useSelector((store) => store.job || {});
+
+    useEffect(() => {
+        const fetchAllJobs = async () => {
+            try {
+                const keyword = searchedQuery || "";
+                const url = `${JOB_API_END_POINT}/get?keyword=${encodeURIComponent(keyword)}`;
+                const res = await axios.get(url, { withCredentials: true });
+
+                if (res.data && res.data.success) {
+                    dispatch(setAllJobs(res.data.jobs || []));
+                } else {
+                    dispatch(setAllJobs([]));
                 }
-            }catch(error){
-                console.log(error);
-                
+            } catch (error) {
+                console.error("useGetAllJobs error:", error);
+                dispatch(setAllJobs([]));
             }
-        }
+        };
         fetchAllJobs();
-    },[])
-  
+    }, [dispatch, searchedQuery]);
 }
+

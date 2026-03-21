@@ -32,7 +32,7 @@ export const registerCompany = async (req, res) => {
             company: newCompany,
         });
     } catch (error) {
-        console.log("Error in registerCompany:", error);
+        console.error("Error in registerCompany:", error);
     }
 };
 
@@ -47,7 +47,7 @@ export const getCompany = async (req, res) => {
             companies,
         });
     } catch (error) {
-        console.log("Error in getCompany:", error);
+        console.error("Error in getCompany:", error);
     }
 };
 
@@ -69,7 +69,7 @@ export const getCompanyById = async (req, res) => {
             company,
         });
     } catch (error) {
-        console.log("Error in getCompanyById:", error);
+        console.error("Error in getCompanyById:", error);
     }
 };
 
@@ -114,7 +114,7 @@ export const updateCompany = async (req, res) => {
     });
 
   } catch (error) {
-    console.log("Error in updateCompany:", error);
+    console.error("Error in updateCompany:", error);
     return res.status(500).json({
       message: "Server error",
       success: false,

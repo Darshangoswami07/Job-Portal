@@ -23,7 +23,7 @@ const isAuthenticated = async (req, res, next) => {
     req.id = decoded.userId;
     next();
   } catch (error) {
-    console.log("Error in isAuthenticated middleware", error);
+    console.error("Error in isAuthenticated middleware:", error);
     return res.status(401).json({
       message: "Invalid token, please login again",
       success: false,

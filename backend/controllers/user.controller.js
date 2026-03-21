@@ -56,7 +56,7 @@ export const register = async (req, res) => {
       success: true,
     });
   } catch (error) {
-    console.log("Error in register:", error);
+    console.error("Error in register:", error);
     return res.status(500).json({
       message: "Server error",
       success: false,
@@ -123,7 +123,7 @@ export const login = async (req, res) => {
         success: true,
       });
   } catch (error) {
-    console.log("Error in login:", error);
+    console.error("Error in login:", error);
   }
 };
 
@@ -141,9 +141,7 @@ export const logout = async (req, res) => {
         message: "logged out successfully",
         success: true,
       });
-  } catch (error) {
-    console.log("Error in logout:", error);
-  }
+  } catch (error) {    console.error("Error in logout:", error);  }
 };
 export const updateProfile = async (req, res) => {
   try {
@@ -207,7 +205,7 @@ export const updateProfile = async (req, res) => {
       success: true,
     });
   } catch (error) {
-    console.log("Error in updateProfile:", error);
+    console.error("Error in updateProfile:", error);
     return res.status(500).json({
       message: "Server error",
       success: false,
