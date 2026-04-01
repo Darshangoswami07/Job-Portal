@@ -1,6 +1,9 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import https from "https";
+import http from "http";
+import { URL } from "url";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 
@@ -206,6 +209,66 @@ export const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in updateProfile:", error);
+    return res.status(500).json({
+      message: "Server error",
+      success: false,
+    });
+  }
+};
+
+export const getResume = async (req, res) => {
+  try {
+    const userId = req.id;
+    const user = await User.findById(userId);
+
+    if (!user || !user.profile?.resume) {
+      return res.status(404).json({
+        message: "Resume not found",
+        success: false,
+      });
+    }
+
+    const resumeUrl = user.profile.resume;
+    const resumeName = user.profile.resumeOriginalName || "resume";
+    const parsedUrl = new URL(resumeUrl);
+    const client = parsedUrl.protocol === "http:" ? http : https;
+
+    client
+      .get(parsedUrl, (proxyRes) => {
+        if (proxyRes.statusCode >= 300 && proxyRes.statusCode < 400 && proxyRes.headers.location) {
+          const redirectUrl = new URL(proxyRes.headers.location, parsedUrl);
+          return client.get(redirectUrl, (redirectRes) => {
+            res.setHeader(
+              "Content-Type",
+              redirectRes.headers["content-type"] || "application/pdf",
+            );
+            res.setHeader(
+              "Content-Disposition",
+              `inline; filename="${resumeName}"`,
+            );
+            redirectRes.pipe(res);
+          });
+        }
+
+        res.setHeader(
+          "Content-Type",
+          proxyRes.headers["content-type"] || "application/pdf",
+        );
+        res.setHeader(
+          "Content-Disposition",
+          `inline; filename="${resumeName}"`,
+        );
+        proxyRes.pipe(res);
+      })
+      .on("error", (err) => {
+        console.error("Error proxying resume:", err);
+        return res.status(500).json({
+          message: "Unable to proxy resume",
+          success: false,
+        });
+      });
+  } catch (error) {
+    console.error("Error in getResume:", error);
     return res.status(500).json({
       message: "Server error",
       success: false,

@@ -9,6 +9,7 @@ import AppliedJobTable from "./AppliedJobTable";
 import UpdateProfileDialogue from "./UpdateProfileDialogue";
 import { useSelector } from "react-redux";
 import useGetAppliedJobs from "@/hooks/useGetAppliedJobs";
+import { USER_API_END_POINT } from "@/utils/constant";
 
 // const skills = ["React", "Node.js", "Express", "MongoDB"];
 const isHaveResume = true;
@@ -17,6 +18,8 @@ export default function Profile() {
   useGetAppliedJobs();
   const [open, setOpen] = useState(false);
   const { user } = useSelector((store) => store.auth);
+
+  const resumeUrl = `${USER_API_END_POINT}/resume`;
 
   return (
     <div>
@@ -71,7 +74,7 @@ export default function Profile() {
           <Label className="text-md font-bold">Resume</Label>
           {isHaveResume ? (
             <a
-              href={user?.profile?.resume}
+              href={resumeUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-500 w-full hover:underline cursor-pointer"

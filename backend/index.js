@@ -8,6 +8,7 @@ import userRoutes from "./routes/user.route.js";
 import companyRoutes from "./routes/company.route.js";
 import jobRoutes from "./routes/job.route.js";
 import applicationRoutes from "./routes/application.route.js";
+import savedJobRoutes from "./routes/savedJob.route.js";
 
 
 const app = express();
@@ -18,6 +19,11 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
   process.env.FRONTEND_URL || "http://localhost:5174",
   "http://localhost:5173",
+  "http://localhost:5175",
+  "http://localhost:5176",
+  "http://localhost:5177",
+  "http://localhost:5178",
+  "http://localhost:5179",
 ];
 
 app.use(cors({
@@ -36,6 +42,7 @@ app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/company", companyRoutes);
 app.use("/api/v1/job", jobRoutes);
 app.use("/api/v1/application", applicationRoutes);
+app.use("/api/v1/saved-jobs", savedJobRoutes);
 
 const PORT = process.env.PORT || 8000;
 

@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
-import { LogOut, User2 } from "lucide-react";
+import { LogOut, User2, Bookmark } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { USER_API_END_POINT } from "../../utils/constant";
@@ -30,7 +30,9 @@ export default function Navbar() {
     }
   };
   return (
-    <div className="bg-white ">
+    <div
+      className="bg-white"
+    >
       <div className="flex justify-between mx-auto max-w-7xl h-16">
         <div>
           <h1 className="text-2xl font-bold">
@@ -101,12 +103,20 @@ export default function Navbar() {
                   
                     {
                       user && user.role==="student"&&(
-                       < div className="w-fit flex cursor-pointer items-center">
-                    <User2 />
-                    <Button variant="link">
-                      <Link to="/profile">View Profile</Link>
-                    </Button>
-                  </div>
+                       <>
+                        <div className="w-fit flex cursor-pointer items-center">
+                          <User2 />
+                          <Button variant="link">
+                            <Link to="/profile">View Profile</Link>
+                          </Button>
+                        </div>
+                        <div className="w-fit flex cursor-pointer items-center">
+                          <Bookmark />
+                          <Button variant="link">
+                            <Link to="/saved-jobs">Saved Jobs</Link>
+                          </Button>
+                        </div>
+                       </>
                       )
                     }
                     

@@ -62,7 +62,9 @@ export default function AppliedJobTable() {
                 return (
                   <TableRow key={key} className="hover:bg-slate-50 transition-colors">
                     <TableCell className="text-sm text-slate-700">
-                      {appliedjob.createdAt?.split("T")[0] || "-"}
+                      {appliedjob.createdAt
+                        ? new Date(appliedjob.createdAt).toISOString().split("T")[0]
+                        : "-"}
                     </TableCell>
                     <TableCell className="text-sm text-slate-700 font-medium">
                       {job.title || "(job removed)"}

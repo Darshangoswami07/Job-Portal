@@ -1,40 +1,248 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 import Navbar from "./shared/Navbar";
 import FilterCard from "./FilterCard";
-import Job from "./job";
-import { useSelector } from "react-redux";
+import Job from "./Job";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { setSearchQuery } from "@/redux/jobSlice";
 import useGetAllJobs from "@/hooks/useGetAllJobs";
+import { motion } from "framer-motion";
+import { SAVED_JOB_API_END_POINT } from "@/utils/constant";
 
-const jobAarray = [1, 2, 3, 4, 5, 6, 7, 8];
+const createEmptyFilters = () => ({
+  location: new Set(),
+  industry: new Set(),
+  salary: new Set(),
+  experience: new Set(),
+});
+
+const MotionGrid = motion.div;
+const MotionCard = motion.div;
 
 export default function Jobs() {
   useGetAllJobs();
-  const {allJobs}=useSelector(store=>store.job);
+
+  const dispatch = useDispatch();
+  const { allJobs = [], searchedQuery = "" } = useSelector(
+    (store) => store.job
+  );
+  const navigate = useNavigate();
+  const [selectedFilters, setSelectedFilters] = useState(createEmptyFilters);
+  const [savedJobIds, setSavedJobIds] = useState(new Set());
+
+  const handleToggleFilter = (category, value, isChecked) => {
+    setSelectedFilters((prev) => {
+      const newSet = new Set(prev[category]);
+      isChecked ? newSet.add(value) : newSet.delete(value);
+
+      return { ...prev, [category]: newSet };
+    });
+  };
+
+  const handleClearAll = () => {
+    setSelectedFilters(createEmptyFilters());
+  };
+
+  useEffect(() => {
+    if (searchedQuery) {
+      dispatch(setSearchQuery(""));
+    }
+  }, [dispatch, searchedQuery]);
+
+  useEffect(() => {
+    async function loadSavedJobs() {
+      const url = `${SAVED_JOB_API_END_POINT}/me`;
+
+      try {
+        const res = await axios.get(url, {
+          withCredentials: true,
+        });
+        const saved = res.data.savedJobs || [];
+        const ids = saved
+          .map((item) => item.jobId?._id || item.jobId || item.job?._id || item._id)
+          .filter(Boolean)
+          .map((id) => String(id));
+        setSavedJobIds(new Set(ids));
+      } catch (error) {
+        console.error("Error fetching saved jobs:", error);
+        setSavedJobIds(new Set());
+      }
+    }
+
+    loadSavedJobs();
+  }, []);
+
+  const handleToggleSaved = async (jobId, currentlySaved) => {
+    const normalizedJobId = String(jobId);
+
+    setSavedJobIds((prev) => {
+      const next = new Set(prev);
+      currentlySaved ? next.delete(normalizedJobId) : next.add(normalizedJobId);
+      return next;
+    });
+
+    try {
+      if (currentlySaved) {
+        await axios.delete(`${SAVED_JOB_API_END_POINT}/${normalizedJobId}`, {
+          withCredentials: true,
+        });
+      } else {
+        await axios.post(
+          `${SAVED_JOB_API_END_POINT}/post`,
+          { jobId: normalizedJobId },
+          { withCredentials: true }
+        );
+      }
+    } catch (error) {
+      console.error("Saved job request failed:", error);
+      if (error.response?.status === 401) {
+        navigate("/login");
+        return;
+      }
+      setSavedJobIds((prev) => {
+        const next = new Set(prev);
+        currentlySaved ? next.add(normalizedJobId) : next.delete(normalizedJobId);
+        return next;
+      });
+    }
+  };
+
+  // ✅ FILTER LOGIC (UNCHANGED)
+  const filteredJobs = useMemo(() => {
+    let jobs = [...allJobs];
+
+    if (searchedQuery.trim()) {
+      const q = searchedQuery.toLowerCase();
+      jobs = jobs.filter((job) =>
+        job?.title?.toLowerCase().includes(q) ||
+        job?.description?.toLowerCase().includes(q) ||
+        job?.location?.toLowerCase().includes(q)
+      );
+    }
+
+    const activeFilters = Object.entries(selectedFilters).filter(
+      ([, values]) => values.size > 0
+    );
+
+    if (!activeFilters.length) return jobs;
+
+    return jobs.filter((job) => {
+      return activeFilters.every(([category, values]) => {
+        if (category === "experience") return true;
+
+        if (category === "salary") {
+          const salaryLpa = Number(job?.salary);
+          const salary = Number.isFinite(salaryLpa)
+            ? salaryLpa * 100000
+            : Number(job?.salary);
+
+          return [...values].some((value) => {
+            if (value === "0-40k") return salary <= 40000;
+            if (value === "42-1lakh") return salary > 40000 && salary <= 100000;
+            if (value === "1-5lakh") return salary > 100000 && salary <= 500000;
+            if (value === "5lakh+") return salary > 500000;
+            return false;
+          });
+        }
+
+        let jobValue = "";
+
+        if (category === "industry") {
+          jobValue = job?.title || "";
+        } else if (category === "location") {
+          jobValue = job?.location || job?.company?.location || "";
+        }
+
+        if (!jobValue) return false;
+
+        return [...values].some((value) =>
+          jobValue.toLowerCase().includes(value.toLowerCase())
+        );
+      });
+    });
+  }, [allJobs, searchedQuery, selectedFilters]);
+
   return (
-    <div>
+    <div className="min-h-screen bg-slate-50">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto mt-5 px-4">
-        <div className="flex flex-col lg:flex-row gap-5">
-          <div className="w-full lg:w-[20%]">
-            <FilterCard />
-          </div>
-          {allJobs.length <= 0 ? (
-            <div className="flex-1 min-h-[60vh] flex items-center justify-center">
-              <div className="text-center space-y-3">
-                <h2 className="text-2xl font-bold text-slate-700">No Jobs Found</h2>
-                <p className="text-slate-500">Try adjusting your search criteria or check back later.</p>
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-[320px_1fr] items-start">
+
+          {/* Sidebar */}
+          <aside className="sticky top-24">
+            <FilterCard
+              selectedFilters={selectedFilters}
+              onToggle={handleToggleFilter}
+              onClearAll={handleClearAll}
+              onRemoveChip={(category, value) =>
+                handleToggleFilter(category, value, false)
+              }
+            />
+          </aside>
+
+          {/* Jobs Section */}
+          <main className="space-y-6">
+            {/* Header */}
+            <div className="rounded-[2rem] border border-slate-200/80 bg-white/90 p-6 shadow-[0_28px_80px_-42px_rgba(15,23,42,0.2)] backdrop-blur-xl">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="space-y-2">
+                  <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                    Jobs Found
+                  </h1>
+                  <p className="max-w-2xl text-sm text-slate-500">
+                    Explore the latest job listings with refined filters and a modern dashboard layout.
+                  </p>
+                </div>
+                <span className="inline-flex items-center rounded-full bg-indigo-100 px-4 py-2 text-sm font-semibold text-indigo-700 ring-1 ring-indigo-200">
+                  {filteredJobs.length} results
+                </span>
               </div>
             </div>
-          ) : (
-            <div className="flex-1 min-h-[88vh] overflow-y-auto pb-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {allJobs.map((job) => (
-                  <div key={job?._id} ><Job job={job} /></div>
+
+            {/* Empty State */}
+            {filteredJobs.length === 0 ? (
+              <div className="rounded-[2rem] border border-slate-200/70 bg-white/90 p-10 text-center shadow-sm">
+                <div className="text-5xl mb-4">🔍</div>
+                <h2 className="text-lg font-semibold text-slate-800">No jobs found</h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  Try adjusting filters or search keywords to discover more opportunities.
+                </p>
+              </div>
+            ) : (
+              <MotionGrid
+                className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: {},
+                  visible: {
+                    transition: { staggerChildren: 0.08 },
+                  },
+                }}
+              >
+                {filteredJobs.map((job) => (
+                  <MotionCard
+                    key={job?._id}
+                    variants={{
+                      hidden: { opacity: 0, y: 24 },
+                      visible: { opacity: 1, y: 0 },
+                    }}
+                    transition={{ duration: 0.35, ease: "easeOut" }}
+                    whileHover={{ y: -4 }}
+                    className="rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_24px_60px_-32px_rgba(15,23,42,0.16)] transition-transform duration-300"
+                  >
+                    <Job
+                      job={job}
+                      isSaved={savedJobIds.has(String(job?._id))}
+                      onToggleSaved={handleToggleSaved}
+                    />
+                  </MotionCard>
                 ))}
-              </div>
-            </div>
-          )}
+              </MotionGrid>
+            )}
+          </main>
         </div>
       </div>
     </div>
