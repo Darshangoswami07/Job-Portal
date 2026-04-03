@@ -6,10 +6,10 @@
   "author": "",
   "type": "module",
   "main": "index.js",
-  "scripts": {
-    "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+ "scripts": {
+  "start": "node index.js",
+  "dev": "nodemon index.js"
+},
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.9.0",
