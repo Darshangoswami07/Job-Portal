@@ -1,5 +1,5 @@
 import React from "react";
-import { Badge } from "./ui/Badge";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 
 export default function LatestJobCard({job}) {

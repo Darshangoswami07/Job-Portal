@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription,} from "./ui/dialog";
-import { Label } from "./ui/label";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
-import { setUser } from "@/redux/authSlice";
+import { setUser } from "@/store/slices/authSlice";
 import { toast } from "sonner";
-import { USER_API_END_POINT } from "../utils/constant";
+import { USER_API_END_POINT } from "@/utils/constant";
 
 export default function UpdateProfileDialogue({ open, setOpen }) {
   const [loading, setLoading] = useState(false);

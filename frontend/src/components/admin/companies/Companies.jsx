@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { motion as Motion } from "framer-motion";
-import Navbar from "../shared/Navbar";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
+import Navbar from "../../shared/Navbar";
+import { Input } from "../../ui/input";
+import { Button } from "../../ui/button";
 import CompanyTable from "./CompanyTable";
 import { useNavigate } from "react-router-dom";
 import useGetAllCompanies from "@/hooks/useGetAllCompanies";

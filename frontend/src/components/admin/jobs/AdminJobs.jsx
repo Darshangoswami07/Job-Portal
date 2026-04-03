@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { motion as Motion } from "framer-motion";
-import Navbar from "@/components/shared/Navbar";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import Navbar from "../../shared/Navbar";
+import { Input } from "../../ui/input";
+import { Button } from "../../ui/button";
 import { useNavigate } from "react-router-dom";
 import { setSearchJobByText } from "@/store/slices/jobSlice";
 import { useDispatch } from "react-redux";

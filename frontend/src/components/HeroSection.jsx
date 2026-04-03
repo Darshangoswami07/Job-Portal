@@ -1,4 +1,4 @@
-import { setSearchQuery } from '@/redux/jobSlice';
+import { setSearchQuery } from '@/store/slices/jobSlice';
 import { Search } from 'lucide-react'
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux';

@@ -2,7 +2,7 @@ import { JOB_API_END_POINT } from '@/utils/constant';
 import axios from 'axios';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { setSingleJob } from '@/redux/jobSlice';
+import { setSingleJob } from '@/store/slices/jobSlice';
 
 export default function useGetJobById(jobId) {
   const dispatch = useDispatch();

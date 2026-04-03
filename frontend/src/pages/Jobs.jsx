@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import Navbar from "./shared/Navbar";
-import FilterCard from "./filters/FilterCard";
-import Job from "./job/Job";
+import Navbar from "@/components/shared/Navbar";
+import FilterCard from "@/components/filters/FilterCard";
+import Job from "@/components/job/Job";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setSearchQuery } from "@/store/slices/jobSlice";
@@ -108,7 +108,6 @@ export default function Jobs() {
     }
   };
 
-  // ✅ FILTER LOGIC (UNCHANGED)
   const filteredJobs = useMemo(() => {
     let jobs = [...allJobs];
 
@@ -170,7 +169,6 @@ export default function Jobs() {
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[320px_1fr] items-start">
 
-          {/* Sidebar */}
           <aside className="sticky top-24">
             <FilterCard
               selectedFilters={selectedFilters}
@@ -182,9 +180,7 @@ export default function Jobs() {
             />
           </aside>
 
-          {/* Jobs Section */}
           <main className="space-y-6">
-            {/* Header */}
             <div className="rounded-[2rem] border border-slate-200/80 bg-white/90 p-6 shadow-[0_28px_80px_-42px_rgba(15,23,42,0.2)] backdrop-blur-xl">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div className="space-y-2">
@@ -201,7 +197,6 @@ export default function Jobs() {
               </div>
             </div>
 
-            {/* Empty State */}
             {filteredJobs.length === 0 ? (
               <div className="rounded-[2rem] border border-slate-200/70 bg-white/90 p-10 text-center shadow-sm">
                 <div className="text-5xl mb-4">🔍</div>

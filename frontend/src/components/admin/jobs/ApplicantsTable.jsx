@@ -7,7 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../ui/table";
+} from "../../ui/table";
 import axios from "axios";
 import { APPLICATION_API_END_POINT } from "@/utils/constant";
 import { toast } from "sonner";

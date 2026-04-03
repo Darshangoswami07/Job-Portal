@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import Navbar from "../shared/Navbar";
+import Navbar from "@/components/shared/Navbar";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { RadioGroup } from "../ui/radio-group";
-import { Button } from "../ui/button";
+import { RadioGroup } from "@/components/ui/radio-group";
+import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { USER_API_END_POINT } from "../../utils/constant";
+import { USER_API_END_POINT } from "@/utils/constant";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
-import { setLoading } from "@/redux/authSlice";
+import { setLoading } from "@/store/slices/authSlice";
 import { Loader2 } from "lucide-react";
 
 export default function Signup() {
