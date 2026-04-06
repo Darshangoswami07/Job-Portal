@@ -1,25 +1,59 @@
 # 🚀 Job Portal (MERN Stack)
 
-A full-stack Job Portal web application that allows users to explore job opportunities, apply for jobs, and manage applications. Recruiters can post jobs, manage listings, and track applicants.
+![Frontend](https://img.shields.io/badge/Frontend-React-blue?logo=react)
+![Backend](https://img.shields.io/badge/Backend-Node.js-green?logo=node.js)
+![Database](https://img.shields.io/badge/Database-MongoDB-green?logo=mongodb)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
+A **full-stack Job Portal application** built using the MERN stack. This platform enables users to search and apply for jobs, while recruiters can post and manage job listings efficiently.
 
 ---
 
-## 📌 Features
+## 🌐 Live Demo
 
-### 👨‍💼 User Features
+🚀 **Frontend:** https://your-frontend-url.vercel.app
+⚙️ **Backend API:** https://your-backend-url.onrender.com
 
-* Browse and search jobs dynamically
-* Apply for jobs
-* Save/bookmark jobs
-* View applied jobs history
-* User authentication (Login/Register)
+---
 
-### 🧑‍💻 Recruiter Features
+## 📸 Screenshots
 
-* Post new jobs
-* Manage job listings
-* View applicants
-* Update or delete job posts
+### 🏠 Home Page
+<img width="100%" src="https://github.com/user-attachments/assets/3586949d-2e1e-4c0e-8392-f2d1bcac76a5" />
+
+---
+
+### 💼 Job Listings
+<img width="100%" src="https://github.com/user-attachments/assets/b8469e51-b0b0-4f30-877e-e4eb1b03cb3c" />
+
+---
+
+### 🔐 Login / Register
+<img width="100%" src="https://github.com/user-attachments/assets/bbeec10f-16c0-49f3-ba5d-9b61b724adfd" />
+
+---
+
+### 📊 Dashboard
+<img width="100%" src="https://github.com/user-attachments/assets/4caac4b1-0f71-4ef7-9cb5-78088999f6bd" />
+
+---
+
+## ✨ Features
+
+### 👨‍💼 User
+
+* 🔍 Search and filter jobs
+* 📄 Apply to jobs
+* 💾 Save/bookmark jobs
+* 📊 Track applications
+* 🔐 Secure authentication
+
+### 🧑‍💻 Recruiter
+
+* 📝 Post new jobs
+* ✏️ Edit/Delete jobs
+* 👀 View applicants
+* 📋 Manage listings
 
 ---
 
@@ -128,12 +162,12 @@ npm run dev
 ## 🔐 Authentication
 
 * JWT-based authentication
-* Secure password hashing
-* Protected routes using middleware
+* Protected routes with middleware
+* Secure password handling
 
 ---
 
-## 📡 API Overview
+## 📡 API Endpoints
 
 | Method | Endpoint           | Description   |
 | ------ | ------------------ | ------------- |
@@ -141,32 +175,39 @@ npm run dev
 | POST   | /api/auth/login    | Login user    |
 | GET    | /api/jobs          | Get all jobs  |
 | POST   | /api/jobs          | Create job    |
-| GET    | /api/jobs/:id      | Get job by ID |
+| GET    | /api/jobs/:id      | Get job       |
 | DELETE | /api/jobs/:id      | Delete job    |
 
 ---
 
 ## 💡 Key Highlights
 
-* Clean folder structure (MVC architecture)
-* Scalable backend design
-* Responsive UI with Tailwind
-* RESTful API design
-* Ready for production deployment
+* 🧱 Clean MVC architecture
+* ⚡ Fast frontend with Vite
+* 📱 Fully responsive UI
+* 🔄 RESTful API design
+* ☁️ Deployment-ready structure
 
 ---
 
 ## 🧑‍💻 Author
 
 **Darshan Goswami**
-Frontend Developer | MERN Stack Developer
+MERN Stack Developer
 
 📧 Email: [goswamidarshan12345@gmail.com](mailto:goswamidarshan12345@gmail.com)
 🌐 Portfolio: https://silver-bienenstitch-7d8c59.netlify.app
 
 ---
 
-## ⭐ Support
+## 🤝 Contribution
+
+Contributions are welcome!
+Feel free to fork this repo and submit a PR.
+
+---
+
+## ⭐ Show Your Support
 
 If you like this project, give it a ⭐ on GitHub!
 
