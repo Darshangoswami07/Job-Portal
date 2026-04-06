@@ -11,8 +11,8 @@ A **full-stack Job Portal application** built using the MERN stack. This platfor
 
 ## 🌐 Live Demo
 
-🚀 **Frontend:** https://your-frontend-url.vercel.app
-⚙️ **Backend API:** https://your-backend-url.onrender.com
+🚀 **Frontend:** https://job-portal-kappa-nine.vercel.app
+⚙️ **Backend API:** https://job-portal-backend-o9lb.onrender.com
 
 ---
 
@@ -37,47 +37,30 @@ A **full-stack Job Portal application** built using the MERN stack. This platfor
 <img width="100%" src="https://github.com/user-attachments/assets/4caac4b1-0f71-4ef7-9cb5-78088999f6bd" />
 
 ---
-
-## ✨ Features
-
-### 👨‍💼 User
-
-* 🔍 Search and filter jobs
-* 📄 Apply to jobs
-* 💾 Save/bookmark jobs
-* 📊 Track applications
-* 🔐 Secure authentication
-
-### 🧑‍💻 Recruiter
-
-* 📝 Post new jobs
-* ✏️ Edit/Delete jobs
-* 👀 View applicants
-* 📋 Manage listings
-
----
-
-## 🏗️ Tech Stack
-
-### Frontend
-
-* React (Vite)
-* Tailwind CSS
-* Axios
-* React Router
-
-### Backend
-
-* Node.js
-* Express.js
-* MongoDB (Mongoose)
-* JWT Authentication
-
----
-
-## 📂 Project Structure
-
-```
+✨ Features
+👨‍💼 User
+🔍 Search and filter jobs
+📄 Apply to jobs
+💾 Save/bookmark jobs
+📊 Track applications
+🔐 Secure authentication
+🧑‍💻 Recruiter
+📝 Post new jobs
+✏️ Edit/Delete jobs
+👀 View applicants
+📋 Manage listings
+🏗️ Tech Stack
+Frontend
+React (Vite)
+Tailwind CSS
+Axios
+React Router
+Backend
+Node.js
+Express.js
+MongoDB (Mongoose)
+JWT Authentication
+📂 Project Structure
 Job-Portal/
 │
 ├── backend/
@@ -95,120 +78,64 @@ Job-Portal/
 │   └── index.html
 │
 └── README.md
-```
-
----
-
-## ⚙️ Environment Variables
-
-### Backend (.env)
-
-```
+⚙️ Environment Variables
+Backend (.env)
 PORT=5000
 MONGO_URI=your_mongodb_connection
-JWT_SECRET=your_secret_key
+SECRET_KEY=your_secret_key
 FRONTEND_URL=http://localhost:5173
-```
-
----
-
-## 🛠️ Installation & Setup
-
-### 1️⃣ Clone Repository
-
-```bash
-git clone https://github.com/your-username/job-portal.git
-cd job-portal
-```
-
----
-
-### 2️⃣ Backend Setup
-
-```bash
+🛠️ Installation & Setup
+1️⃣ Clone Repository
+git clone https://github.com/Darshangoswami07/Job-Portal.git
+cd Job-Portal
+2️⃣ Backend Setup
 cd backend
 npm install
 npm run dev
-```
-
----
-
-### 3️⃣ Frontend Setup
-
-```bash
+3️⃣ Frontend Setup
 cd frontend
 npm install
 npm run dev
-```
+🚀 Deployment
+Backend (Render)
+Root Directory: backend
+Build Command: npm install
+Start Command: npm start
+Frontend (Vercel)
+Root Directory: frontend
+Build Command: npm run build
+Output Directory: dist
+🔐 Authentication
+JWT-based authentication
+Protected routes with middleware
+Secure password handling
+📡 API Endpoints
+Method	Endpoint	Description
+POST	/api/v1/user/register	Register user
+POST	/api/v1/user/login	Login user
+GET	/api/v1/job	Get all jobs
+POST	/api/v1/job	Create job
+GET	/api/v1/job/	Get job
+DELETE	/api/v1/job/	Delete job
+💡 Key Highlights
+🧱 Clean MVC architecture
+⚡ Fast frontend with Vite
+📱 Fully responsive UI
+🔄 RESTful API design
+☁️ Deployment-ready structure
+🧑‍💻 Author
 
----
-
-## 🚀 Deployment
-
-### Backend (Render)
-
-* Root Directory: `backend`
-* Build Command: `npm install`
-* Start Command: `npm start`
-
-### Frontend (Vercel)
-
-* Root Directory: `frontend`
-* Build Command: `npm run build`
-* Output Directory: `dist`
-
----
-
-## 🔐 Authentication
-
-* JWT-based authentication
-* Protected routes with middleware
-* Secure password handling
-
----
-
-## 📡 API Endpoints
-
-| Method | Endpoint           | Description   |
-| ------ | ------------------ | ------------- |
-| POST   | /api/auth/register | Register user |
-| POST   | /api/auth/login    | Login user    |
-| GET    | /api/jobs          | Get all jobs  |
-| POST   | /api/jobs          | Create job    |
-| GET    | /api/jobs/:id      | Get job       |
-| DELETE | /api/jobs/:id      | Delete job    |
-
----
-
-## 💡 Key Highlights
-
-* 🧱 Clean MVC architecture
-* ⚡ Fast frontend with Vite
-* 📱 Fully responsive UI
-* 🔄 RESTful API design
-* ☁️ Deployment-ready structure
-
----
-
-## 🧑‍💻 Author
-
-**Darshan Goswami**
+Darshan Goswami
 MERN Stack Developer
 
-📧 Email: [goswamidarshan12345@gmail.com](mailto:goswamidarshan12345@gmail.com)
+📧 Email: goswamidarshan12345@gmail.com
 🌐 Portfolio: https://silver-bienenstitch-7d8c59.netlify.app
 
----
-
-## 🤝 Contribution
+🤝 Contribution
 
 Contributions are welcome!
 Feel free to fork this repo and submit a PR.
 
----
-
-## ⭐ Show Your Support
+⭐ Show Your Support
 
 If you like this project, give it a ⭐ on GitHub!
-
----
