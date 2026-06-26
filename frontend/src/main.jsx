@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import "@/utils/axios";
 import "./index.css";
 import App from "./App.jsx";
 import { Toaster } from "sonner";

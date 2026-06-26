@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import { USER_API_END_POINT } from "../../utils/constant";
 import { useDispatch, useSelector } from "react-redux";
-import { setLoading, setUser } from "@/store/slices/authSlice";
+import { setCredentials, setLoading } from "@/store/slices/authSlice";
 import { Loader2 } from "lucide-react";
 
 export default function Login() {
@@ -35,14 +35,14 @@ export default function Login() {
         },
         withCredentials: true,
       });
+
       if (res.data.success) {
-        dispatch(setUser(res.data.user));
+        dispatch(setCredentials({ user: res.data.user, token: res.data.token }));
         navigate("/");
         toast.success(res.data.message);
       }
     } catch (err) {
-      console.log(err);
-      toast.error(err.response.data.message);
+      toast.error(err.response?.data?.message || "Login failed");
     } finally {
       dispatch(setLoading(false));
     }

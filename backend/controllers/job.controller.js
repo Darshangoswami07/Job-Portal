@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Job } from "../models/job.model.js";
 
 export const postJob = async (req, res) => {
@@ -26,6 +27,13 @@ export const postJob = async (req, res) => {
       });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(companyId)) {
+      return res.status(400).json({
+        message: "Invalid company selected",
+        success: false,
+      });
+    }
+
     const job = await Job.create({
       title,
       description,
@@ -46,6 +54,10 @@ export const postJob = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in postJob:", error);
+    return res.status(500).json({
+      message: "Server error while creating job",
+      success: false,
+    });
   }
 };
 
@@ -75,15 +87,19 @@ export const getAllJobs = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in getAllJobs:", error);
+    return res.status(500).json({
+      message: "Server error while fetching jobs",
+      success: false,
+    });
   }
 };
 
 export const getJobById = async (req, res) => {
   try {
     const jobId = req.params.id;
-    const job = await Job.findById(jobId).populate({
-      path:"applications"
-    })
+    const job = await Job.findById(jobId)
+      .populate({ path: "company" })
+      .populate({ path:"applications" });
 
     if (!job) {
       return res.status(404).json({
@@ -98,6 +114,10 @@ export const getJobById = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in getJobById:", error);
+    return res.status(500).json({
+      message: "Server error while fetching job",
+      success: false,
+    });
   }
 };
 

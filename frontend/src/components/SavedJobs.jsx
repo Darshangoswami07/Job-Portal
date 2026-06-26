@@ -5,18 +5,31 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "./shared/Navbar";
 import Job from "./Job";
 import { SAVED_JOB_API_END_POINT } from "@/utils/constant";
+import { useDispatch, useSelector } from "react-redux";
+import { clearAuth } from "@/store/slices/authSlice";
 
 const MotionGrid = motion.div;
 const MotionCard = motion.div;
 
 export default function SavedJobs() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user } = useSelector((store) => store.auth);
   const [savedJobs, setSavedJobs] = useState([]);
   const [savedJobIds, setSavedJobIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
 
   const loadSavedJobs = useCallback(async () => {
     setLoading(true);
+
+    const userKey = user?._id || user?.id || null;
+    if (!userKey) {
+      setSavedJobs([]);
+      setSavedJobIds(new Set());
+      setLoading(false);
+      return;
+    }
+
     try {
       const url = `${SAVED_JOB_API_END_POINT}/me`;
       const res = await axios.get(url, {
@@ -41,13 +54,21 @@ export default function SavedJobs() {
         )
       );
     } catch (error) {
+      if (error.response?.status === 401) {
+        dispatch(clearAuth());
+        setSavedJobs([]);
+        setSavedJobIds(new Set());
+        navigate("/login");
+        return;
+      }
+
       console.error("Error fetching saved jobs:", error);
       setSavedJobs([]);
       setSavedJobIds(new Set());
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [dispatch, navigate, user]);
 
   useEffect(() => {
     loadSavedJobs();
@@ -69,6 +90,7 @@ export default function SavedJobs() {
     } catch (error) {
       console.error("Unable to remove saved job:", error);
       if (error.response?.status === 401) {
+        dispatch(clearAuth());
         navigate("/login");
         return;
       }

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useParams } from "react-router-dom";
@@ -13,32 +14,33 @@ export default function JobDescription() {
   const jobId = params.id;
   const { singleJob } = useSelector((store) => store.job);
   const { user } = useSelector((store) => store.auth);
-  const isIntiallyApplied = singleJob?.applications?.some(
-    (application => application.applicant == user?._id )|| false,
-  );
-  const [isApplied, setIsApplied] = useState(isIntiallyApplied);
+  const isInitiallyApplied =
+  singleJob?.applications?.some(
+    (application) => String(application.applicant?._id || application.applicant) === String(user?._id)
+  ) || false;
+  const [isApplied, setIsApplied] = useState(isInitiallyApplied);
   const dispatch = useDispatch();
 
   const applyJobHandler = async () => {
     try {
       const res = await axios.get(
         `${APPLICATION_API_END_POINT}/apply/${jobId}`,
-        { withCredentials: true },
+        {
+          withCredentials: true,
+        },
       );
-      console.log(res.data);
 
       if (res.data.success) {
-        setIsApplied(true); //update local state
+        setIsApplied(true);
         const updateSingleJob = {
           ...singleJob,
-          applications: [...singleJob.applications, { applicant: user?._id }],
+          applications: [...(singleJob?.applications || []), { applicant: user?._id }],
         };
         dispatch(setSingleJob(updateSingleJob));
         toast.success(res.data.message);
       }
     } catch (error) {
-      console.log(error);
-      toast.error(error.res.data.message);
+      toast.error(error.response?.data?.message || "Something went wrong");
     }
   };
 
@@ -50,10 +52,16 @@ export default function JobDescription() {
         });
         if (res.data.success) {
           dispatch(setSingleJob(res.data.job));
-          setIsApplied(res.data.job.applications.some(application=>application.applicant==user?._id))
+          setIsApplied(
+            res.data.job.applications.some(
+              (application) =>
+                String(application.applicant?._id || application.applicant) ===
+                String(user?._id)
+            )
+          );
         }
       } catch (error) {
-        console.log(error);
+        toast.error(error.response?.data?.message || "Unable to load job");
       }
     };
     fetchSingleJob();
@@ -63,7 +71,18 @@ export default function JobDescription() {
     <div className="max-w-7xl mx-auto my-10">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-bold text-xl ">{singleJob?.title}</h1>
+          <div className="flex items-center gap-4">
+            <Avatar className="h-14 w-14 border border-slate-200 bg-white">
+              <AvatarImage src={singleJob?.company?.logo} alt={singleJob?.company?.name || "Company logo"} />
+              <AvatarFallback className="bg-slate-100 text-slate-600 font-semibold">
+                {singleJob?.company?.name?.[0]?.toUpperCase() || "C"}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h1 className="font-bold text-xl ">{singleJob?.title || "Job Title"}</h1>
+              <p className="text-sm text-slate-500">{singleJob?.company?.name || "Company name"}</p>
+            </div>
+          </div>
           <div className="felx items-center gap-2 mt-4">
             <Badge className="text-blue-500 font-bold" variant="ghost">
               {singleJob?.position} position
@@ -91,25 +110,25 @@ export default function JobDescription() {
         <h1 className="font-bold my-1">
           Role:
           <span className="pl-4 font-normal text-gray-800">
-            {singleJob?.title}
+            {singleJob?.title || "-"}
           </span>
         </h1>
         <h1 className="font-bold my-1">
           Location:
           <span className="pl-4 font-normal text-gray-800">
-            {singleJob?.location}
+            {singleJob?.location || "-"}
           </span>
         </h1>
         <h1 className="font-bold my-1">
           Description:
           <span className="pl-4 font-normal text-gray-800">
-            {singleJob?.description}
+            {singleJob?.description || "-"}
           </span>
         </h1>
         <h1 className="font-bold my-1">
           experience:
           <span className="pl-4 font-normal text-gray-800">
-            {singleJob?.experience}yrs
+            {singleJob?.experienceLevel || "-"} yrs
           </span>
         </h1>
         <h1 className="font-bold my-1">

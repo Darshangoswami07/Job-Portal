@@ -24,6 +24,7 @@ export default function Jobs() {
   useGetAllJobs();
 
   const dispatch = useDispatch();
+  const { user } = useSelector((store) => store.auth);
   const { allJobs = [], searchedQuery = "" } = useSelector(
     (store) => store.job
   );
@@ -52,6 +53,13 @@ export default function Jobs() {
 
   useEffect(() => {
     async function loadSavedJobs() {
+      const userKey = user?._id || user?.id || null;
+
+      if (!userKey) {
+        setSavedJobIds(new Set());
+        return;
+      }
+
       const url = `${SAVED_JOB_API_END_POINT}/me`;
 
       try {
@@ -65,13 +73,18 @@ export default function Jobs() {
           .map((id) => String(id));
         setSavedJobIds(new Set(ids));
       } catch (error) {
+        if (error.response?.status === 401) {
+          setSavedJobIds(new Set());
+          return;
+        }
+
         console.error("Error fetching saved jobs:", error);
         setSavedJobIds(new Set());
       }
     }
 
     loadSavedJobs();
-  }, []);
+  }, [user]);
 
   const handleToggleSaved = async (jobId, currentlySaved) => {
     const normalizedJobId = String(jobId);
@@ -91,7 +104,9 @@ export default function Jobs() {
         await axios.post(
           `${SAVED_JOB_API_END_POINT}/post`,
           { jobId: normalizedJobId },
-          { withCredentials: true }
+          {
+            withCredentials: true,
+          }
         );
       }
     } catch (error) {

@@ -1,4 +1,5 @@
 import SavedJob from "../models/savedJob.model.js";
+import { Job } from "../models/job.model.js";
 
 export const saveJob = async (req, res) => {
   try {
@@ -8,6 +9,14 @@ export const saveJob = async (req, res) => {
     if (!jobId) {
       return res.status(400).json({
         message: "Job id is required",
+        success: false,
+      });
+    }
+
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return res.status(404).json({
+        message: "Job not found",
         success: false,
       });
     }

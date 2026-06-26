@@ -7,6 +7,42 @@ import { URL } from "url";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../config/cloudinary.js";
 
+const getAuthCookieOptions = (req) => {
+  const origin = req.headers.origin;
+
+  if (!origin) {
+    return {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+      path: "/",
+    };
+  }
+
+  try {
+    const originHostname = new URL(origin).hostname;
+    const requestHostname = req.hostname;
+    const isCrossSite = originHostname !== requestHostname;
+
+    return {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: isCrossSite ? "none" : "lax",
+      secure: isCrossSite,
+      path: "/",
+    };
+  } catch (error) {
+    return {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+      path: "/",
+    };
+  }
+};
+
 export const register = async (req, res) => {
   try {
     const { fullname, email, phoneNumber, password, role } = req.body;
@@ -69,6 +105,13 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
+    if (!process.env.SECRET_KEY) {
+      return res.status(500).json({
+        message: "Server authentication is not configured",
+        success: false,
+      });
+    }
+
     const { email, password, role } = req.body;
     if (!email || !password || !role) {
       return res.status(400).json({
@@ -113,20 +156,19 @@ export const login = async (req, res) => {
     };
     return res
       .status(200)
-      .cookie("token", token, {
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        httpOnly: true,
-        sameSite: "lax",
-        secure: false,
-        path: "/",
-      })
+      .cookie("token", token, getAuthCookieOptions(req))
       .json({
         message: `welcome back ${user.fullname}`,
         user,
+        token,
         success: true,
       });
   } catch (error) {
     console.error("Error in login:", error);
+    return res.status(500).json({
+      message: "Server error",
+      success: false,
+    });
   }
 };
 
@@ -135,16 +177,20 @@ export const logout = async (req, res) => {
     return res
       .status(200)
       .cookie("token", "", {
+        ...getAuthCookieOptions(req),
         maxAge: 0,
-        httpOnly: true,
-        sameSite: "none",
-        secure: false,
       })
       .json({
         message: "logged out successfully",
         success: true,
       });
-  } catch (error) {    console.error("Error in logout:", error);  }
+  } catch (error) {
+    console.error("Error in logout:", error);
+    return res.status(500).json({
+      message: "Server error",
+      success: false,
+    });
+  }
 };
 export const updateProfile = async (req, res) => {
   try {

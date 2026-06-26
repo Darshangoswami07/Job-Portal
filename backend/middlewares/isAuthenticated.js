@@ -2,7 +2,19 @@ import jwt from "jsonwebtoken";
 
 const isAuthenticated = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    if (!process.env.SECRET_KEY) {
+      console.error("SECRET_KEY is not configured");
+      return res.status(500).json({
+        message: "Server authentication is not configured",
+        success: false,
+      });
+    }
+
+    const authHeader = req.headers.authorization;
+    const bearerToken = authHeader?.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : null;
+    const token = req.cookies?.token || bearerToken;
 
     if (!token) {
       return res.status(401).json({
@@ -21,6 +33,7 @@ const isAuthenticated = async (req, res, next) => {
     }
 
     req.id = decoded.userId;
+    req.userId = decoded.userId;
     next();
   } catch (error) {
     console.error("Error in isAuthenticated middleware:", error);

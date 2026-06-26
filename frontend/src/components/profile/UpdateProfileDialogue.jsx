@@ -68,7 +68,7 @@ export default function UpdateProfileDialogue({ open, setOpen }) {
 
   return (
     <div>
-      <Dialog open={open}>
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
           className="sm:max-w-md"
           onInteractOutside={() => setOpen(false)}

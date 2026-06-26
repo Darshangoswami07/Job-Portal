@@ -156,7 +156,7 @@ export default function AdminJobCreate() {
                 >
                   <option value="">Select a company</option>
                   {companies.map((c) => (
-                    <option key={c._id} value={c.name}>
+                    <option key={c._id} value={c._id}>
                       {c.name}
                     </option>
                   ))}

@@ -7,7 +7,7 @@ import { LogOut, User2, Bookmark } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { USER_API_END_POINT } from "../../utils/constant";
-import { setUser } from "@/store/slices/authSlice";
+import { clearAuth } from "@/store/slices/authSlice";
 import axios from "axios";
 
 export default function Navbar() {
@@ -20,13 +20,13 @@ export default function Navbar() {
         withCredentials: true,
       });
       if (res.data.success) {
-        dispatch(setUser(null));
+        dispatch(clearAuth());
         navigate("/");
         toast.success(res.data.message);
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Logout failed");
     }
   };
   return (

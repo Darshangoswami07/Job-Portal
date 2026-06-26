@@ -5,18 +5,28 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/shared/Navbar";
 import Job from "@/components/job/Job";
 import { SAVED_JOB_API_END_POINT } from "@/utils/constant";
+import { useSelector } from "react-redux";
 
 const MotionGrid = motion.div;
 const MotionCard = motion.div;
 
 export default function SavedJobs() {
   const navigate = useNavigate();
+  const { user } = useSelector((store) => store.auth);
   const [savedJobs, setSavedJobs] = useState([]);
   const [savedJobIds, setSavedJobIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
 
   const loadSavedJobs = useCallback(async () => {
     setLoading(true);
+    if (!user) {
+      setSavedJobs([]);
+      setSavedJobIds(new Set());
+      setLoading(false);
+      navigate("/login");
+      return;
+    }
+
     try {
       const url = `${SAVED_JOB_API_END_POINT}/me`;
       const res = await axios.get(url, {
@@ -42,12 +52,16 @@ export default function SavedJobs() {
       );
     } catch (error) {
       console.error("Error fetching saved jobs:", error);
+      if (error.response?.status === 401) {
+        navigate("/login");
+        return;
+      }
       setSavedJobs([]);
       setSavedJobIds(new Set());
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [navigate, user]);
 
   useEffect(() => {
     loadSavedJobs();

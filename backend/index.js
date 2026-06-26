@@ -15,13 +15,11 @@ import savedJobRoutes from "./routes/savedJob.route.js";
 
 const app = express();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-
-
 const allowedOrigins = [
-  process.env.FRONTEND_URL || "",
+  ...(process.env.FRONTEND_URL || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   "http://localhost:5173",
   "http://localhost:5174",
 ];
@@ -39,6 +37,10 @@ app.use(
     credentials: true,
   })
 );
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/company", companyRoutes);
