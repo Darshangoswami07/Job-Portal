@@ -11,7 +11,7 @@ A **full-stack Job Portal application** built using the MERN stack. This platfor
 
 ## 🌐 Live Demo
 
-🚀 **Frontend:** https://job-portal-kappa-nine.vercel.app
+🚀 **Frontend:** https://job-portal-kappa-nine.vercel.app    
 ⚙️ **Backend API:** https://job-portal-backend-o9lb.onrender.com
 
 ---
