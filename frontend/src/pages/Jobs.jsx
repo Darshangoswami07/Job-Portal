@@ -1,14 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import Navbar from "@/components/shared/Navbar";
 import FilterCard from "@/components/filters/FilterCard";
 import Job from "@/components/job/Job";
-import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setSearchQuery } from "@/store/slices/jobSlice";
 import useGetAllJobs from "@/hooks/useGetAllJobs";
+import useSavedJobs from "@/hooks/useSavedJobs";
 import { motion } from "framer-motion";
-import { SAVED_JOB_API_END_POINT } from "@/utils/constant";
 
 const createEmptyFilters = () => ({
   location: new Set(),
@@ -24,13 +22,11 @@ export default function Jobs() {
   useGetAllJobs();
 
   const dispatch = useDispatch();
-  const { user } = useSelector((store) => store.auth);
   const { allJobs = [], searchedQuery = "" } = useSelector(
     (store) => store.job
   );
-  const navigate = useNavigate();
   const [selectedFilters, setSelectedFilters] = useState(createEmptyFilters);
-  const [savedJobIds, setSavedJobIds] = useState(new Set());
+  const { handleToggleSaved, savedJobIds } = useSavedJobs();
 
   const handleToggleFilter = (category, value, isChecked) => {
     setSelectedFilters((prev) => {
@@ -50,78 +46,6 @@ export default function Jobs() {
       dispatch(setSearchQuery(""));
     }
   }, [dispatch, searchedQuery]);
-
-  useEffect(() => {
-    async function loadSavedJobs() {
-      const userKey = user?._id || user?.id || null;
-
-      if (!userKey) {
-        setSavedJobIds(new Set());
-        return;
-      }
-
-      const url = `${SAVED_JOB_API_END_POINT}/me`;
-
-      try {
-        const res = await axios.get(url, {
-          withCredentials: true,
-        });
-        const saved = res.data.savedJobs || [];
-        const ids = saved
-          .map((item) => item.jobId?._id || item.jobId || item.job?._id || item._id)
-          .filter(Boolean)
-          .map((id) => String(id));
-        setSavedJobIds(new Set(ids));
-      } catch (error) {
-        if (error.response?.status === 401) {
-          setSavedJobIds(new Set());
-          return;
-        }
-
-        console.error("Error fetching saved jobs:", error);
-        setSavedJobIds(new Set());
-      }
-    }
-
-    loadSavedJobs();
-  }, [user]);
-
-  const handleToggleSaved = async (jobId, currentlySaved) => {
-    const normalizedJobId = String(jobId);
-
-    setSavedJobIds((prev) => {
-      const next = new Set(prev);
-      currentlySaved ? next.delete(normalizedJobId) : next.add(normalizedJobId);
-      return next;
-    });
-
-    try {
-      if (currentlySaved) {
-        await axios.delete(`${SAVED_JOB_API_END_POINT}/${normalizedJobId}`, {
-          withCredentials: true,
-        });
-      } else {
-        await axios.post(
-          `${SAVED_JOB_API_END_POINT}/post`,
-          { jobId: normalizedJobId },
-          {
-            withCredentials: true,
-          }
-        );
-      }
-    } catch (error) {
-      console.error("Saved job request failed:", error);
-      if (error.response?.status === 401) {
-        navigate("/login");
-        return;
-      }
-      setSavedJobIds((prev) => {
-        const next = new Set(prev);
-        currentlySaved ? next.add(normalizedJobId) : next.delete(normalizedJobId);
-        return next;
-      });
-    }
-  };
 
   const filteredJobs = useMemo(() => {
     let jobs = [...allJobs];

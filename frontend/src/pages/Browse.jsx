@@ -4,10 +4,12 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useEffect } from 'react';
 import { setSearchQuery } from '@/store/slices/jobSlice';
 import useGetAllJobs from '@/hooks/useGetAllJobs';
+import useSavedJobs from '@/hooks/useSavedJobs';
 
 export default function Browse() {
     useGetAllJobs();
     const {allJobs}=useSelector((store)=>store.job || {});
+    const { handleToggleSaved, savedJobIds } = useSavedJobs();
     const dispatch =useDispatch();
     useEffect(()=>{
         return()=>{
@@ -35,7 +37,12 @@ export default function Browse() {
               <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
                 {allJobs.map((job)=>{
                   return(
-                    <Job key={job._id} job={job}/>
+                    <Job
+                      key={job._id}
+                      job={job}
+                      isSaved={savedJobIds.has(String(job?._id))}
+                      onToggleSaved={handleToggleSaved}
+                    />
                   )
                 })}
               </div>
