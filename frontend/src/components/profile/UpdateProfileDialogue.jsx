@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -19,10 +19,23 @@ export default function UpdateProfileDialogue({ open, setOpen }) {
     email: user?.email || "",
     phoneNumber: user?.phoneNumber || "",
     bio: user?.profile?.bio || "",
-    skills: user?.profile?.skills?.map((skill) => skill) || "",
-    file: user?.profile?.resume || "",
+    skills: user?.profile?.skills?.join(", ") || "",
+    file: null,
   });
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (!open) return;
+
+    setInput({
+      fullname: user?.fullname || "",
+      email: user?.email || "",
+      phoneNumber: user?.phoneNumber || "",
+      bio: user?.profile?.bio || "",
+      skills: user?.profile?.skills?.join(", ") || "",
+      file: null,
+    });
+  }, [open, user]);
 
   const changeEventHandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
@@ -40,7 +53,7 @@ export default function UpdateProfileDialogue({ open, setOpen }) {
     formData.append("phoneNumber", input.phoneNumber);
     formData.append("bio", input.bio);
     formData.append("skills", input.skills);
-    if (input.file) {
+    if (input.file instanceof File) {
       formData.append("file", input.file);
     }
     try {
@@ -55,15 +68,13 @@ export default function UpdateProfileDialogue({ open, setOpen }) {
       if (res.data.success) {
         dispatch(setUser(res.data.user));
         toast.success(res.data.message);
+        setOpen(false);
       }
     } catch (error) {
-      console.log(error);
       toast.error(error.response?.data?.message || "Update failed");
     }finally{
       setLoading(false);
     }
-    setOpen(false);
-    console.log(input);
   };
 
   return (
@@ -146,7 +157,7 @@ export default function UpdateProfileDialogue({ open, setOpen }) {
               </div>
               <div className="grid grid-cols-4 items-center  gap-4">
                 <Label htmlFor="file" className="text-right">
-                  Resume
+                  File
                 </Label>
                 <Input
                   id="file"
@@ -156,6 +167,9 @@ export default function UpdateProfileDialogue({ open, setOpen }) {
                   onChange={fileChangeHandler}
                   className="col-span-3"
                 />
+                <p className="col-start-2 col-span-3 text-xs text-slate-500">
+                  Upload a resume PDF or a profile image.
+                </p>
               </div>
             </div>
             <DialogFooter>

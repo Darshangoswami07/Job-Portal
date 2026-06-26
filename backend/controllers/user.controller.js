@@ -7,6 +7,17 @@ import { URL } from "url";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../config/cloudinary.js";
 
+const shouldDebugProfileUpdate = process.env.DEBUG_PROFILE_UPDATE === "true";
+
+const normalizeUserResponse = (user) => ({
+  _id: user._id,
+  fullname: user.fullname,
+  email: user.email,
+  phoneNumber: user.phoneNumber,
+  role: user.role,
+  profile: user.profile,
+});
+
 const getAuthCookieOptions = (req) => {
   const origin = req.headers.origin;
 
@@ -194,6 +205,13 @@ export const logout = async (req, res) => {
 };
 export const updateProfile = async (req, res) => {
   try {
+    if (shouldDebugProfileUpdate) {
+      console.log("updateProfile req.id:", req.id);
+      console.log("updateProfile req.body:", req.body);
+      console.log("updateProfile req.file:", req.file);
+      console.log("updateProfile req.files:", req.files);
+    }
+
     const { fullname, email, phoneNumber, bio, skills } = req.body;
 
     const userId = req.id;
@@ -206,18 +224,30 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    if (fullname) user.fullname = fullname;
-    if (email) user.email = email;
-    if (phoneNumber) user.phoneNumber = phoneNumber;
-    if (bio) user.profile.bio = bio;
+    user.profile = user.profile || {};
 
-    if (skills) {
-      user.profile.skills = skills.split(",");
+    if (fullname !== undefined) user.fullname = fullname.trim();
+    if (email !== undefined) user.email = email.trim().toLowerCase();
+    if (phoneNumber !== undefined && phoneNumber !== "") user.phoneNumber = phoneNumber;
+    if (bio !== undefined) user.profile.bio = bio;
+
+    if (skills !== undefined) {
+      user.profile.skills = String(skills)
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter(Boolean);
     }
 
     const file = req.file;
 
     if (file) {
+      if (!file.buffer) {
+        return res.status(400).json({
+          message: "Uploaded file is invalid",
+          success: false,
+        });
+      }
+
       const fileUri = getDataUri(file);
 
       // 🔹 Resume Upload (PDF)
@@ -228,6 +258,10 @@ export const updateProfile = async (req, res) => {
             resource_type: "raw",
           },
         );
+
+        if (shouldDebugProfileUpdate) {
+          console.log("updateProfile Cloudinary response:", cloudResponse);
+        }
 
         user.profile.resume = cloudResponse.secure_url;
         user.profile.resumeOriginalName = file.originalname;
@@ -242,21 +276,36 @@ export const updateProfile = async (req, res) => {
           },
         );
 
+        if (shouldDebugProfileUpdate) {
+          console.log("updateProfile Cloudinary response:", cloudResponse);
+        }
+
         user.profile.profilePhoto = cloudResponse.secure_url;
       }
     }
 
     await user.save();
 
+    if (shouldDebugProfileUpdate) {
+      console.log("updateProfile MongoDB response:", user);
+    }
+
     return res.status(200).json({
       message: "profile updated successfully",
-      user,
+      user: normalizeUserResponse(user),
       success: true,
     });
   } catch (error) {
     console.error("Error in updateProfile:", error);
+    if (error?.code === 11000) {
+      return res.status(409).json({
+        message: "Email is already in use",
+        success: false,
+      });
+    }
+
     return res.status(500).json({
-      message: "Server error",
+      message: error?.message || "Server error",
       success: false,
     });
   }

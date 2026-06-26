@@ -9,15 +9,13 @@ import UpdateProfileDialogue from "@/components/profile/UpdateProfileDialogue";
 import { useSelector } from "react-redux";
 import { USER_API_END_POINT } from "@/utils/constant";
 
-
-const isHaveResume = true;
-
 export default function Profile() {
   const [open, setOpen] = useState(false);
   const [showAppliedJobs, setShowAppliedJobs] = useState(false);
   const { user } = useSelector((store) => store.auth);
 
   const resumeUrl = `${USER_API_END_POINT}/resume`;
+  const hasResume = Boolean(user?.profile?.resume);
 
   return (
     <div className="min-h-screen bg-linear-to-b from-slate-50 via-white to-slate-100">
@@ -106,7 +104,7 @@ export default function Profile() {
                   </h2>
                 </div>
                 <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
-                  {isHaveResume ? (
+                  {hasResume ? (
                     <a
                       href={resumeUrl}
                       target="_blank"
@@ -128,7 +126,7 @@ export default function Profile() {
                   Skills
                 </h2>
                 <div className="flex flex-wrap gap-2">
-                  {user?.profile?.skills.length > 0 ? (
+                  {user?.profile?.skills?.length > 0 ? (
                     user?.profile?.skills.map((item, index) => (
                       <Badge
                         key={index}
