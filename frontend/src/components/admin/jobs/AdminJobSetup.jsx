@@ -90,122 +90,152 @@ export default function AdminJobSetup() {
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="max-w-xl mx-auto my-10">
+      <div className="max-w-5xl mx-auto px-4 py-10">
         <form onSubmit={submitHandler}>
-          <div className="flex items-center gap-5 p-8">
-            <Button
-              onClick={() => navigate("/admin/jobs")}
-              variant="outline"
-              className="flex items-center gap-2 text-gray-500 font-semibold"
-              type="button"
-            >
-              <ArrowLeft />
-              <span>Back</span>
-            </Button>
-            <h1 className="font-bold text-xl">Job Setup </h1>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Title</Label>
-              <Input
-                type="text"
-                name="title"
-                value={input.title}
-                onChange={changeHandler}
-              />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Input
-                type="text"
-                name="description"
-                value={input.description}
-                onChange={changeHandler}
-              />
-            </div>
-            <div>
-              <Label>Requirements</Label>
-              <Input
-                type="text"
-                name="requirements"
-                value={input.requirements}
-                onChange={changeHandler}
-              />
-            </div>
-            <div>
-              <Label>Location</Label>
-              <Input
-                type="text"
-                name="location"
-                value={input.location}
-                onChange={changeHandler}
-              />
-            </div>
-            <div>
-              <Label>Job Type</Label>
-              <Input
-                type="text"
-                name="jobType"
-                value={input.jobType}
-                onChange={changeHandler}
-              />
-            </div>
-            <div>
-              <Label>Salary</Label>
-              <Input
-                type="number"
-                name="salary"
-                value={input.salary}
-                onChange={changeHandler}
-              />
-            </div>
-            <div>
-              <Label>Experience Level</Label>
-              <Input
-                type="number"
-                name="experience"
-                value={input.experience}
-                onChange={changeHandler}
-              />
-            </div>
-            <div>
-              <Label>Open Positions</Label>
-              <Input
-                type="number"
-                name="position"
-                value={input.position}
-                onChange={changeHandler}
-              />
-            </div>
-            <div>
-              <Label>Company</Label>
-              <select
-                name="companyId"
-                value={input.companyId}
-                onChange={changeHandler}
-                className="block w-full p-2 border rounded"
+          <div className="bg-white card-shadow rounded-lg p-8 sm:p-10">
+            <div className="mb-8 flex items-center gap-4">
+              <Button
+                onClick={() => navigate("/admin/jobs")}
+                variant="outline"
+                className="btn-secondary flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold"
+                type="button"
               >
-                <option value="">Select a company</option>
-                {companies.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back</span>
+              </Button>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">
+                  Job Setup
+                </h1>
+                <p className="text-sm text-gray-500">Edit job details</p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Title</Label>
+                <Input
+                  type="text"
+                  name="title"
+                  value={input.title}
+                  onChange={changeHandler}
+                  className="w-full rounded-lg border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-[#0A66C2] focus:ring-2 focus:ring-[#0A66C2]/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Location</Label>
+                <Input
+                  type="text"
+                  name="location"
+                  value={input.location}
+                  onChange={changeHandler}
+                  className="w-full rounded-lg border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-[#0A66C2] focus:ring-2 focus:ring-[#0A66C2]/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Job Type</Label>
+                <Input
+                  type="text"
+                  name="jobType"
+                  value={input.jobType}
+                  onChange={changeHandler}
+                  className="w-full rounded-lg border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-[#0A66C2] focus:ring-2 focus:ring-[#0A66C2]/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Salary</Label>
+                <Input
+                  type="number"
+                  name="salary"
+                  value={input.salary}
+                  onChange={changeHandler}
+                  className="w-full rounded-lg border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-[#0A66C2] focus:ring-2 focus:ring-[#0A66C2]/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Experience Level</Label>
+                <Input
+                  type="number"
+                  name="experience"
+                  value={input.experience}
+                  onChange={changeHandler}
+                  className="w-full rounded-lg border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-[#0A66C2] focus:ring-2 focus:ring-[#0A66C2]/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Open Positions</Label>
+                <Input
+                  type="number"
+                  name="position"
+                  value={input.position}
+                  onChange={changeHandler}
+                  className="w-full rounded-lg border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-[#0A66C2] focus:ring-2 focus:ring-[#0A66C2]/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Requirements</Label>
+                <Input
+                  type="text"
+                  name="requirements"
+                  value={input.requirements}
+                  onChange={changeHandler}
+                  className="w-full rounded-lg border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-[#0A66C2] focus:ring-2 focus:ring-[#0A66C2]/20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Company</Label>
+                <select
+                  name="companyId"
+                  value={input.companyId}
+                  onChange={changeHandler}
+                  className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-[#0A66C2] focus:ring-2 focus:ring-[#0A66C2]/20 appearance-none cursor-pointer"
+                >
+                  <option value="">Select a company</option>
+                  {companies.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label className="text-sm font-medium text-gray-700">Description</Label>
+                <textarea
+                  name="description"
+                  value={input.description}
+                  onChange={changeHandler}
+                  className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-[#0A66C2] focus:ring-2 focus:ring-[#0A66C2]/20 min-h-[120px] resize-y"
+                  placeholder="Write job description..."
+                />
+              </div>
+            </div>
+
+            <div className="mt-8">
+              {loading ? (
+                <Button className="btn-primary w-full rounded-lg py-2.5 text-sm font-semibold" disabled>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Please wait...
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  className="btn-primary w-full rounded-lg py-2.5 text-sm font-semibold"
+                >
+                  Update Job
+                </Button>
+              )}
             </div>
           </div>
-          {loading ? (
-            <Button className="w-full my-4">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              please wait
-            </Button>
-          ) : (
-            <Button className="w-full my-4" type="submit">
-              Update
-            </Button>
-          )}
         </form>
       </div>
     </div>

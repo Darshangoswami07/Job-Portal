@@ -2,58 +2,50 @@ import React from "react";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useSelector } from "react-redux";
 import useGetAppliedJobs from "@/hooks/useGetAppliedJobs";
+import { useSelector } from "react-redux";
+
+const statusStyles = {
+  pending: "bg-yellow-100 text-yellow-800",
+  accepted: "bg-green-100 text-green-800",
+  rejected: "bg-red-100 text-red-800",
+};
 
 export default function AppliedJobs() {
   useGetAppliedJobs();
   const { allAppliedJobs } = useSelector((store) => store.job);
 
-  const getStatusBadge = (status) => {
-    const statusLower = (status || "pending").toLowerCase();
-    switch (statusLower) {
-      case "accepted":
-        return "bg-green-100 text-green-800 hover:bg-green-200";
-      case "rejected":
-        return "bg-red-100 text-red-800 hover:bg-red-200";
-      case "pending":
-      default:
-        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
-    }
-  };
+  const isEmpty = !allAppliedJobs || allAppliedJobs.length === 0;
 
   return (
-    <div className="mt-5 rounded-3xl border border-slate-200 bg-white px-6 py-6 shadow-sm sm:px-8">
-      <div className="mb-5 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-900">Applied Jobs</h2>
-        <span className="text-sm text-slate-500">{allAppliedJobs?.length || 0} total</span>
-      </div>
-      <div className="overflow-hidden rounded-2xl border border-slate-200">
-        <Table className="min-w-full overflow-hidden rounded-xl">
-          <TableCaption className="text-slate-600">A list of your applied jobs.</TableCaption>
+    <div className="mt-5 bg-white card-shadow rounded-lg overflow-hidden">
+      <div className="overflow-x-auto">
+        <Table>
           <TableHeader>
-            <TableRow className="bg-slate-50">
-              <TableHead className="font-semibold text-slate-700">Date</TableHead>
-              <TableHead className="font-semibold text-slate-700">Job Role</TableHead>
-              <TableHead className="font-semibold text-slate-700">Company</TableHead>
-              <TableHead className="text-right font-semibold text-slate-700">Status</TableHead>
+            <TableRow className="bg-gray-50">
+              <TableHead className="font-semibold text-gray-600 text-sm">Date</TableHead>
+              <TableHead className="font-semibold text-gray-600 text-sm">Job Role</TableHead>
+              <TableHead className="font-semibold text-gray-600 text-sm">Company</TableHead>
+              <TableHead className="text-right font-semibold text-gray-600 text-sm">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {!allAppliedJobs || allAppliedJobs.length <= 0 ? (
+            {isEmpty ? (
               <TableRow>
-                <TableCell colSpan={4} className="py-12 text-center">
-                  <div className="space-y-2">
-                    <p className="text-sm text-slate-500">No applied jobs found</p>
-                    <p className="text-xs text-slate-400">
-                      Start applying to jobs to see them here
+                <TableCell colSpan={4}>
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                      <span className="text-2xl font-bold text-gray-300">!</span>
+                    </div>
+                    <h3 className="text-base font-semibold text-gray-700">No applied jobs yet</h3>
+                    <p className="mt-1 text-sm text-gray-400">
+                      Start exploring and apply to jobs that match your skills
                     </p>
                   </div>
                 </TableCell>
@@ -63,26 +55,33 @@ export default function AppliedJobs() {
                 const job = appliedjob.job || {};
                 const company = job.company || {};
                 const key = appliedjob._id || `${job._id || "job"}-${appliedjob.createdAt || index}`;
+                const status = (appliedjob.status || "pending").toLowerCase();
 
                 return (
-                  <TableRow key={key} className="transition-colors hover:bg-slate-50">
-                    <TableCell className="text-sm text-slate-700">
+                  <TableRow
+                    key={key}
+                    className="border-b border-gray-100 transition-colors last:border-0 hover:bg-gray-50/60"
+                  >
+                    <TableCell className="text-sm text-gray-600">
                       {appliedjob.createdAt
-                        ? new Date(appliedjob.createdAt).toISOString().split("T")[0]
+                        ? new Date(appliedjob.createdAt).toLocaleDateString("en-US", {
+                            month: "short", day: "numeric", year: "numeric"
+                          })
                         : "-"}
                     </TableCell>
-                    <TableCell className="text-sm font-medium text-slate-700">
-                      {job.title || "(job removed)"}
+                    <TableCell className="text-sm font-medium text-gray-800">
+                      {job.title || (
+                        <span className="italic text-gray-400">(job removed)</span>
+                      )}
                     </TableCell>
-                    <TableCell className="text-sm text-slate-600">
+                    <TableCell className="text-sm text-gray-600">
                       {company.name || "-"}
                     </TableCell>
                     <TableCell className="text-right">
                       <Badge
-                        className={`rounded-full px-2 py-1 text-xs font-semibold transition-colors ${getStatusBadge(appliedjob.status)}`}
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[status] || "bg-gray-100 text-gray-600"}`}
                       >
-                        {(appliedjob.status || "pending").charAt(0).toUpperCase() +
-                          (appliedjob.status || "pending").slice(1).toLowerCase()}
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
                       </Badge>
                     </TableCell>
                   </TableRow>

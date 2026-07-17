@@ -14,8 +14,10 @@ const normalizeUserResponse = (user) => ({
   fullname: user.fullname,
   email: user.email,
   phoneNumber: user.phoneNumber,
-  role: user.role,
-  profile: user.profile,
+  roles: user.roles || { jobSeeker: false, recruiter: false },
+  currentRole: user.currentRole || null,
+  profileCompleted: user.profileCompleted || false,
+  profile: user.profile || {},
 });
 
 const getAuthCookieOptions = (req) => {
@@ -56,11 +58,11 @@ const getAuthCookieOptions = (req) => {
 
 export const register = async (req, res) => {
   try {
-    const { fullname, email, phoneNumber, password, role } = req.body;
+    const { fullname, email, phoneNumber, password } = req.body;
 
-    if (!fullname || !email || !phoneNumber || !password || !role) {
+    if (!fullname || !email || !password) {
       return res.status(400).json({
-        message: "something is missing",
+        message: "Full name, email, and password are required",
         success: false,
       });
     }
@@ -68,24 +70,9 @@ export const register = async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
-        message: "user already exists with this email",
+        message: "User already exists with this email",
         success: false,
       });
-    }
-
-    const file = req.file;
-    let profilePhotoUrl = "";
-
-    if (file) {
-      const fileUri = getDataUri(file);
-
-      const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
-        resource_type: "image",
-        format: "jpg",
-        quality: "auto",
-      });
-
-      profilePhotoUrl = cloudResponse.secure_url;
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -93,16 +80,18 @@ export const register = async (req, res) => {
     await User.create({
       fullname,
       email,
-      phoneNumber,
+      phoneNumber: phoneNumber || 0,
       password: hashedPassword,
-      role,
+      roles: { jobSeeker: false, recruiter: false },
+      currentRole: null,
+      profileCompleted: false,
       profile: {
-        profilePhoto: profilePhotoUrl, // safe
+        profilePhoto: "",
       },
     });
 
     return res.status(201).json({
-      message: "user registered successfully",
+      message: "Account created successfully",
       success: true,
     });
   } catch (error) {
@@ -123,54 +112,39 @@ export const login = async (req, res) => {
       });
     }
 
-    const { email, password, role } = req.body;
-    if (!email || !password || !role) {
+    const { email, password } = req.body;
+    if (!email || !password) {
       return res.status(400).json({
-        message: "something is missing",
+        message: "Email and password are required",
         success: false,
       });
     }
     let user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({
-        message: "user does not exist with this email",
+        message: "User does not exist with this email",
         success: false,
       });
     }
     const ispasswordMatch = await bcrypt.compare(password, user.password);
     if (!ispasswordMatch) {
       return res.status(400).json({
-        message: "incorrect password",
+        message: "Incorrect password",
         success: false,
       });
     }
-    if (user.role !== role) {
-      return res.status(400).json({
-        message: `user is not registered as ${role}`,
-        success: false,
-      });
-    }
-    const tokenData = {
-      userId: user._id,
-    };
+
+    const tokenData = { userId: user._id };
     const token = jwt.sign(tokenData, process.env.SECRET_KEY, {
       expiresIn: "7d",
     });
 
-    user = {
-      _id: user._id,
-      fullname: user.fullname,
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      role: user.role,
-      profile: user.profile,
-    };
     return res
       .status(200)
       .cookie("token", token, getAuthCookieOptions(req))
       .json({
-        message: `welcome back ${user.fullname}`,
-        user,
+        message: `Welcome back ${user.fullname}`,
+        user: normalizeUserResponse(user),
         token,
         success: true,
       });
@@ -192,7 +166,7 @@ export const logout = async (req, res) => {
         maxAge: 0,
       })
       .json({
-        message: "logged out successfully",
+        message: "Logged out successfully",
         success: true,
       });
   } catch (error) {
@@ -203,23 +177,31 @@ export const logout = async (req, res) => {
     });
   }
 };
+
 export const updateProfile = async (req, res) => {
   try {
     if (shouldDebugProfileUpdate) {
       console.log("updateProfile req.id:", req.id);
       console.log("updateProfile req.body:", req.body);
-      console.log("updateProfile req.file:", req.file);
-      console.log("updateProfile req.files:", req.files);
     }
 
-    const { fullname, email, phoneNumber, bio, skills } = req.body;
+    const {
+      fullname, email, phoneNumber, bio, skills,
+      headline, dateOfBirth, gender, location, website,
+      linkedin, github, portfolio,
+      preferredJobRole, preferredSalary, employmentType, workPreference,
+      certifications, experience, education,
+      companyName, companyEmail, companyWebsite, designation,
+      companySize, industry,
+      roles, currentRole, profileCompleted,
+    } = req.body;
 
     const userId = req.id;
     let user = await User.findById(userId);
 
     if (!user) {
       return res.status(400).json({
-        message: "user not found",
+        message: "User not found",
         success: false,
       });
     }
@@ -230,6 +212,48 @@ export const updateProfile = async (req, res) => {
     if (email !== undefined) user.email = email.trim().toLowerCase();
     if (phoneNumber !== undefined && phoneNumber !== "") user.phoneNumber = phoneNumber;
     if (bio !== undefined) user.profile.bio = bio;
+    if (headline !== undefined) user.profile.headline = headline;
+    if (dateOfBirth !== undefined) user.profile.dateOfBirth = dateOfBirth;
+    if (gender !== undefined) user.profile.gender = gender;
+    if (location !== undefined) user.profile.location = location;
+    if (website !== undefined) user.profile.website = website;
+    if (linkedin !== undefined) user.profile.linkedin = linkedin;
+    if (github !== undefined) user.profile.github = github;
+    if (portfolio !== undefined) user.profile.portfolio = portfolio;
+    if (preferredJobRole !== undefined) user.profile.preferredJobRole = preferredJobRole;
+    if (preferredSalary !== undefined) user.profile.preferredSalary = preferredSalary;
+    if (employmentType !== undefined) user.profile.employmentType = employmentType;
+    if (workPreference !== undefined) user.profile.workPreference = workPreference;
+    if (certifications !== undefined) user.profile.certifications = certifications;
+    if (experience !== undefined) user.profile.experience = experience;
+    if (education !== undefined) user.profile.education = education;
+    if (companyName !== undefined) user.profile.companyName = companyName;
+    if (companyEmail !== undefined) user.profile.companyEmail = companyEmail;
+    if (companyWebsite !== undefined) user.profile.companyWebsite = companyWebsite;
+    if (designation !== undefined) user.profile.designation = designation;
+    if (companySize !== undefined) user.profile.companySize = companySize;
+    if (industry !== undefined) user.profile.industry = industry;
+
+    if (roles !== undefined) {
+      user.roles = typeof roles === "string" ? JSON.parse(roles) : roles;
+      if (user.roles.recruiter && !user.roles.jobSeeker) {
+        user.currentRole = "recruiter";
+      } else if (user.roles.jobSeeker && !user.roles.recruiter) {
+        user.currentRole = "jobSeeker";
+      } else if (user.roles.jobSeeker && user.roles.recruiter) {
+        user.currentRole = user.currentRole || "jobSeeker";
+      } else {
+        user.currentRole = null;
+      }
+    }
+
+    if (currentRole !== undefined) {
+      user.currentRole = currentRole;
+    }
+
+    if (profileCompleted !== undefined) {
+      user.profileCompleted = profileCompleted;
+    }
 
     if (skills !== undefined) {
       user.profile.skills = String(skills)
@@ -250,14 +274,10 @@ export const updateProfile = async (req, res) => {
 
       const fileUri = getDataUri(file);
 
-      // 🔹 Resume Upload (PDF)
       if (file.mimetype === "application/pdf") {
-        const cloudResponse = await cloudinary.uploader.upload(
-          fileUri.content,
-          {
-            resource_type: "raw",
-          },
-        );
+        const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+          resource_type: "raw",
+        });
 
         if (shouldDebugProfileUpdate) {
           console.log("updateProfile Cloudinary response:", cloudResponse);
@@ -266,15 +286,11 @@ export const updateProfile = async (req, res) => {
         user.profile.resume = cloudResponse.secure_url;
         user.profile.resumeOriginalName = file.originalname;
       } else {
-        // 🔹 Profile Image Upload (Convert to JPG)
-        const cloudResponse = await cloudinary.uploader.upload(
-          fileUri.content,
-          {
-            resource_type: "image",
-            format: "jpg", // 🔥 force convert HEIC to JPG
-            quality: "auto",
-          },
-        );
+        const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+          resource_type: "image",
+          format: "jpg",
+          quality: "auto",
+        });
 
         if (shouldDebugProfileUpdate) {
           console.log("updateProfile Cloudinary response:", cloudResponse);
@@ -291,7 +307,7 @@ export const updateProfile = async (req, res) => {
     }
 
     return res.status(200).json({
-      message: "profile updated successfully",
+      message: "Profile updated successfully",
       user: normalizeUserResponse(user),
       success: true,
     });
@@ -364,6 +380,31 @@ export const getResume = async (req, res) => {
       });
   } catch (error) {
     console.error("Error in getResume:", error);
+    return res.status(500).json({
+      message: "Server error",
+      success: false,
+    });
+  }
+};
+
+export const getProfile = async (req, res) => {
+  try {
+    const userId = req.id;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(400).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    return res.status(200).json({
+      user: normalizeUserResponse(user),
+      success: true,
+    });
+  } catch (error) {
+    console.error("Error in getProfile:", error);
     return res.status(500).json({
       message: "Server error",
       success: false,

@@ -1,97 +1,97 @@
-import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Bookmark } from "lucide-react";
+import { Bookmark, MapPin } from "lucide-react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
 
-const MotionDiv = motion.div;
+const daysAgo = (date) => {
+  const diff = Date.now() - new Date(date).getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  return days === 0 ? "Today" : days === 1 ? "1 day ago" : `${days} days ago`;
+};
 
 export default function Job({ job, isSaved = false, onToggleSaved = () => {} }) {
   const navigate = useNavigate();
-  // const jobId="uhsufs";
-  const daysAgoFunction =(mongodbTime)=>{
-      const createdAt=new Date(mongodbTime);
-      const currentTime =new Date();
-      const timeDifference=currentTime-createdAt;
-      return Math.floor(timeDifference/(1000*24*60*60));
-  }
+  const [saved, setSaved] = useState(isSaved);
 
   if (!job) {
-    return <div className="p-5 border border-red-200 bg-red-50 rounded">Job data not available</div>;
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-5 text-center text-sm text-gray-500">
+        Job data not available
+      </div>
+    );
   }
 
+  const handleBookmark = (e) => {
+    e.stopPropagation();
+    setSaved(!saved);
+    onToggleSaved(job._id, saved);
+  };
+
   return (
-    <MotionDiv
-      className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_24px_60px_-32px_rgba(15,23,42,0.18)] transition-all duration-300"
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.2 }}
-      initial={{ opacity: 0, y: 20 }}
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+      className="group bg-white border border-gray-200 rounded-lg card-shadow hover:card-shadow-hover hover:-translate-y-1.5 hover:border-[#0A66C2] transition-all duration-300"
     >
-      <div className="flex items-center justify-between px-5 pt-5">
-        <p className="text-sm font-medium uppercase tracking-[0.15em] text-slate-400">
-          {daysAgoFunction(job?.createdAt) == 0 ? "Today" : `${daysAgoFunction(job?.createdAt)} days ago`}
-        </p>
-        <Button
-          variant="outline"
-          className="rounded-full border-slate-200 bg-white text-slate-700 shadow-sm"
-          size="icon"
-          onClick={() => onToggleSaved(job?._id, isSaved)}
-          aria-label={isSaved ? "Unsave job" : "Save job"}
-        >
-          <Bookmark className={isSaved ? "text-indigo-600" : "text-slate-600"} />
-        </Button>
-      </div>
-      <div className="border-b border-slate-200/80 px-5 py-5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 shadow-sm">
-            <Avatar>
-              <AvatarImage src={job?.company?.logo} />
+      <div className="p-5">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10 rounded-md group-hover:rotate-3 transition-transform duration-300">
+              <AvatarImage src={job.company?.logo} alt={job.company?.name} />
             </Avatar>
+            <div>
+              <h3 className="font-medium text-sm text-gray-900">{job.company?.name}</h3>
+              <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                <MapPin className="h-3 w-3" />
+                <span>{job.location || job.company?.location || "Remote"}</span>
+              </div>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900">{job?.company?.name}</h2>
-            <p className="text-sm text-slate-500">{job?.location || job?.company?.location || "Remote"}</p>
-          </div>
+          <span className="text-xs text-gray-400 shrink-0">{daysAgo(job.createdAt)}</span>
+        </div>
+
+        <h2 className="font-semibold text-base text-gray-900 mb-2">{job.title}</h2>
+
+        <p className="text-sm text-gray-600 line-clamp-2 mb-4">{job.description}</p>
+
+        <div className="flex flex-wrap gap-2 mb-4">
+          <Badge variant="secondary" className="bg-gray-100 text-gray-700 border-gray-200 font-medium">
+            {job.position} {job.position === 1 ? "position" : "positions"}
+          </Badge>
+          <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200 font-medium">
+            {job.jobType}
+          </Badge>
+          <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 font-medium">
+            {job.salary} LPA
+          </Badge>
         </div>
       </div>
-      <div className="space-y-4 px-5 py-5">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-900">{job?.title}</h1>
-          <p className="mt-2 max-h-24 overflow-hidden text-sm leading-6 text-slate-500">
-            {job?.description}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Badge className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700" variant="ghost">
-            {job?.position} position
-          </Badge>
-          <Badge className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700" variant="ghost">
-            {job?.jobType}
-          </Badge>
-          <Badge className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700" variant="ghost">
-            {job?.salary} LPA
-          </Badge>
-        </div>
-      </div>
-      <div className="flex flex-col gap-3 border-t border-slate-200/70 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+
+      <div className="flex items-center justify-between border-t border-gray-100 px-5 py-3">
         <Button
-          onClick={() => navigate(`/description/${job?._id}`)}
+          onClick={() => navigate(`/description/${job._id}`)}
           variant="outline"
-          className="rounded-2xl px-4 py-2 text-sm font-semibold"
+          size="sm"
+          className="btn-secondary text-xs group-hover:translate-x-0.5 transition-transform duration-300"
         >
-          Details
+          View Details
         </Button>
-        <Button
-          className="rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700"
-          onClick={() => onToggleSaved(job?._id, isSaved)}
+        <button
+          onClick={handleBookmark}
+          className={cn(
+            "p-1.5 rounded transition-all duration-200 group-hover:scale-110",
+            saved ? "text-blue-600" : "text-gray-400 hover:text-gray-600"
+          )}
+          aria-label={saved ? "Remove from saved" : "Save job"}
         >
-          {isSaved ? "Saved" : "Save Job"}
-        </Button>
+          <Bookmark className={cn("h-4 w-4", saved && "fill-blue-600")} />
+        </button>
       </div>
-    </MotionDiv>
+    </motion.div>
   );
 }

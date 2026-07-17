@@ -1,20 +1,76 @@
-import React from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useScroll, useMotionValueEvent, motion } from "framer-motion";
+import { useTheme } from "next-themes";
+import { useDispatch, useSelector } from "react-redux";
+import { Sun, Moon, Menu, X, LogOut, User2, Bookmark, Briefcase, ChevronDown, Users, Building2 } from "lucide-react";
+import { toast } from "sonner";
+import axios from "axios";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
-import { LogOut, User2, Bookmark } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
-import { toast } from "sonner";
+import { clearAuth, setCurrentRole, updateUser } from "@/store/slices/authSlice";
 import { USER_API_END_POINT } from "../../utils/constant";
-import { clearAuth } from "@/store/slices/authSlice";
-import axios from "axios";
+
+const jobSeekerLinks = [
+  { name: "Home", path: "/" },
+  { name: "Find Jobs", path: "/jobs" },
+  { name: "Browse Companies", path: "/browse" },
+];
+
+const recruiterLinks = [
+  { name: "Companies", path: "/admin/companies" },
+  { name: "My Jobs", path: "/admin/jobs" },
+];
+
+const drawerVariants = {
+  closed: { x: "100%" },
+  open: { x: 0 },
+};
+
+const navVariants = {
+  hidden: { y: "-100%", opacity: 0 },
+  visible: { y: 0, opacity: 1 },
+};
 
 export default function Navbar() {
   const { user } = useSelector((store) => store.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const LogOutHandler = async () => {
+  const { theme, setTheme } = useTheme();
+  const { scrollY } = useScroll();
+  const lastScrollY = useRef(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [compact, setCompact] = useState(false);
+  const [themeRotate, setThemeRotate] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobileMenuOpen]);
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    if (isMobileMenuOpen && Math.abs(latest - lastScrollY.current) > 10) {
+      setIsMobileMenuOpen(false);
+    }
+    setScrolled(latest > 20);
+    setCompact(latest > 100);
+    lastScrollY.current = latest;
+  });
+
+  const handleLogout = async () => {
     try {
       const res = await axios.get(`${USER_API_END_POINT}/logout`, {
         withCredentials: true,
@@ -23,119 +79,303 @@ export default function Navbar() {
         dispatch(clearAuth());
         navigate("/");
         toast.success(res.data.message);
+        setIsMobileMenuOpen(false);
       }
     } catch (error) {
-      console.log(error);
       toast.error(error.response?.data?.message || "Logout failed");
     }
   };
-  return (
-    <div
-      className="bg-white"
-    >
-      <div className="flex justify-between mx-auto max-w-7xl h-16">
-        <div>
-          <h1 className="text-2xl font-bold">
-            Job <span className="text-red-500">Portal</span>
-          </h1>
-        </div>
-        <div className="flex items-center">
-          <ul className="flex font-medium items-center gap-5">
-            {user && user.role == "recruiter" ? (
-              <>
-                <li className="inline-block mx-4">
-                  <Link to="/admin/companies">Companies</Link>
-                </li>
-                <li className="inline-block mx-4">
-                  <Link to="/admin/jobs">Jobs</Link>
-                </li>
-              </>
-            ) : (
-              <>
-                <li className="inline-block mx-4">
-                  <Link to="/">Home</Link>
-                </li>
-                <li className="inline-block mx-4">
-                  <Link to="/jobs">Jobs</Link>
-                </li>
-                <li className="inline-block mx-4">
-                  <Link to="/browse">Browse</Link>
-                </li>
-              </>
-            )}
-          </ul>
-          {!user ? (
-            <div className="flex items-center gap-2">
-              <Link to="/login">
-                <Button variant="outline">Login</Button>
-              </Link>
-              <Link to="/signup">
-                <Button className="bg-red-500 hover:bg-red-600">Signup</Button>
-              </Link>
-            </div>
-          ) : (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Avatar className="cursor-pointer">
-                  <AvatarImage
-                    src={user?.profile?.profilePhoto}
-                    alt="@shadcn"
-                  />
-                </Avatar>
-              </PopoverTrigger>
 
-              <PopoverContent className="w-80 ">
-                <div className="flex space-y-3 gap-4">
-                  <Avatar className="cursor-pointer">
-                    <AvatarImage
-                      src={user?.profile?.profilePhoto}
-                      alt="@shadcn"
-                    />
-                  </Avatar>
-                  <div>
-                    <h4 className="font-medium"> {user?.fullname}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {user?.profile?.bio}
-                    </p>
-                  </div>
+  const toggleTheme = () => {
+    setThemeRotate(true);
+    setTheme(theme === "dark" ? "light" : "dark");
+    setTimeout(() => setThemeRotate(false), 300);
+  };
+
+  const currentLinks = user?.currentRole === "recruiter" ? recruiterLinks : jobSeekerLinks;
+
+  return (
+    <>
+      <motion.nav
+        initial="hidden"
+        animate="visible"
+        variants={navVariants}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className={`sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
+          scrolled
+            ? "bg-white/80 dark:bg-gray-950/80 backdrop-blur-md shadow-sm"
+            : "bg-white dark:bg-gray-950"
+        }`}
+      >
+        <div className={`mx-auto max-w-7xl transition-all duration-300 ${
+          compact ? "px-3 sm:px-5 lg:px-6" : "px-4 sm:px-6 lg:px-8"
+        }`}>
+          <div className={`flex items-center justify-between transition-all duration-300 ${
+            compact ? "h-14" : "h-16"
+          }`}>
+            <Link to="/" className="flex items-center gap-2 shrink-0">
+              <Briefcase className="size-6 text-[#0A66C2]" />
+              <span className="text-xl font-bold text-gray-900 dark:text-white">
+                JobHub
+              </span>
+            </Link>
+
+            <div className="hidden md:flex items-center gap-1">
+              {currentLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2 md:gap-3">
+              {user?.roles?.jobSeeker && user?.roles?.recruiter && (
+                <div className="hidden md:flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-1 py-0.5 shadow-sm">
+                  <button
+                    onClick={() => dispatch(setCurrentRole("jobSeeker"))}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${
+                      user?.currentRole === "jobSeeker"
+                        ? "bg-[#0A66C2] text-white shadow-sm"
+                        : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    }`}
+                  >
+                    <Users className="h-3.5 w-3.5" />
+                    Job Seeker
+                  </button>
+                  <button
+                    onClick={() => dispatch(setCurrentRole("recruiter"))}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${
+                      user?.currentRole === "recruiter"
+                        ? "bg-[#0A66C2] text-white shadow-sm"
+                        : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    }`}
+                  >
+                    <Building2 className="h-3.5 w-3.5" />
+                    Recruiter
+                  </button>
                 </div>
-                <div className="text-gray-400 flex flex-col my-2">
-                  
-                    {
-                      user && user.role==="student"&&(
-                       <>
-                        <div className="w-fit flex cursor-pointer items-center">
-                          <User2 />
-                          <Button variant="link">
-                            <Link to="/profile">View Profile</Link>
-                          </Button>
-                        </div>
-                        <div className="w-fit flex cursor-pointer items-center">
-                          <Bookmark />
-                          <Button variant="link">
-                            <Link to="/saved-jobs">Saved Jobs</Link>
-                          </Button>
-                        </div>
-                       </>
-                      )
-                    }
-                    
-                  <div className="flex w-fit cursor-pointer items-center">
-                    <LogOut />
-                    <Button
-                      onClick={LogOutHandler}
-                      variant="link"
-                      className="cursor-pointer"
-                    >
-                      Logout
+              )}
+              {mounted && (
+                <motion.button
+                  animate={{ rotate: themeRotate ? 180 : 0 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  onClick={toggleTheme}
+                  className="flex size-9 items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
+                  aria-label="Toggle theme"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="size-[18px]" />
+                  ) : (
+                    <Moon className="size-[18px]" />
+                  )}
+                </motion.button>
+              )}
+
+              {!user ? (
+                <div className="hidden md:flex items-center gap-2">
+                  <Link to="/login">
+                    <Button variant="ghost" size="sm" className="btn-secondary text-gray-600 dark:text-gray-400">
+                      Login
                     </Button>
-                  </div>
+                  </Link>
+                  <Link to="/signup">
+                    <Button size="sm" className="btn-primary">
+                      Signup
+                    </Button>
+                  </Link>
                 </div>
-              </PopoverContent>
-            </Popover>
-          )}
+              ) : (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Avatar className="size-9 cursor-pointer ring-2 ring-gray-200 hover:ring-[#0A66C2] transition-all dark:ring-gray-700 dark:hover:ring-[#0A66C2]">
+                      <AvatarImage
+                        src={user?.profile?.profilePhoto}
+                        alt={user?.fullname}
+                      />
+                    </Avatar>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="end"
+                    sideOffset={8}
+                    className="w-64 p-0 overflow-hidden bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 shadow-lg rounded-lg"
+                  >
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="size-10">
+                          <AvatarImage
+                            src={user?.profile?.profilePhoto}
+                            alt={user?.fullname}
+                          />
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                            {user?.fullname}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {user?.email}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-2">
+                      {(!user?.roles?.recruiter || user?.currentRole === "jobSeeker") && (
+                        <>
+                          <Link
+                            to="/profile"
+                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <User2 className="size-4" />
+                            View Profile
+                          </Link>
+                          <Link
+                            to="/saved-jobs"
+                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <Bookmark className="size-4" />
+                            Saved Jobs
+                          </Link>
+                        </>
+                      )}
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <LogOut className="size-4" />
+                        Logout
+                      </button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
+
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="md:hidden flex size-9 items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
+                aria-label="Open menu"
+              >
+                <Menu className="size-5" />
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </motion.nav>
+
+      {isMobileMenuOpen && (
+        <>
+          <div
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          />
+          <motion.div
+            variants={drawerVariants}
+            initial="closed"
+            animate="open"
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed top-0 right-0 bottom-0 z-50 w-72 bg-white dark:bg-gray-950 shadow-xl md:hidden"
+          >
+            <div className="flex h-full flex-col">
+              <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-200 dark:border-gray-800">
+                <div className="flex items-center gap-2">
+                  <Briefcase className="size-5 text-[#0A66C2]" />
+                  <span className="text-lg font-bold text-gray-900 dark:text-white">
+                    JobHub
+                  </span>
+                </div>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex size-8 items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
+                  aria-label="Close menu"
+                >
+                  <X className="size-5" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-3 py-4">
+                <div className="space-y-1">
+                  {currentLinks.map((link) => (
+                    <Link
+                      key={link.path}
+                      to={link.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
+                    >
+                      {link.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t border-gray-200 dark:border-gray-800 px-4 py-4 space-y-3">
+                {!user ? (
+                  <div className="flex flex-col gap-2">
+                    <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full btn-secondary text-gray-600 dark:text-gray-400">
+                        Login
+                      </Button>
+                    </Link>
+                    <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button className="w-full btn-primary">Signup</Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 px-1">
+                      <Avatar className="size-9">
+                        <AvatarImage
+                          src={user?.profile?.profilePhoto}
+                          alt={user?.fullname}
+                        />
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                          {user?.fullname}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {user?.email}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      {(!user?.roles?.recruiter || user?.currentRole === "jobSeeker") && (
+                        <>
+                          <Link
+                            to="/profile"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <User2 className="size-4" />
+                            View Profile
+                          </Link>
+                          <Link
+                            to="/saved-jobs"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
+                          >
+                            <Bookmark className="size-4" />
+                            Saved Jobs
+                          </Link>
+                        </>
+                      )}
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <LogOut className="size-4" />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+
+    </>
   );
 }
