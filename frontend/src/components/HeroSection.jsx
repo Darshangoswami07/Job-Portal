@@ -36,10 +36,10 @@ const trustCompanies = [
 ]
 
 const jobCards = [
-  { id: 0, company: "Google", role: "Senior React Dev", color: "#4285F4", top: "8%", left: "-10%", floatY: 7 },
-  { id: 1, company: "Microsoft", role: "Product Manager", color: "#00A4EF", top: "1%", right: "-6%", floatY: 8 },
-  { id: 2, company: "Amazon", role: "Backend Engineer", color: "#FF9900", bottom: "12%", left: "8%", floatY: 6 },
-  { id: 3, company: "Spotify", role: "UX Designer", color: "#1DB954", bottom: "0%", right: "-2%", floatY: 9 },
+  { id: 0, company: "Google", role: "Senior React Dev", color: "#4285F4", top: "8%", left: "-8%", floatY: 7 },
+  { id: 1, company: "Microsoft", role: "Product Manager", color: "#00A4EF", top: "2%", right: "-5%", floatY: 8 },
+  { id: 2, company: "Amazon", role: "Backend Engineer", color: "#FF9900", bottom: "14%", left: "6%", floatY: 6 },
+  { id: 3, company: "Spotify", role: "UX Designer", color: "#1DB954", bottom: "2%", right: "-3%", floatY: 9 },
 ]
 
 export default function HeroSection() {
@@ -63,8 +63,8 @@ export default function HeroSection() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-blue-400/3 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 md:pb-20 pt-0">
-        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 md:pb-24 pt-8 sm:pt-12 lg:pt-16">
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <motion.div
             className="max-w-xl"
             variants={containerVariants}
@@ -73,7 +73,7 @@ export default function HeroSection() {
           >
             <motion.div
               variants={fadeUp}
-              className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 px-4 py-1.5 text-sm font-medium text-blue-700 mb-6"
+              className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 px-4 py-1.5 text-sm font-medium text-blue-700 mb-8"
             >
               <TrendingUp className="h-4 w-4" />
               <span>12,000+ active jobs waiting for you</span>
@@ -81,7 +81,7 @@ export default function HeroSection() {
 
             <motion.h1
               variants={fadeUp}
-              className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl leading-[1.1]"
+              className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl leading-[1.15]"
             >
               Find Your{" "}
               <span className="bg-gradient-to-r from-[#0A66C2] to-[#2563EB] bg-clip-text text-transparent">
@@ -92,14 +92,14 @@ export default function HeroSection() {
 
             <motion.p
               variants={fadeUp}
-              className="mt-5 text-lg text-gray-500 leading-relaxed max-w-lg"
+              className="mt-6 text-lg text-gray-500 leading-relaxed max-w-lg"
             >
               Discover thousands of verified opportunities from the world's top companies. Your next career move starts here.
             </motion.p>
 
             <motion.div
               variants={fadeUp}
-              className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-stretch"
+              className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-stretch"
             >
               <div className="flex flex-1 items-center gap-2 rounded-xl border bg-white/80 backdrop-blur-sm px-4 py-3 transition-all duration-200 shadow-sm hover:shadow-md focus-within:shadow-[0_0_0_3px_rgba(10,102,194,0.15)] focus-within:border-[#0A66C2]"
                 style={{
@@ -148,7 +148,7 @@ export default function HeroSection() {
 
             <motion.div
               variants={fadeUp}
-              className="mt-6 flex flex-wrap gap-3"
+              className="mt-8 flex flex-wrap gap-3"
             >
               <motion.button
                 variants={scaleIn}
@@ -174,12 +174,12 @@ export default function HeroSection() {
 
             <motion.div
               variants={fadeUp}
-              className="mt-10 pt-8 border-t border-gray-100"
+              className="mt-12 pt-8 border-t border-gray-100"
             >
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-4">
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-5">
                 Trusted by industry leaders
               </p>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+              <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
                 {trustCompanies.map((c) => (
                   <div
                     key={c.name}
@@ -214,7 +214,7 @@ export default function HeroSection() {
 
             <motion.div
               variants={fadeUp}
-              className="mt-10 grid grid-cols-3 gap-6 pt-8 border-t border-gray-100"
+              className="mt-12 grid grid-cols-3 gap-8 pt-8 border-t border-gray-100"
             >
               <div className="text-center">
                 <Briefcase className="h-5 w-5 text-blue-600 mx-auto mb-2" />
@@ -344,7 +344,7 @@ export default function HeroSection() {
               {jobCards.map((card) => (
                 <motion.div
                   key={card.id}
-                  className="absolute w-44 rounded-xl border border-gray-100 bg-white p-3 shadow-xl shadow-gray-200/50 backdrop-blur-sm"
+                  className="absolute w-44 rounded-xl border border-gray-100 bg-white p-3 shadow-lg shadow-gray-200/60 backdrop-blur-sm"
                   style={{
                     top: card.top,
                     left: card.left,

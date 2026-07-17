@@ -46,7 +46,7 @@ export default function Job({ job, isSaved = false, onToggleSaved = () => {} }) 
             </Avatar>
             <div>
               <h3 className="font-medium text-sm text-gray-900">{job.company?.name}</h3>
-              <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+              <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                 <MapPin className="h-3 w-3" />
                 <span>{job.location || job.company?.location || "Remote"}</span>
               </div>

@@ -26,10 +26,10 @@ const employerLinks = [
 export default function Footer() {
   return (
     <footer className="bg-[#1D2226]">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 pb-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 pb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
           <div>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-5">
               <span className="text-xl font-bold text-white">JobHub</span>
             </div>
             <p className="text-sm text-gray-400 leading-relaxed">
@@ -37,7 +37,7 @@ export default function Footer() {
               companies. We make hiring and job searching seamless, smart, and
               successful.
             </p>
-            <div className="flex items-center gap-2.5 mt-5">
+            <div className="flex items-center gap-2.5 mt-6">
               {socialLinks.map((social) => (
                 <a
                   key={social.label}
@@ -52,8 +52,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-white mb-4">Quick Links</h4>
-            <ul className="space-y-2.5">
+            <h4 className="font-semibold text-white mb-5">Quick Links</h4>
+            <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.name}>
                   <Link
@@ -68,8 +68,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-white mb-4">For Employers</h4>
-            <ul className="space-y-2.5">
+            <h4 className="font-semibold text-white mb-5">For Employers</h4>
+            <ul className="space-y-3">
               {employerLinks.map((link) => (
                 <li key={link.name}>
                   <Link
@@ -84,7 +84,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-white mb-4">Connect</h4>
+            <h4 className="font-semibold text-white mb-5">Connect</h4>
             <div className="space-y-3">
               <a
                 href="mailto:support@jobhub.com"
@@ -99,10 +99,10 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-gray-700">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-gray-500">
             <p>&copy; {new Date().getFullYear()} JobHub. All rights reserved.</p>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
               <Link to="#" className="hover:text-gray-300 transition-colors">
                 Privacy Policy
               </Link>

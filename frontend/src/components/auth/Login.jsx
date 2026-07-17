@@ -199,7 +199,7 @@ export default function Login() {
       <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
         Don&apos;t have an account?{" "}
         <Link to="/signup" className="font-medium text-[#0A66C2] dark:text-[#2F81F7] hover:text-[#004182] dark:hover:text-[#58A6FF] transition-colors relative after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:bg-[#0A66C2] dark:after:bg-[#2F81F7] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300">
-          Create one
+          Sign Up
         </Link>
       </p>
 

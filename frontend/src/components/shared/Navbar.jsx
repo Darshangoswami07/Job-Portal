@@ -108,7 +108,7 @@ export default function Navbar() {
         }`}
       >
         <div className={`mx-auto max-w-7xl transition-all duration-300 ${
-          compact ? "px-3 sm:px-5 lg:px-6" : "px-4 sm:px-6 lg:px-8"
+          compact ? "px-4 sm:px-6 lg:px-8" : "px-4 sm:px-6 lg:px-8"
         }`}>
           <div className={`flex items-center justify-between transition-all duration-300 ${
             compact ? "h-14" : "h-16"

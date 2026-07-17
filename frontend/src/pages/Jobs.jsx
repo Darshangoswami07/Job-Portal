@@ -133,8 +133,8 @@ export default function Jobs() {
     >
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white border border-gray-200 rounded-lg card-shadow p-4 sm:p-6 mb-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white border border-gray-200 rounded-lg card-shadow p-4 sm:p-6 mb-8">
           <form onSubmit={handleSearch} className="flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -204,7 +204,7 @@ export default function Jobs() {
             </aside>
           )}
 
-          <main className="space-y-6 min-w-0">
+          <main className="space-y-8 min-w-0">
             <div className="bg-white border border-gray-200 rounded-lg card-shadow p-5 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
