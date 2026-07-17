@@ -1,5 +1,7 @@
-import React, { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
+import { ChevronDown, MapPin, Briefcase, DollarSign, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 const FILTER_OPTIONS = {
   location: ["Delhi NCR", "Bangalore", "Hyderabad", "Pune", "Mumbai"],
@@ -16,23 +18,29 @@ const FIELD_LABELS = {
 };
 
 const FIELD_ICONS = {
-  location: "📍",
-  industry: "💼",
-  salary: "💰",
-  experience: "⏱️",
+  location: MapPin,
+  industry: Briefcase,
+  salary: DollarSign,
+  experience: Clock,
 };
 
-const AnimatedSection = motion.div;
+const sectionVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.35 },
+  }),
+};
 
 export default function FilterCard({
   selectedFilters,
   onToggle,
   onClearAll,
-  onRemoveChip,
 }) {
-  const activeCount = Object.values(selectedFilters).reduce(
-    (total, set) => total + set.size,
-    0
+  const activeCount = useMemo(
+    () => Object.values(selectedFilters).reduce((total, set) => total + set.size, 0),
+    [selectedFilters]
   );
 
   const chipList = useMemo(
@@ -51,137 +59,135 @@ export default function FilterCard({
   });
 
   const toggleSection = (category) => {
-    setOpenSections((prev) => ({
-      ...prev,
-      [category]: !prev[category],
-    }));
+    setOpenSections((prev) => ({ ...prev, [category]: !prev[category] }));
   };
-
-  const clearButtonClass = activeCount
-    ? "bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700"
-    : "bg-slate-200 text-slate-400 border-slate-200 cursor-not-allowed";
 
   return (
     <motion.div
-      className="w-full lg:w-[320px]"   // ✅ FIXED WIDTH
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="bg-white border border-gray-200 rounded-lg card-shadow overflow-hidden"
     >
-      <div className="relative bg-linear-to-br from-white via-indigo-50 to-slate-100 rounded-3xl border border-indigo-100 shadow-2xl p-6 overflow-hidden">
-
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.12)_0,transparent_55%)] pointer-events-none rounded-3xl" />
-
-        <div className="relative z-10 space-y-5">
-
-          {/* Header */}
-          <header className="sticky top-0 bg-white/90 backdrop-blur border-b border-slate-200 py-3 px-3 rounded-t-2xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-indigo-800">Job Filters</h2>
-                <p className="text-xs text-slate-500">Refine jobs quickly</p>
-              </div>
-
-              <button
-                onClick={onClearAll}
-                disabled={!activeCount}
-                className={`text-xs font-bold rounded-full px-4 py-1.5 border transition ${clearButtonClass}`}
-              >
-                Clear All
-              </button>
-            </div>
-          </header>
-
-          {/* Chips */}
-          <div className="flex flex-wrap gap-2">
-            {chipList.length > 0 ? (
-              chipList.map(({ category, value }) => (
-                <button
-                  key={`${category}-${value}`}
-                  onClick={() =>
-                    onRemoveChip
-                      ? onRemoveChip(category, value)
-                      : onToggle(category, value, false)
-                  }
-                  className="px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs hover:bg-indigo-200"
-                >
-                  {value} ×
-                </button>
-              ))
-            ) : (
-              <span className="text-xs text-slate-400">
-                No active filters
-              </span>
+      <div className="p-5 space-y-5">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-gray-900">Filters</h2>
+          <button
+            onClick={onClearAll}
+            disabled={!activeCount}
+            className={cn(
+              "text-xs font-semibold rounded-full px-3.5 py-1.5 border transition-all",
+              activeCount
+                ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
+                : "bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed"
             )}
+          >
+            Clear All
+          </button>
+        </div>
+
+        {chipList.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {chipList.map(({ category, value }) => (
+              <motion.span
+                key={`${category}-${value}`}
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={{ duration: 0.2 }}
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium border border-gray-200"
+              >
+                {value}
+                <button
+                  onClick={() => onToggle(category, value, false)}
+                  className="hover:text-gray-900 ml-0.5"
+                >
+                  &#x2715;
+                </button>
+              </motion.span>
+            ))}
           </div>
+        )}
 
-          <div className="h-px bg-indigo-100" />
+        <hr className="border-gray-200" />
 
-          {/* Sections */}
-          {Object.entries(FILTER_OPTIONS).map(([category, values]) => {
-            const selected = selectedFilters[category]?.size || 0;
+        <div className="space-y-3">
+          {Object.entries(FILTER_OPTIONS).map(([category, values], index) => {
+            const Icon = FIELD_ICONS[category];
+            const selectedCount = selectedFilters[category]?.size || 0;
             const isOpen = openSections[category];
 
             return (
-              <section
+              <motion.div
                 key={category}
-                className="bg-white rounded-2xl border border-slate-200 shadow-sm"
+                variants={sectionVariants}
+                initial="hidden"
+                animate="visible"
+                custom={index}
+                className="bg-white rounded-lg border border-gray-200 overflow-hidden"
               >
                 <button
                   type="button"
                   onClick={() => toggleSection(category)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 rounded-t-2xl"
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
                 >
-                  <div className="flex items-center gap-2">
-                    <span>{FIELD_ICONS[category]}</span>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-700">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold text-gray-700">
                         {FIELD_LABELS[category]}
                       </p>
-                      <p className="text-xs text-slate-400">
-                        {selected} selected
+                      <p className="text-[11px] text-gray-400">
+                        {selectedCount} selected
                       </p>
                     </div>
                   </div>
-
-                  <span
-                    className={`transition-transform ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
-                  >
-                    ▼
-                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 text-gray-400 transition-transform duration-200",
+                      isOpen && "rotate-180"
+                    )}
+                  />
                 </button>
 
-                <AnimatedSection
-                  initial={false}
-                  animate={isOpen ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
-                  transition={{
-                    height: { duration: 0.22, ease: "easeInOut" },
-                    opacity: { duration: 0.18, ease: "easeInOut" },
-                  }}
-                  className="overflow-hidden px-4 pb-4 pt-2 grid grid-cols-2 gap-2"
-                  style={{ pointerEvents: isOpen ? "auto" : "none" }}
-                >
-                  {values.map((value) => {
-                    const checked = selectedFilters[category]?.has(value);
-
-                    return (
-                      <button
-                        key={value}
-                        onClick={() => onToggle(category, value, !checked)}
-                        className={`p-2 rounded-lg text-xs border ${
-                          checked
-                            ? "bg-indigo-600 text-white"
-                            : "bg-white hover:bg-indigo-50"
-                        }`}
-                      >
-                        {value}
-                      </button>
-                    );
-                  })}
-                </AnimatedSection>
-              </section>
+                {isOpen && (
+                  <div className="px-4 pb-4 pt-1 grid grid-cols-2 gap-2">
+                    {values.map((value) => {
+                      const checked = selectedFilters[category]?.has(value);
+                      return (
+                        <button
+                          key={value}
+                          onClick={() => onToggle(category, value, !checked)}
+                          className={cn(
+                            "flex items-center gap-2 p-2.5 rounded-lg text-xs font-medium border transition-all",
+                            checked
+                              ? "bg-blue-50 text-blue-700 border-blue-200"
+                              : "bg-white text-gray-600 border-gray-200 hover:border-blue-200 hover:bg-blue-50"
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all",
+                              checked
+                                ? "bg-blue-600 border-blue-600 text-white"
+                                : "bg-white border-gray-300"
+                            )}
+                          >
+                            {checked && (
+                              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <path d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
+                          {value}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </motion.div>
             );
           })}
         </div>

@@ -1,9 +1,18 @@
 import { Company } from "../models/company.model.js";
+import { User } from "../models/user.model.js";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../config/cloudinary.js";
 
 export const registerCompany = async (req, res) => {
     try {
+        const user = await User.findById(req.id);
+        if (!user.roles?.recruiter) {
+            return res.status(403).json({
+                message: "Enable recruiter mode in profile settings to register a company",
+                success: false,
+            });
+        }
+
         const { companyName } = req.body;
 
         if (!companyName) {

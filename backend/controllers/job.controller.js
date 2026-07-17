@@ -1,8 +1,23 @@
 import mongoose from "mongoose";
 import { Job } from "../models/job.model.js";
+import { User } from "../models/user.model.js";
 
 export const postJob = async (req, res) => {
   try {
+    const user = await User.findById(req.id);
+    if (!user.roles?.recruiter) {
+      return res.status(403).json({
+        message: "Enable recruiter mode in profile settings to post jobs",
+        success: false,
+      });
+    }
+    if (user.profile?.verificationStatus !== "verified") {
+      return res.status(403).json({
+        message: "Recruiter verification required to post jobs. Please complete your recruiter profile.",
+        success: false,
+      });
+    }
+
     const {
       title,
       description,

@@ -1,27 +1,22 @@
 import React from "react";
-import { motion as Motion } from "framer-motion";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Edit2, Eye, MoreHorizontal } from "lucide-react";
+import { Edit2, Eye, MoreHorizontal, Briefcase } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 export default function AdminJobsTable() {
-  // read jobs and search text from the job slice (not company)
-  const { allAdminJobs = [], searchJobByText = "" } =
-    useSelector((store) => store.job || {});
-
-  // compute filtered jobs on-the-fly instead of storing in state
+  const { allAdminJobs = [], searchJobByText = "" } = useSelector((store) => store.job || {});
   const navigate = useNavigate();
+
   const filteredJobs = React.useMemo(() => {
     const text = searchJobByText.toLowerCase();
     return allAdminJobs.filter((job) => {
@@ -34,87 +29,61 @@ export default function AdminJobsTable() {
   }, [allAdminJobs, searchJobByText]);
 
   return (
-    <div className="overflow-hidden rounded-[2rem] bg-white p-4 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.18)] sm:p-6">
-      <Table className="min-w-full bg-white">
-        <TableCaption className="text-left text-sm text-slate-500">
-          A list of your recently posted jobs.
-        </TableCaption>
+    <div className="bg-white card-shadow rounded-lg overflow-hidden">
+      <Table>
         <TableHeader>
-          <TableRow className="bg-slate-50">
-            <TableHead className="py-4 text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Company Name
-            </TableHead>
-            <TableHead className="py-4 text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Role
-            </TableHead>
-            <TableHead className="py-4 text-left text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Date
-            </TableHead>
-            <TableHead className="py-4 text-right text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Action
-            </TableHead>
+          <TableRow className="bg-gray-50">
+            <TableHead className="py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Company Name</TableHead>
+            <TableHead className="py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Role</TableHead>
+            <TableHead className="py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Date</TableHead>
+            <TableHead className="py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filteredJobs.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={4} className="p-10 text-center">
-                <div className="mx-auto max-w-md space-y-3 rounded-3xl border border-dashed border-slate-200 bg-slate-50 px-6 py-10">
-                  <p className="text-lg font-semibold text-slate-800">No jobs found yet</p>
-                  <p className="text-sm text-slate-500">
-                    Create your first job to start receiving applicants.
-                  </p>
-                  <div className="flex justify-center">
-                    <Button className="rounded-2xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-blue-700" onClick={() => navigate("/admin/jobs/create")}>Create New Job</Button>
-                  </div>
-                </div>
+              <TableCell colSpan={4} className="py-12 text-center">
+                <Briefcase className="h-8 w-8 mx-auto text-gray-300 mb-2" />
+                <p className="text-sm font-medium text-gray-700">No jobs found yet</p>
+                <p className="text-xs text-gray-500 mt-1">Create your first job to start receiving applicants.</p>
+                <Button
+                  className="mt-4 btn-primary rounded-lg px-4 py-2 text-sm"
+                  onClick={() => navigate("/admin/jobs/create")}
+                >
+                  Create New Job
+                </Button>
               </TableCell>
             </TableRow>
           ) : (
             filteredJobs.map((job) => (
-              <Motion.tr
-                key={job._id}
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
-                whileHover={{ y: -2 }}
-                className="group border-b border-slate-200 bg-white transition duration-300 hover:bg-slate-50"
-              >
-                <TableCell className="py-4">
-                  <div className="text-sm font-semibold text-slate-900">{job?.company?.name || "-"}</div>
-                </TableCell>
-                <TableCell className="py-4">
-                  <div className="space-y-1 text-sm">
-                    <p className="font-semibold text-slate-900">{job?.title}</p>
-                  </div>
-                </TableCell>
-                <TableCell className="py-4 text-sm text-slate-500">{job?.createdAt?.split("T")[0]}</TableCell>
-                <TableCell className="py-4 text-right">
+              <TableRow key={job._id} className="hover:bg-gray-50 transition-colors">
+                <TableCell className="py-3 text-sm font-medium text-gray-900">{job?.company?.name || "-"}</TableCell>
+                <TableCell className="py-3 text-sm text-gray-700">{job?.title}</TableCell>
+                <TableCell className="py-3 text-sm text-gray-500">{job?.createdAt?.split("T")[0]}</TableCell>
+                <TableCell className="py-3 text-right">
                   <Popover>
-                    <PopoverTrigger>
-                      <MoreHorizontal className="text-slate-500 transition hover:text-slate-900" />
+                    <PopoverTrigger className="p-1.5 rounded-md hover:bg-gray-100 transition-colors">
+                      <MoreHorizontal className="h-4 w-4 text-gray-500" />
                     </PopoverTrigger>
-                    <PopoverContent className="w-36 rounded-3xl bg-white p-3 shadow-2xl ring-1 ring-slate-200">
-                      <div
-                        onClick={() =>
-                          navigate(`/admin/jobs/${job._id}`)
-                        }
-                        className="flex items-center gap-2 w-fit cursor-pointer text-sm text-slate-700 transition hover:text-slate-900"
+                    <PopoverContent align="end" className="w-40 p-1.5">
+                      <button
+                        onClick={() => navigate(`/admin/jobs/${job._id}`)}
+                        className="flex items-center gap-2 w-full rounded-md px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                       >
-                        <Edit2 className="w-4" />
-                        <span>Edit</span>
-                      </div>
-                      <div
+                        <Edit2 className="h-3.5 w-3.5" />
+                        Edit
+                      </button>
+                      <button
                         onClick={() => navigate(`/admin/jobs/${job._id}/applicants`)}
-                        className="flex items-center w-fit gap-2 cursor-pointer mt-2 text-sm text-slate-700 transition hover:text-slate-900"
+                        className="flex items-center gap-2 w-full rounded-md px-2.5 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                       >
-                        <Eye className="w-4" />
-                        <span>Applicants</span>
-                      </div>
+                        <Eye className="h-3.5 w-3.5" />
+                        Applicants
+                      </button>
                     </PopoverContent>
                   </Popover>
                 </TableCell>
-                </Motion.tr>
+              </TableRow>
             ))
           )}
         </TableBody>

@@ -4,14 +4,18 @@ dotenv.config();
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import session from "express-session";
+import passport from "passport";
 
 import connectDB from "./config/database.js";
+import "./config/passport.js";
 
 import userRoutes from "./routes/user.route.js";
 import companyRoutes from "./routes/company.route.js";
 import jobRoutes from "./routes/job.route.js";
 import applicationRoutes from "./routes/application.route.js";
 import savedJobRoutes from "./routes/savedJob.route.js";
+import oauthRoutes from "./routes/oauth.routes.js";
 
 const app = express();
 
@@ -42,7 +46,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "job-portal-secret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/user", oauthRoutes);
 app.use("/api/v1/company", companyRoutes);
 app.use("/api/v1/job", jobRoutes);
 app.use("/api/v1/application", applicationRoutes);

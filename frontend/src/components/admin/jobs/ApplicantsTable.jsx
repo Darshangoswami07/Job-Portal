@@ -11,6 +11,7 @@ import {
 import axios from "axios";
 import { APPLICATION_API_END_POINT } from "@/utils/constant";
 import { toast } from "sonner";
+import { FileText, CheckCircle2, XCircle } from "lucide-react";
 
 const statusStyles = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -29,7 +30,6 @@ function ApplicantsTable({ applicants = [] }) {
       );
       if (res.data.success) {
         toast.success(`Applicant ${status}`);
-        // refresh data after status update
         window.location.reload();
       }
     } catch (error) {
@@ -38,74 +38,92 @@ function ApplicantsTable({ applicants = [] }) {
   };
 
   return (
-    <div className="bg-gray-50 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="bg-white shadow-lg rounded-2xl border border-gray-200 p-5">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-900">Applicants</h2>
-          <span className="text-sm text-slate-500">{applicants.length} total</span>
-        </div>
-        <Table className="min-w-full overflow-hidden rounded-xl">
-        <TableCaption>A list of your recent applied users</TableCaption>
+    <div className="bg-white card-shadow rounded-lg p-4 sm:p-6">
+      <Table className="min-w-full">
+        <TableCaption className="text-left text-sm text-gray-500">
+          A list of your recent applied users
+        </TableCaption>
         <TableHeader>
-          <TableRow>
-            <TableHead>FullName</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Contact</TableHead>
-            <TableHead>Resume</TableHead>
-            <TableHead>Applied On</TableHead>
-            <TableHead className="text-right">Status</TableHead>
+          <TableRow className="bg-gray-50">
+            <TableHead className="py-4 text-left text-sm font-semibold uppercase tracking-wide text-gray-500">FullName</TableHead>
+            <TableHead className="py-4 text-left text-sm font-semibold uppercase tracking-wide text-gray-500">Email</TableHead>
+            <TableHead className="py-4 text-left text-sm font-semibold uppercase tracking-wide text-gray-500">Contact</TableHead>
+            <TableHead className="py-4 text-left text-sm font-semibold uppercase tracking-wide text-gray-500">Resume</TableHead>
+            <TableHead className="py-4 text-left text-sm font-semibold uppercase tracking-wide text-gray-500">Applied Date</TableHead>
+            <TableHead className="py-4 text-right text-sm font-semibold uppercase tracking-wide text-gray-500">Status</TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
           {applicants.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-6 text-slate-500">
-                No applicants found
+              <TableCell colSpan={6} className="py-16 text-center">
+                <div className="mx-auto max-w-sm space-y-4">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                    <span className="text-2xl font-bold text-gray-300">!</span>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-lg font-semibold text-gray-900">No applicants found</p>
+                    <p className="text-sm text-gray-500">
+                      Applications will appear here once candidates start applying.
+                    </p>
+                  </div>
+                </div>
               </TableCell>
             </TableRow>
           ) : (
-            applicants.map((applicantRow) => {
+            applicants.map((applicantRow, index) => {
               const applicant = applicantRow.applicant || {};
               const currentStatus = (applicantRow.status || "pending").toLowerCase();
 
               return (
-                <TableRow key={applicantRow._id} className="hover:bg-slate-50">
-                  <TableCell className="text-sm text-slate-700 font-medium">
+                <TableRow
+                  key={applicantRow._id}
+                  className="border-b border-gray-100 transition-colors hover:bg-gray-50"
+                >
+                  <TableCell className="py-4 text-sm font-semibold text-gray-900">
                     {applicant.fullname || "-"}
                   </TableCell>
-                  <TableCell className="text-sm text-slate-600">{applicant.email || "-"}</TableCell>
-                  <TableCell className="text-sm text-slate-600">{applicant.phoneNumber || "-"}</TableCell>
-                  <TableCell className="text-sm text-blue-600">
+                  <TableCell className="py-4 text-sm text-gray-500">{applicant.email || "-"}</TableCell>
+                  <TableCell className="py-4 text-sm text-gray-500">{applicant.phoneNumber || "-"}</TableCell>
+                  <TableCell className="py-4 text-sm">
                     {applicant.profile?.resumeOriginalName ? (
-                      <a href={applicant.profile?.resume} target="_blank" rel="noreferrer" className="hover:underline">
+                      <a
+                        href={applicant.profile?.resume}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
+                      >
+                        <FileText className="h-3.5 w-3.5" />
                         {applicant.profile.resumeOriginalName}
                       </a>
                     ) : (
-                      "-"
+                      <span className="text-gray-400">-</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-sm text-slate-600">
+                  <TableCell className="py-4 text-sm text-gray-500">
                     {new Date(applicantRow.createdAt).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="text-right pb-2 pt-2">
+                  <TableCell className="py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusStyles[currentStatus] || "bg-slate-100 text-slate-600"}`}>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[currentStatus] || "bg-gray-100 text-gray-600"}`}>
                         {currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
                       </span>
 
                       {currentStatus === "pending" && (
-                        <div className="flex gap-2">
+                        <div className="flex gap-1.5">
                           <button
                             onClick={() => statusHandler("accepted", applicantRow._id)}
-                            className="rounded-lg border border-green-200 bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 hover:bg-green-100"
+                            className="inline-flex items-center gap-1 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-700 transition hover:bg-green-100"
                           >
+                            <CheckCircle2 className="h-3 w-3" />
                             Accept
                           </button>
                           <button
                             onClick={() => statusHandler("rejected", applicantRow._id)}
-                            className="rounded-lg border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+                            className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
                           >
+                            <XCircle className="h-3 w-3" />
                             Reject
                           </button>
                         </div>
@@ -118,7 +136,6 @@ function ApplicantsTable({ applicants = [] }) {
           )}
         </TableBody>
       </Table>
-      </div>
     </div>
   );
 }

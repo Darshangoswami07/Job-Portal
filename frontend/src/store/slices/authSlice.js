@@ -33,9 +33,17 @@ const authSlice = createSlice({
             state.user = null;
             state.token = null;
             localStorage.removeItem("token");
+        },
+        updateUser: (state, action) => {
+            state.user = { ...state.user, ...action.payload };
+        },
+        setCurrentRole: (state, action) => {
+            if (state.user) {
+                state.user.currentRole = action.payload;
+            }
         }
     }
 });
 
-export const { setLoading, setUser, setToken, setCredentials, clearAuth } = authSlice.actions;
+export const { setLoading, setUser, setToken, setCredentials, clearAuth, updateUser, setCurrentRole } = authSlice.actions;
 export default authSlice.reducer;
