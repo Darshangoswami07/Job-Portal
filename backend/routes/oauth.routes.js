@@ -1,5 +1,8 @@
 import express from "express";
 import passport from "passport";
+import { getFrontendUrl } from "../config/runtimeUrls.js";
+
+const frontendUrl = getFrontendUrl();
 
 const router = express.Router();
 
@@ -12,12 +15,11 @@ router.get(
   "/google/callback",
   passport.authenticate("google", {
     session: false,
-    failureRedirect: `${process.env.FRONTEND_URL || "http://localhost:5173"}/login`,
+    failureRedirect: `${frontendUrl}/login`,
   }),
   (req, res) => {
     const token = req.authInfo?.token;
     const user = req.user;
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     const safeUser = {
       _id: user._id,
       fullname: user.fullname,
@@ -43,12 +45,11 @@ router.get(
   "/github/callback",
   passport.authenticate("github", {
     session: false,
-    failureRedirect: `${process.env.FRONTEND_URL || "http://localhost:5173"}/login`,
+    failureRedirect: `${frontendUrl}/login`,
   }),
   (req, res) => {
     const token = req.authInfo?.token;
     const user = req.user;
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     const safeUser = {
       _id: user._id,
       fullname: user.fullname,

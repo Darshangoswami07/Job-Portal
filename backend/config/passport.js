@@ -4,6 +4,9 @@ import GitHubStrategy from "passport-github2";
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { getBackendUrl } from "./runtimeUrls.js";
+
+const backendUrl = getBackendUrl();
 
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(
@@ -14,7 +17,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL:
           process.env.GOOGLE_CALLBACK_URL ||
-          "http://localhost:8000/api/v1/user/google/callback",
+          `${backendUrl}/api/v1/user/google/callback`,
         scope: ["profile", "email"],
       },
       async (accessToken, refreshToken, profile, done) => {
@@ -67,7 +70,7 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
         clientSecret: process.env.GITHUB_CLIENT_SECRET,
         callbackURL:
           process.env.GITHUB_CALLBACK_URL ||
-          "http://localhost:8000/api/v1/user/github/callback",
+          `${backendUrl}/api/v1/user/github/callback`,
         scope: ["user:email"],
       },
       async (accessToken, refreshToken, profile, done) => {

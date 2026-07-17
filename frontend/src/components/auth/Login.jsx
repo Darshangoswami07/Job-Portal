@@ -7,12 +7,10 @@ import {
   Shield, CheckCircle, ArrowRight, LogIn
 } from "lucide-react"
 import { setCredentials, setLoading } from "@/store/slices/authSlice"
-import { USER_API_END_POINT } from "../../utils/constant"
+import { USER_API_END_POINT, BACKEND_URL } from "../../utils/constant"
 import axios from "axios"
 import { toast } from "sonner"
 import AuthLayout from "./AuthLayout"
-
-const BACKEND = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000"
 
 export default function Login() {
   const dispatch = useDispatch()
@@ -24,6 +22,8 @@ export default function Login() {
   const [errors, setErrors] = useState({})
   const [focusedField, setFocusedField] = useState(null)
   const [shakeKey, setShakeKey] = useState(0)
+  const Motion = motion
+  void Motion
 
   const validate = () => {
     const errs = {}
@@ -73,7 +73,7 @@ export default function Login() {
   }
 
   const handleSocialLogin = (provider) => {
-    window.location.href = `${BACKEND}/api/v1/user/${provider}`
+    window.location.href = `${BACKEND_URL}/api/v1/user/${provider}`
   }
 
   const isFloating = (name) => focusedField === name || !!input[name]
@@ -118,7 +118,7 @@ export default function Login() {
         <FloatingInput
           id="email" type="email" name="email" label="Email"
           icon={Mail} value={input.email} error={errors.email}
-          focusedField={focusedField} isFloating={isFloating("email")}
+          isFloating={isFloating("email")}
           onFocus={() => setFocusedField("email")}
           onBlur={() => setFocusedField(null)}
           onChange={changeHandler}
@@ -213,7 +213,9 @@ export default function Login() {
   )
 }
 
-function FloatingInput({ id, type, name, label, icon: Icon, value, error, focusedField, isFloating, onFocus, onBlur, onChange, autoComplete, placeholder }) {
+function FloatingInput({ id, type, name, label, icon: Icon, value, error, isFloating, onFocus, onBlur, onChange, autoComplete, placeholder }) {
+  const IconComponent = Icon
+  void IconComponent
   return (
     <div className="relative">
       <input
@@ -241,6 +243,8 @@ function FloatingInput({ id, type, name, label, icon: Icon, value, error, focuse
 }
 
 function SocialButton({ icon: Icon, label, onClick }) {
+  const IconComponent = Icon
+  void IconComponent
   return (
     <motion.button
       onClick={onClick} whileHover={{ scale: 1.01, y: -1 }} whileTap={{ scale: 0.99 }}
@@ -263,6 +267,8 @@ function ErrorMsg({ msg }) {
 }
 
 function TrustItem({ icon: Icon, text }) {
+  const IconComponent = Icon
+  void IconComponent
   return (
     <div className="flex items-center gap-2 text-[11px] text-gray-400 dark:text-gray-500">
       <Icon className="h-3 w-3 shrink-0" />

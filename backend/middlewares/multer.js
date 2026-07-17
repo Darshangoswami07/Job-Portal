@@ -27,8 +27,11 @@ const upload = multer({
 });
 
 export const singleUpload = (req, res, next) => {
-  upload.single("file")(req, res, (error) => {
+  upload.any()(req, res, (error) => {
     if (!error) {
+      if (!req.file && Array.isArray(req.files) && req.files.length === 1) {
+        req.file = req.files[0];
+      }
       next();
       return;
     }

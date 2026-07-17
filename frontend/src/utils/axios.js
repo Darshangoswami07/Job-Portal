@@ -1,5 +1,7 @@
 import axios from "axios";
+import { BACKEND_URL } from "./constant";
 
+axios.defaults.baseURL = BACKEND_URL;
 axios.defaults.withCredentials = true;
 
 axios.interceptors.request.use((config) => {

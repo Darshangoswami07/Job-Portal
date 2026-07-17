@@ -7,7 +7,7 @@ import {
   Shield, CheckCircle, ArrowRight, AlertCircle, UserPlus
 } from "lucide-react"
 import { setLoading } from "@/store/slices/authSlice"
-import { USER_API_END_POINT } from "@/utils/constant"
+import { USER_API_END_POINT, BACKEND_URL } from "@/utils/constant"
 import axios from "axios"
 import { toast } from "sonner"
 import AuthLayout from "./AuthLayout"
@@ -26,8 +26,6 @@ const requirements = [
   { key: "number", label: "One number", test: (pw) => /[0-9]/.test(pw) },
   { key: "symbol", label: "One special character", test: (pw) => /[^A-Za-z0-9]/.test(pw) },
 ]
-
-const BACKEND = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000"
 
 export default function Signup() {
   const dispatch = useDispatch()
@@ -101,7 +99,7 @@ export default function Signup() {
   }
 
   const handleSocialSignup = (provider) => {
-    window.location.href = `${BACKEND}/api/v1/user/${provider}`
+    window.location.href = `${BACKEND_URL}/api/v1/user/${provider}`
   }
 
   const isFloating = (name) => focusedField === name || !!input[name]

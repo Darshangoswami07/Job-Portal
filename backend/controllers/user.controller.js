@@ -262,42 +262,59 @@ export const updateProfile = async (req, res) => {
         .filter(Boolean);
     }
 
-    const file = req.file;
+    const uploadedFiles = [
+      ...(Array.isArray(req.files) ? req.files : []),
+      ...(req.file ? [req.file] : []),
+    ];
 
-    if (file) {
-      if (!file.buffer) {
+    const profilePhotoFile = uploadedFiles.find(
+      (file) => file.fieldname === "profilePhoto" || (file.fieldname === "file" && file.mimetype !== "application/pdf")
+    );
+    const resumeFile = uploadedFiles.find(
+      (file) => file.fieldname === "resume" || (file.fieldname === "file" && file.mimetype === "application/pdf")
+    );
+
+    if (profilePhotoFile) {
+      if (!profilePhotoFile.buffer) {
         return res.status(400).json({
-          message: "Uploaded file is invalid",
+          message: "Uploaded profile photo is invalid",
           success: false,
         });
       }
 
-      const fileUri = getDataUri(file);
+      const fileUri = getDataUri(profilePhotoFile);
+      const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+        resource_type: "image",
+        format: "jpg",
+        quality: "auto",
+      });
 
-      if (file.mimetype === "application/pdf") {
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
-          resource_type: "raw",
-        });
-
-        if (shouldDebugProfileUpdate) {
-          console.log("updateProfile Cloudinary response:", cloudResponse);
-        }
-
-        user.profile.resume = cloudResponse.secure_url;
-        user.profile.resumeOriginalName = file.originalname;
-      } else {
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
-          resource_type: "image",
-          format: "jpg",
-          quality: "auto",
-        });
-
-        if (shouldDebugProfileUpdate) {
-          console.log("updateProfile Cloudinary response:", cloudResponse);
-        }
-
-        user.profile.profilePhoto = cloudResponse.secure_url;
+      if (shouldDebugProfileUpdate) {
+        console.log("updateProfile photo upload response:", cloudResponse);
       }
+
+      user.profile.profilePhoto = cloudResponse.secure_url;
+    }
+
+    if (resumeFile) {
+      if (!resumeFile.buffer) {
+        return res.status(400).json({
+          message: "Uploaded resume is invalid",
+          success: false,
+        });
+      }
+
+      const fileUri = getDataUri(resumeFile);
+      const cloudResponse = await cloudinary.uploader.upload(fileUri.content, {
+        resource_type: "raw",
+      });
+
+      if (shouldDebugProfileUpdate) {
+        console.log("updateProfile resume upload response:", cloudResponse);
+      }
+
+      user.profile.resume = cloudResponse.secure_url;
+      user.profile.resumeOriginalName = resumeFile.originalname;
     }
 
     await user.save();

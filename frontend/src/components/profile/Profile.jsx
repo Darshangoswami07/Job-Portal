@@ -1,6 +1,6 @@
-import React, { useState, useRef, useCallback, useEffect } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { useSelector, useDispatch } from "react-redux"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import Navbar from "@/components/shared/Navbar"
 import {
   User, Mail, Phone, MapPin, Globe, Linkedin, Github as GithubIcon,
@@ -40,6 +40,8 @@ export default function Profile() {
   const [education, setEducation] = useState([])
   const photoInputRef = useRef(null)
   const resumeInputRef = useRef(null)
+  const Motion = motion
+  void Motion
 
   useEffect(() => {
     if (!user) return
@@ -163,8 +165,8 @@ export default function Profile() {
     formData.append("profileCompleted", "true")
     formData.append("experience", JSON.stringify(experience))
     formData.append("education", JSON.stringify(education))
-    if (profilePhoto instanceof File) formData.append("file", profilePhoto)
-    if (resumeFile instanceof File) formData.append("file", resumeFile)
+    if (profilePhoto instanceof File) formData.append("profilePhoto", profilePhoto)
+    if (resumeFile instanceof File) formData.append("resume", resumeFile)
     try {
       const res = await axios.post(`${USER_API_END_POINT}/updateprofile`, formData, { withCredentials: true })
       if (res.data.success) {
@@ -296,7 +298,7 @@ export default function Profile() {
               {activeTab === "personal" && <PersonalTab form={form} changeHandler={changeHandler} errors={errors} />}
               {activeTab === "role" && (
                 <RoleTab
-                  form={form} changeHandler={changeHandler} errors={errors}
+                  form={form} changeHandler={changeHandler}
                   roles={roles} setRoles={setRoles}
                   experience={experience} addExperience={addExperience}
                   updateExperience={updateExperience} removeExperience={removeExperience}
@@ -408,7 +410,7 @@ function PersonalTab({ form, changeHandler, errors }) {
   )
 }
 
-function RoleTab({ form, changeHandler, errors, roles, setRoles, experience, addExperience, updateExperience, removeExperience, education, addEducation, updateEducation, removeEducation }) {
+function RoleTab({ form, changeHandler, roles, setRoles, experience, addExperience, updateExperience, removeExperience, education, addEducation, updateEducation, removeEducation }) {
   return (
     <div className="space-y-8">
       <div>

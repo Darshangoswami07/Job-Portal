@@ -88,8 +88,10 @@ export const updateCompany = async (req, res) => {
 
     let updateData = { name, description, website, location };
 
-    if (req.file) {
-      const fileUri = getDataUri(req.file);
+    const uploadedFile = req.file || req.files?.find((file) => file.fieldname === "file");
+
+    if (uploadedFile) {
+      const fileUri = getDataUri(uploadedFile);
 
       const cloudResponse = await cloudinary.uploader.upload(
         fileUri.content,

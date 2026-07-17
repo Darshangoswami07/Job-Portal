@@ -87,7 +87,7 @@ export default function UpdateProfileDialogue({ open, setOpen }) {
     formData.append("bio", input.bio);
     formData.append("skills", input.skills);
     if (input.file instanceof File) {
-      formData.append("file", input.file);
+      formData.append("resume", input.file);
     }
     if (input.profilePhoto instanceof File) {
       formData.append("profilePhoto", input.profilePhoto);
