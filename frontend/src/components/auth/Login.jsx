@@ -4,13 +4,14 @@ import { useDispatch, useSelector } from "react-redux"
 import { motion } from "framer-motion"
 import {
   Mail, Lock, Eye, EyeOff, Loader2, Chrome, Github,
-  Shield, CheckCircle, ArrowRight, LogIn
+  Shield, CheckCircle, ArrowRight
 } from "lucide-react"
 import { setCredentials, setLoading } from "@/store/slices/authSlice"
 import { USER_API_END_POINT, BACKEND_URL } from "../../utils/constant"
 import axios from "axios"
 import { toast } from "sonner"
 import AuthLayout from "./AuthLayout"
+import ProfileAvatar from "./ProfileAvatar"
 
 export default function Login() {
   const dispatch = useDispatch()
@@ -80,31 +81,28 @@ export default function Login() {
 
   return (
     <AuthLayout>
-      <div className="mb-8 text-center">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-          className="mx-auto mb-4 h-12 w-12 rounded-2xl bg-[#0A66C2] dark:bg-[#2F81F7] flex items-center justify-center"
-        >
-          <LogIn className="h-6 w-6 text-white" />
-        </motion.div>
-        <motion.h1
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="text-2xl font-bold text-gray-900 dark:text-gray-100"
-        >
-          Welcome back
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mt-1.5 text-sm text-gray-500 dark:text-gray-400"
-        >
-          Sign in to your account to continue
-        </motion.p>
+      <div className="mb-10">
+        {/* Header Section */}
+        <div className="text-center">
+          <ProfileAvatar />
+          
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+            className="text-2xl font-semibold text-gray-900 dark:text-gray-100 tracking-tight"
+          >
+            Welcome back
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+            className="mt-3 text-sm text-gray-500 dark:text-gray-400 leading-relaxed"
+          >
+            Sign in to your account to continue
+          </motion.p>
+        </div>
       </div>
 
       <motion.form

@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion"
 import { useEffect, useState } from "react"
-import { Briefcase } from "lucide-react"
+import { Briefcase, ArrowLeft } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 const trustCompanies = [
   { name: "Google", color: "#4285F4" },
@@ -30,6 +31,7 @@ const dashboardCards = [
 
 export default function AuthLayout({ children }) {
   const [currentNotif, setCurrentNotif] = useState(0)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -37,6 +39,14 @@ export default function AuthLayout({ children }) {
     }, 3500)
     return () => clearInterval(interval)
   }, [])
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1)
+    } else {
+      navigate("/")
+    }
+  }
 
   return (
     <div className="flex min-h-screen bg-white dark:bg-[#0D1117]">
@@ -53,6 +63,19 @@ export default function AuthLayout({ children }) {
             }}
           />
         </div>
+
+        {/* Back Button - Top Left Corner */}
+        <motion.button
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+          onClick={handleBack}
+          className="absolute top-8 left-8 z-20 group flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 active:scale-[0.98]"
+          aria-label="Go back"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
+          <span className="transition-colors duration-200">Back</span>
+        </motion.button>
 
         <div className="relative flex flex-col justify-center px-14 w-full">
           <motion.div
@@ -202,7 +225,20 @@ export default function AuthLayout({ children }) {
         ))}
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 bg-white dark:bg-[#0D1117]">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 bg-white dark:bg-[#0D1117] relative">
+        {/* Mobile Back Button - Top Left */}
+        <motion.button
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+          onClick={handleBack}
+          className="lg:hidden absolute top-6 left-4 sm:left-6 z-20 group flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 active:scale-[0.98]"
+          aria-label="Go back"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
+          <span className="transition-colors duration-200">Back</span>
+        </motion.button>
+
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 24 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
