@@ -50,6 +50,8 @@ const rightLinks = [
 const recruiterLinks = [
   { name: "Companies", path: "/admin/companies" },
   { name: "My Jobs", path: "/admin/jobs" },
+  { name: "Questions", path: "/admin/questions" },
+  { name: "Templates", path: "/admin/resume-templates" },
 ];
 
 const drawerVariants = {

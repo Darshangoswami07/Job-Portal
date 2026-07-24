@@ -32,6 +32,13 @@ import contactRoutes from "./routes_new/contact.routes.js";
 import supportTicketRoutes from "./routes_new/supportTicket.routes.js";
 import subscriptionRoutes from "./routes_new/subscription.routes.js";
 import notificationRoutes from "./routes_new/notification.routes.js";
+import companyAggregatorRoutes from "./routes_new/companyAggregator.routes.js";
+import { aggregateCompanies } from "./services/companyAggregator.js";
+import { seedBlogs } from "./seed/blogs.js";
+import { seedInterviewQuestions } from "./seed/interviewQuestions.js";
+import { seedResumeTemplates } from "./seed/resumeTemplates.js";
+import { seedCareerGuides } from "./seed/careerGuides.js";
+import { seedJobs } from "./seed/jobs.js";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -92,6 +99,7 @@ app.use("/api/v1/contact", contactRoutes);
 app.use("/api/v1/support-tickets", supportTicketRoutes);
 app.use("/api/v1/subscriptions", subscriptionRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/company-profiles", companyAggregatorRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running 🚀");
@@ -100,11 +108,27 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 8000;
 
 connectDB()
-  .then(() => {
+  .then(async () => {
+    console.log("Database connection established, checking jobs...");
+    try {
+      const Job = mongoose.connection.model("Job");
+      const jobCount = await Job.countDocuments().catch(() => 0);
+      if (jobCount < 100) {
+        console.log(`Initializing ${100 - jobCount} sample jobs...`);
+        await seedJobs();
+      }
+    } catch (error) {
+      console.log("Job seeding check failed, attempting full seed...");
+      await seedJobs();
+    }
+    console.log("Loading jobs from all sources...");
+    const syncResult = await aggregateCompanies();
+    console.log(`Startup completed: ${syncResult.count || 0} profiles aggregated`);
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📊 Jobs loaded from all providers - Ready to serve!`);
     });
   })
   .catch((err) => {
-    console.error("Database connection failed:", err);
+    console.error("❌ Database connection failed:", err);
   });

@@ -1,6 +1,3 @@
-import { useEffect } from "react"
-import { useSelector } from "react-redux"
-import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 
 import Navbar from "@/components/shared/Navbar"
@@ -14,22 +11,7 @@ import Footer from "@/components/shared/Footer"
 import useGetAllJobs from "@/hooks/useGetAllJobs"
 
 export default function Home() {
-  const { user } = useSelector((store) => store.auth)
-  const navigate = useNavigate()
-
   useGetAllJobs()
-
-  useEffect(() => {
-    if (user?.currentRole === "recruiter") {
-      navigate("/admin/companies")
-    }
-  }, [user, navigate])
-
-  useEffect(() => {
-    if (user && !user.profileCompleted) {
-      navigate("/profile")
-    }
-  }, [user, navigate])
 
   return (
     <motion.div

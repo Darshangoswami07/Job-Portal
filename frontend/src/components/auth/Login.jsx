@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
 import { motion } from "framer-motion"
 import {
@@ -16,6 +16,7 @@ import ProfileAvatar from "./ProfileAvatar"
 export default function Login() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { loading } = useSelector((store) => store.auth)
 
   const [input, setInput] = useState({ email: "", password: "" })
@@ -57,11 +58,8 @@ export default function Login() {
       })
       if (res.data.success) {
         dispatch(setCredentials({ user: res.data.user, token: res.data.token }))
-        if (!res.data.user.profileCompleted) {
-          navigate("/profile")
-        } else {
-          navigate("/")
-        }
+        const redirectTo = searchParams.get("redirect") || "/"
+        navigate(redirectTo, { replace: true })
         toast.success(res.data.message)
       }
     } catch (err) {

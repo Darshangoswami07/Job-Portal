@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Target, Eye, Heart, Users, Globe, Zap, Quote, ArrowRight, Linkedin, Twitter } from "lucide-react";
 import Navbar from "@/components/shared/Navbar";
 import CTABanner from "@/components/sections/CTABanner";
+import FounderCard from "@/components/sections/FounderCard";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -161,27 +162,33 @@ export default function About() {
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Meet Our Team</h2>
             <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto">The people behind JobHub</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {team.map((m, i) => (
-              <motion.div
-                key={m.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 card-shadow p-6 text-center hover:shadow-lg transition-all"
-              >
-                <div className={`h-20 w-20 rounded-2xl bg-gradient-to-br ${m.color} flex items-center justify-center mx-auto mb-4`}>
-                  <span className="text-2xl font-bold text-white">{m.img}</span>
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">{m.name}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{m.role}</p>
-                <div className="flex justify-center gap-2 mt-3">
-                  <Linkedin className="h-4 w-4 text-gray-400 hover:text-[#0A66C2] cursor-pointer transition-colors" />
-                  <Twitter className="h-4 w-4 text-gray-400 hover:text-blue-400 cursor-pointer transition-colors" />
-                </div>
-              </motion.div>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
+            <FounderCard founder={{
+              name: "Abhishek Bisht",
+              position: "CTO & Co-Founder",
+              role: "Software Engineer • AI/ML Engineer • Full Stack Developer",
+              bio: "Abhishek Bisht is responsible for the technology, AI systems, backend architecture, and product engineering of JobHub. He specializes in Full Stack Development, Artificial Intelligence, Machine Learning, scalable backend systems, cloud deployment, and modern web technologies. His vision is to build AI-powered career solutions that simplify job searching and career growth for millions of users.",
+              skills: ["Artificial Intelligence", "Machine Learning", "Full Stack Development", "React", "Next.js", "FastAPI", "Django", "Node.js", "PostgreSQL", "Docker", "LangChain", "LangGraph", "RAG", "MCP", "Cloud Computing"],
+              avatarInitials: "AB",
+              avatarColor: "from-blue-500 to-cyan-500",
+              linkedInUrl: "https://linkedin.com/in/abhishek-bisht",
+              githubUrl: "https://github.com/abhishekbisht",
+              portfolioUrl: "https://abhishekbisht.com",
+              email: "abhishek@jobhub.com"
+            }} />
+            <FounderCard founder={{
+              name: "Darshan Goswami",
+              position: "CEO & Co-Founder",
+              role: "Full Stack Developer • Software Engineer • AI/ML Engineer • Product Strategist",
+              bio: "Darshan Goswami leads the overall vision, product strategy, business development, and growth of JobHub. He also works as a Full Stack Developer, managing the database, backend, and frontend of the JobHub platform. He works closely on AI-driven innovation, user experience, and building a world-class platform that connects job seekers with the best career opportunities through intelligent automation.",
+              skills: ["Artificial Intelligence", "Machine Learning", "Full Stack Development", "React", "Next.js", "Python", "Node.js", "Product Strategy", "Leadership", "Software Engineering", "Business Development", "Product Management", "System Design", "Cloud Computing"],
+              avatarInitials: "DG",
+              avatarColor: "from-purple-500 to-pink-500",
+              linkedInUrl: "https://linkedin.com/in/darshan-goswami",
+              githubUrl: "https://github.com/darshangoswami",
+              portfolioUrl: "https://darshangoswami.com",
+              email: "darshan@jobhub.com"
+            } }/>
           </div>
         </div>
       </div>
