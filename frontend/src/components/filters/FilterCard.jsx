@@ -1,18 +1,26 @@
 import { useMemo, useState } from "react";
-import { ChevronDown, MapPin, Briefcase, DollarSign, Clock } from "lucide-react";
+import { ChevronDown, MapPin, Briefcase, DollarSign, Clock, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+
+const SALARY_RANGES = [
+  { label: "0-3 LPA", min: 0, max: 3 },
+  { label: "3-6 LPA", min: 3, max: 6 },
+  { label: "6-12 LPA", min: 6, max: 12 },
+  { label: "12-20 LPA", min: 12, max: 20 },
+  { label: "20+ LPA", min: 20, max: null },
+];
 
 const FILTER_OPTIONS = {
-  location: ["Delhi NCR", "Bangalore", "Hyderabad", "Pune", "Mumbai"],
-  industry: ["Frontend", "Backend", "Fullstack", "DevOps", "Data Science"],
-  salary: ["0-40k", "42-1lakh", "1-5lakh", "5lakh+"],
-  experience: ["Entry", "Mid", "Senior", "Lead"],
+  location: ["Delhi NCR", "Bangalore", "Hyderabad", "Pune", "Mumbai", "Chennai", "Kolkata", "Remote"],
+  industry: ["Frontend", "Backend", "Fullstack", "DevOps", "Data Science", "AI/ML", "Mobile", "QA"],
+  salary: SALARY_RANGES.map((r) => r.label),
+  experience: ["Entry (0-1 yrs)", "Mid (2-4 yrs)", "Senior (5-8 yrs)", "Lead (8+ yrs)"],
 };
 
 const FIELD_LABELS = {
   location: "Location",
-  industry: "Industry",
+  industry: "Industry / Role",
   salary: "Salary Range",
   experience: "Experience Level",
 };
@@ -37,6 +45,8 @@ export default function FilterCard({
   selectedFilters,
   onToggle,
   onClearAll,
+  salaryRange,
+  onSalaryRangeChange,
 }) {
   const activeCount = useMemo(
     () => Object.values(selectedFilters).reduce((total, set) => total + set.size, 0),
@@ -67,11 +77,14 @@ export default function FilterCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-white border border-gray-200 rounded-lg card-shadow overflow-hidden"
+      className="bg-white border border-gray-200 rounded-xl card-shadow overflow-hidden"
     >
       <div className="p-5 space-y-5">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-900">Filters</h2>
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4 text-gray-500" />
+            <h2 className="text-lg font-bold text-gray-900">Filters</h2>
+          </div>
           <button
             onClick={onClearAll}
             disabled={!activeCount}
@@ -163,7 +176,7 @@ export default function FilterCard({
                           className={cn(
                             "flex items-center gap-2 p-2.5 rounded-lg text-xs font-medium border transition-all",
                             checked
-                              ? "bg-blue-50 text-blue-700 border-blue-200"
+                              ? "bg-blue-50 text-blue-700 border-blue-200 shadow-sm"
                               : "bg-white text-gray-600 border-gray-200 hover:border-blue-200 hover:bg-blue-50"
                           )}
                         >
