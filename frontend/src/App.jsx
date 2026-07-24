@@ -143,6 +143,7 @@ function AnimatedRoutes() {
           <Route path="/ai-resume" element={<SuspenseWrapper><PageWrapper><AiResume /></PageWrapper></SuspenseWrapper>} />
           <Route path="/cover-letter" element={<SuspenseWrapper><PageWrapper><CoverLetter /></PageWrapper></SuspenseWrapper>} />
           <Route path="/mock-interview" element={<SuspenseWrapper><PageWrapper><MockInterview /></PageWrapper></SuspenseWrapper>} />
+          <Route path="/mock-interview/results/:sessionId" element={<SuspenseWrapper><PageWrapper><MockInterview /></PageWrapper></SuspenseWrapper>} />
           <Route path="/salary-explorer" element={<SuspenseWrapper><PageWrapper><SalaryExplorer /></PageWrapper></SuspenseWrapper>} />
           <Route path="/career-roadmap" element={<SuspenseWrapper><PageWrapper><CareerRoadmap /></PageWrapper></SuspenseWrapper>} />
           <Route path="/resume-checker" element={<SuspenseWrapper><PageWrapper><ResumeChecker /></PageWrapper></SuspenseWrapper>} />
