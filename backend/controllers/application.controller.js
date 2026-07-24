@@ -121,7 +121,6 @@ export const applyjob = async (req, res) => {
                     success:false,
                 });
             };
-            //find the application by application id
             const application = await Application.findOne({_id:applicationId});
             if(!application){
                 return res.status(404).json({
@@ -130,8 +129,11 @@ export const applyjob = async (req, res) => {
                 });
             }
 
-            //update the status of the application
             application.status = status.toLowerCase();
+            application.statusHistory.push({
+                status: status.toLowerCase(),
+                updatedAt: new Date()
+            });
             await application.save();
 
             return res.status(200).json({

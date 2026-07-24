@@ -31,6 +31,12 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    profileCompletionScore: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100,
+    },
     profile: {
         bio: { type: String },
         skills: [String],

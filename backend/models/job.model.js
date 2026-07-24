@@ -46,6 +46,17 @@ const jobSchema =new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:'Application',
     }],
+    views: {
+        type: Number,
+        default: 0,
+    },
+    isActive: {
+        type: Boolean,
+        default: true,
+    }
 },{timestamps:true});
+
+// Add text index for search
+jobSchema.index({ title: 'text', description: 'text' });
 
 export const Job =mongoose.model("Job",jobSchema)

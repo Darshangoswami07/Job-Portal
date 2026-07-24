@@ -1,4 +1,5 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import {
   login,
   logout,
@@ -12,8 +13,16 @@ import { singleUpload } from "../middlewares/multer.js";
 
 const router = express.Router();
 
-router.route("/register").post(register);
-router.route("/login").post(login);
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { message: "Too many attempts, please try again later", success: false },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+router.route("/register").post(authLimiter, register);
+router.route("/login").post(authLimiter, login);
 router.route("/logout").get(logout);
 router.route("/profile").get(isAuthenticated, getProfile);
 router.route("/updateprofile").post(isAuthenticated, singleUpload, updateProfile);

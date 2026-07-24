@@ -78,17 +78,43 @@ export const postJob = async (req, res) => {
 
 export const getAllJobs = async (req, res) => {
   try {
-    const keyword = req.query.keyword || "";
-    const query ={
-      $or: [
-        { title: { $regex: keyword, $options: "i" } },
-        { description: { $regex: keyword, $options: "i" } }
-      ]
+    const { keyword, location, jobType, salary, minSalary, maxSalary, experienceLevel, page = 1, limit = 12 } = req.query;
+    
+    let query = { isActive: true };
+
+    if (keyword) {
+      query.$text = { $search: keyword };
+    }
+    if (location) {
+      query.location = { $regex: location, $options: "i" };
+    }
+    if (jobType) {
+      query.jobType = { $regex: jobType, $options: "i" };
+    }
+    if (salary) {
+      query.salary = { $gte: Number(salary) };
+    }
+    if (minSalary || maxSalary) {
+      query.salary = {};
+      if (minSalary) query.salary.$gte = Number(minSalary);
+      if (maxSalary) query.salary.$lte = Number(maxSalary);
+    }
+    if (experienceLevel) {
+      query.experienceLevel = { $regex: experienceLevel, $options: "i" };
     }
 
-    const jobs = await Job.find(query).populate({
-      path: "company",
-    }).sort({ createdAt: -1 });
+    const skip = (page - 1) * limit;
+
+    const jobs = await Job.find(query)
+      .populate({
+        path: "company",
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    const totalJobs = await Job.countDocuments(query);
+
     if(!jobs){
       return res.status(404).json({
         message: "No jobs found",
@@ -99,6 +125,9 @@ export const getAllJobs = async (req, res) => {
     return res.status(200).json({
       success: true,
       jobs,
+      totalJobs,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalJobs / limit)
     });
   } catch (error) {
     console.error("Error in getAllJobs:", error);

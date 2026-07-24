@@ -1,5 +1,6 @@
 import { Company } from "../models/company.model.js";
 import { User } from "../models/user.model.js";
+import { Job } from "../models/job.model.js";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../config/cloudinary.js";
 
@@ -80,6 +81,55 @@ export const getCompanyById = async (req, res) => {
     } catch (error) {
         console.error("Error in getCompanyById:", error);
     }
+};
+
+export const getAllCompanies = async (req, res) => {
+  try {
+    const { search } = req.query;
+    let query = {};
+    if (search) {
+      query.name = { $regex: search, $options: "i" };
+    }
+    const companies = await Company.find(query).sort({ createdAt: -1 });
+
+    const companiesWithJobs = await Promise.all(
+      companies.map(async (company) => {
+        const jobCount = await Job.countDocuments({ company: company._id, isActive: true });
+        return { ...company.toObject(), openJobs: jobCount };
+      })
+    );
+
+    return res.status(200).json({
+      success: true,
+      companies: companiesWithJobs,
+    });
+  } catch (error) {
+    console.error("Error in getAllCompanies:", error);
+    return res.status(500).json({
+      message: "Server error while fetching companies",
+      success: false,
+    });
+  }
+};
+
+export const getCompanyJobs = async (req, res) => {
+  try {
+    const companyId = req.params.id;
+    const jobs = await Job.find({ company: companyId, isActive: true })
+      .populate({ path: "company" })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      jobs,
+    });
+  } catch (error) {
+    console.error("Error in getCompanyJobs:", error);
+    return res.status(500).json({
+      message: "Server error while fetching company jobs",
+      success: false,
+    });
+  }
 };
 
 export const updateCompany = async (req, res) => {

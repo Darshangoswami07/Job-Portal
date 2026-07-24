@@ -3,6 +3,7 @@ import multer from "multer";
 const storage = multer.memoryStorage();
 const allowedMimeTypes = new Set([
   "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "image/jpeg",
   "image/jpg",
   "image/png",

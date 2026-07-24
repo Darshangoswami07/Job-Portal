@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -6,14 +6,14 @@ import Navbar from "@/components/shared/Navbar";
 import Job from "@/components/job/Job";
 import { SAVED_JOB_API_END_POINT } from "@/utils/constant";
 import { useSelector } from "react-redux";
-import { Bookmark, Search } from "lucide-react";
+import { Bookmark, Search, Briefcase } from "lucide-react";
 
 function SkeletonCard() {
   return (
-    <div className="animate-pulse overflow-hidden rounded-lg border border-gray-200 bg-white card-shadow">
+    <div className="animate-pulse overflow-hidden rounded-2xl border border-gray-100 bg-white card-shadow">
       <div className="border-b border-gray-100 px-5 py-5">
         <div className="flex items-center gap-3">
-          <div className="h-14 w-14 rounded-lg bg-gray-200" />
+          <div className="h-14 w-14 rounded-xl bg-gray-200" />
           <div className="space-y-2">
             <div className="h-4 w-32 rounded bg-gray-200" />
             <div className="h-3 w-20 rounded bg-gray-200" />
@@ -25,18 +25,35 @@ function SkeletonCard() {
         <div className="h-4 w-full rounded bg-gray-200" />
         <div className="h-4 w-3/4 rounded bg-gray-200" />
         <div className="flex gap-2 pt-1">
-          <div className="h-7 w-20 rounded bg-gray-200" />
-          <div className="h-7 w-20 rounded bg-gray-200" />
-          <div className="h-7 w-16 rounded bg-gray-200" />
+          <div className="h-7 w-20 rounded-full bg-gray-200" />
+          <div className="h-7 w-20 rounded-full bg-gray-200" />
+          <div className="h-7 w-16 rounded-full bg-gray-200" />
         </div>
       </div>
       <div className="flex gap-3 border-t border-gray-100 px-5 py-5">
-        <div className="h-9 flex-1 rounded-lg bg-gray-200" />
-        <div className="h-9 flex-1 rounded-lg bg-gray-200" />
+        <div className="h-9 flex-1 rounded-xl bg-gray-200" />
+        <div className="h-9 flex-1 rounded-xl bg-gray-200" />
       </div>
     </div>
   );
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05 },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 80, damping: 15 },
+  },
+};
 
 export default function SavedJobs() {
   const navigate = useNavigate();
@@ -109,7 +126,12 @@ export default function SavedJobs() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="min-h-screen bg-[#F3F2EF]"
+    >
       <Navbar />
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -129,9 +151,9 @@ export default function SavedJobs() {
               </p>
             </div>
             {!loading && savedJobs.length > 0 && (
-              <div className="flex items-center gap-2 self-start rounded-lg bg-gray-100 px-4 py-2">
+              <div className="flex items-center gap-2 self-start rounded-xl bg-blue-50 border border-blue-200 px-4 py-2">
                 <Bookmark className="h-4 w-4 text-[#0A66C2]" />
-                <span className="text-sm font-semibold text-gray-700">
+                <span className="text-sm font-semibold text-blue-700">
                   {savedJobs.length} saved
                 </span>
               </div>
@@ -150,9 +172,9 @@ export default function SavedJobs() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            className="mx-auto mt-8 max-w-lg rounded-lg bg-white card-shadow p-12 text-center"
+            className="mx-auto mt-8 max-w-lg rounded-2xl bg-white card-shadow p-12 text-center border border-gray-100"
           >
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gray-100">
               <Bookmark className="h-10 w-10 text-gray-400" />
             </div>
             <h2 className="text-xl font-bold text-gray-800">No saved jobs yet</h2>
@@ -161,25 +183,31 @@ export default function SavedJobs() {
             </p>
             <button
               onClick={() => navigate("/jobs")}
-              className="btn-primary mx-auto mt-6 inline-flex items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-semibold"
+              className="btn-primary mx-auto mt-6 inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold"
             >
               <Search className="h-4 w-4" />
               Browse Jobs
             </button>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {savedJobs.map((job) => (
-              <Job
-                key={job?._id}
-                job={job}
-                isSaved={savedJobIds.has(String(job?._id))}
-                onToggleSaved={handleToggleSaved}
-              />
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
+          >
+            {savedJobs.map((job, index) => (
+              <motion.div key={job?._id} variants={cardVariants}>
+                <Job
+                  job={job}
+                  isSaved={savedJobIds.has(String(job?._id))}
+                  onToggleSaved={handleToggleSaved}
+                />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

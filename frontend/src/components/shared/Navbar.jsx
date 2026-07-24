@@ -1,21 +1,50 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useScroll, useMotionValueEvent, motion } from "framer-motion";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useScroll, useMotionValueEvent, motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useDispatch, useSelector } from "react-redux";
-import { Sun, Moon, Menu, X, LogOut, User2, Bookmark, Briefcase, ChevronDown, Users, Building2 } from "lucide-react";
+import {
+  Sun, Moon, Menu, X, LogOut, User2, Bookmark, Briefcase,
+  ChevronDown, Users, Building2, Sparkles, BookOpen, CreditCard,
+  Info, Mail, FileText, Brain, Video, Route, Search, DollarSign,
+  PenTool, Star, HelpCircle, MessageSquare, Shield
+} from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
-import { clearAuth, setCurrentRole, updateUser } from "@/store/slices/authSlice";
+import { clearAuth, setCurrentRole } from "@/store/slices/authSlice";
 import { USER_API_END_POINT } from "../../utils/constant";
+import { cn } from "@/lib/utils";
 
-const jobSeekerLinks = [
+const careerTools = [
+  { name: "AI Resume Builder", path: "/ai-resume", icon: Sparkles },
+  { name: "Cover Letter", path: "/cover-letter", icon: PenTool },
+  { name: "Mock Interview", path: "/mock-interview", icon: Video },
+  { name: "Salary Explorer", path: "/salary-explorer", icon: DollarSign },
+  { name: "Career Roadmap", path: "/career-roadmap", icon: Route },
+  { name: "Resume Checker", path: "/resume-checker", icon: Search },
+];
+
+const resourcesLinks = [
+  { name: "Blogs", path: "/blogs", icon: BookOpen },
+  { name: "Interview Questions", path: "/interview-questions", icon: Brain },
+  { name: "Resume Templates", path: "/resume-templates", icon: FileText },
+  { name: "Career Guides", path: "/career-guides", icon: Star },
+  { name: "Help Center", path: "/help-center", icon: HelpCircle },
+];
+
+const mainLinks = [
   { name: "Home", path: "/" },
   { name: "Find Jobs", path: "/jobs" },
-  { name: "Browse Companies", path: "/browse" },
+  { name: "Browse Companies", path: "/browse-companies" },
+];
+
+const rightLinks = [
+  { name: "Pricing", path: "/pricing", icon: CreditCard },
+  { name: "About", path: "/about", icon: Info },
+  { name: "Contact", path: "/contact", icon: Mail },
 ];
 
 const recruiterLinks = [
@@ -33,10 +62,106 @@ const navVariants = {
   visible: { y: 0, opacity: 1 },
 };
 
+const dropdownVariants = {
+  hidden: { opacity: 0, y: 8, scale: 0.96 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.15 } },
+  exit: { opacity: 0, y: 8, scale: 0.96, transition: { duration: 0.1 } },
+};
+
+function NavLink({ to, children, className, onClick }) {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className={cn(
+        "px-4 py-2 text-sm font-medium transition-colors rounded-lg",
+        isActive
+          ? "text-[#0A66C2] dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30"
+          : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800",
+        className
+      )}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function DropdownNav({ label, items, isOpen, onToggle, onClose }) {
+  const location = useLocation();
+  const isAnyActive = items.some((item) => location.pathname === item.path);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isOpen, onClose]);
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      <button
+        onClick={onToggle}
+        className={cn(
+          "flex items-center gap-1 px-4 py-2 text-sm font-medium transition-colors rounded-lg",
+          isAnyActive
+            ? "text-[#0A66C2] dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30"
+            : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+        )}
+      >
+        {label}
+        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", isOpen && "rotate-180")} />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            variants={dropdownVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden z-50"
+          >
+            <div className="p-1.5">
+              {items.map((item) => {
+                const Icon = item.icon;
+                const isItemActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={onClose}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                      isItemActive
+                        ? "text-[#0A66C2] dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30"
+                        : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function Navbar() {
   const { user } = useSelector((store) => store.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { theme, setTheme } = useTheme();
   const { scrollY } = useScroll();
   const lastScrollY = useRef(0);
@@ -45,20 +170,16 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [compact, setCompact] = useState(false);
   const [themeRotate, setThemeRotate] = useState(false);
+  const [careerOpen, setCareerOpen] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [mobileCareerOpen, setMobileCareerOpen] = useState(false);
+  const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
+    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
   }, [isMobileMenuOpen]);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
@@ -72,9 +193,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      const res = await axios.get(`${USER_API_END_POINT}/logout`, {
-        withCredentials: true,
-      });
+      const res = await axios.get(`${USER_API_END_POINT}/logout`, { withCredentials: true });
       if (res.data.success) {
         dispatch(clearAuth());
         navigate("/");
@@ -92,7 +211,12 @@ export default function Navbar() {
     setTimeout(() => setThemeRotate(false), 300);
   };
 
-  const currentLinks = user?.currentRole === "recruiter" ? recruiterLinks : jobSeekerLinks;
+  const closeAllDropdowns = () => {
+    setCareerOpen(false);
+    setResourcesOpen(false);
+  };
+
+  const isRecruiter = user?.currentRole === "recruiter";
 
   return (
     <>
@@ -101,35 +225,49 @@ export default function Navbar() {
         animate="visible"
         variants={navVariants}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className={`sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800 transition-all duration-300 ${
+        className={cn(
+          "sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800 transition-all duration-300",
           scrolled
             ? "bg-white/80 dark:bg-gray-950/80 backdrop-blur-md shadow-sm"
             : "bg-white dark:bg-gray-950"
-        }`}
+        )}
       >
-        <div className={`mx-auto max-w-7xl transition-all duration-300 ${
-          compact ? "px-4 sm:px-6 lg:px-8" : "px-4 sm:px-6 lg:px-8"
-        }`}>
-          <div className={`flex items-center justify-between transition-all duration-300 ${
-            compact ? "h-14" : "h-16"
-          }`}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className={cn("flex items-center justify-between transition-all duration-300", compact ? "h-14" : "h-16")}>
             <Link to="/" className="flex items-center gap-2 shrink-0">
               <Briefcase className="size-6 text-[#0A66C2]" />
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
-                JobHub
-              </span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">JobHub</span>
             </Link>
 
             <div className="hidden md:flex items-center gap-1">
-              {currentLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  {link.name}
-                </Link>
-              ))}
+              {isRecruiter ? (
+                recruiterLinks.map((link) => (
+                  <NavLink key={link.path} to={link.path}>{link.name}</NavLink>
+                ))
+              ) : (
+                <>
+                  {mainLinks.map((link) => (
+                    <NavLink key={link.path} to={link.path}>{link.name}</NavLink>
+                  ))}
+                  <DropdownNav
+                    label="Career Tools"
+                    items={careerTools}
+                    isOpen={careerOpen}
+                    onToggle={() => { setCareerOpen(!careerOpen); setResourcesOpen(false); }}
+                    onClose={() => setCareerOpen(false)}
+                  />
+                  <DropdownNav
+                    label="Resources"
+                    items={resourcesLinks}
+                    isOpen={resourcesOpen}
+                    onToggle={() => { setResourcesOpen(!resourcesOpen); setCareerOpen(false); }}
+                    onClose={() => setResourcesOpen(false)}
+                  />
+                  {rightLinks.map((link) => (
+                    <NavLink key={link.path} to={link.path}>{link.name}</NavLink>
+                  ))}
+                </>
+              )}
             </div>
 
             <div className="flex items-center gap-2 md:gap-3">
@@ -137,22 +275,24 @@ export default function Navbar() {
                 <div className="hidden md:flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-1 py-0.5 shadow-sm">
                   <button
                     onClick={() => dispatch(setCurrentRole("jobSeeker"))}
-                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all",
                       user?.currentRole === "jobSeeker"
                         ? "bg-[#0A66C2] text-white shadow-sm"
                         : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                    }`}
+                    )}
                   >
                     <Users className="h-3.5 w-3.5" />
                     Job Seeker
                   </button>
                   <button
                     onClick={() => dispatch(setCurrentRole("recruiter"))}
-                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all",
                       user?.currentRole === "recruiter"
                         ? "bg-[#0A66C2] text-white shadow-sm"
                         : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                    }`}
+                    )}
                   >
                     <Building2 className="h-3.5 w-3.5" />
                     Recruiter
@@ -167,85 +307,51 @@ export default function Navbar() {
                   className="flex size-9 items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
                   aria-label="Toggle theme"
                 >
-                  {theme === "dark" ? (
-                    <Sun className="size-[18px]" />
-                  ) : (
-                    <Moon className="size-[18px]" />
-                  )}
+                  {theme === "dark" ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
                 </motion.button>
               )}
 
               {!user ? (
                 <div className="hidden md:flex items-center gap-2">
                   <Link to="/login">
-                    <Button variant="ghost" size="sm" className="btn-secondary text-gray-600 dark:text-gray-400">
-                      Login
-                    </Button>
+                    <Button variant="ghost" size="sm" className="btn-secondary text-gray-600 dark:text-gray-400">Login</Button>
                   </Link>
                   <Link to="/signup">
-                    <Button size="sm" className="btn-primary">
-                      Signup
-                    </Button>
+                    <Button size="sm" className="btn-primary">Signup</Button>
                   </Link>
                 </div>
               ) : (
                 <Popover>
                   <PopoverTrigger asChild>
                     <Avatar className="size-9 cursor-pointer ring-2 ring-gray-200 hover:ring-[#0A66C2] transition-all dark:ring-gray-700 dark:hover:ring-[#0A66C2]">
-                      <AvatarImage
-                        src={user?.profile?.profilePhoto}
-                        alt={user?.fullname}
-                      />
+                      <AvatarImage src={user?.profile?.profilePhoto} alt={user?.fullname} />
                     </Avatar>
                   </PopoverTrigger>
-                  <PopoverContent
-                    align="end"
-                    sideOffset={8}
-                    className="w-64 p-0 overflow-hidden bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 shadow-lg rounded-lg"
-                  >
+                  <PopoverContent align="end" sideOffset={8} className="w-64 p-0 overflow-hidden bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 shadow-lg rounded-lg">
                     <div className="p-4 border-b border-gray-200 dark:border-gray-800">
                       <div className="flex items-center gap-3">
                         <Avatar className="size-10">
-                          <AvatarImage
-                            src={user?.profile?.profilePhoto}
-                            alt={user?.fullname}
-                          />
+                          <AvatarImage src={user?.profile?.profilePhoto} alt={user?.fullname} />
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="font-semibold text-sm text-gray-900 dark:text-white truncate">
-                            {user?.fullname}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                            {user?.email}
-                          </p>
+                          <p className="font-semibold text-sm text-gray-900 dark:text-white truncate">{user?.fullname}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
                         </div>
                       </div>
                     </div>
                     <div className="p-2">
                       {(!user?.roles?.recruiter || user?.currentRole === "jobSeeker") && (
                         <>
-                          <Link
-                            to="/profile"
-                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
-                          >
-                            <User2 className="size-4" />
-                            View Profile
+                          <Link to="/profile" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors">
+                            <User2 className="size-4" /> View Profile
                           </Link>
-                          <Link
-                            to="/saved-jobs"
-                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
-                          >
-                            <Bookmark className="size-4" />
-                            Saved Jobs
+                          <Link to="/saved-jobs" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors">
+                            <Bookmark className="size-4" /> Saved Jobs
                           </Link>
                         </>
                       )}
-                      <button
-                        onClick={handleLogout}
-                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
-                      >
-                        <LogOut className="size-4" />
-                        Logout
+                      <button onClick={handleLogout} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors">
+                        <LogOut className="size-4" /> Logout
                       </button>
                     </div>
                   </PopoverContent>
@@ -266,10 +372,7 @@ export default function Navbar() {
 
       {isMobileMenuOpen && (
         <>
-          <div
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="fixed inset-0 z-40 bg-black/50 md:hidden"
-          />
+          <div onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 z-40 bg-black/50 md:hidden" />
           <motion.div
             variants={drawerVariants}
             initial="closed"
@@ -281,31 +384,86 @@ export default function Navbar() {
               <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-200 dark:border-gray-800">
                 <div className="flex items-center gap-2">
                   <Briefcase className="size-5 text-[#0A66C2]" />
-                  <span className="text-lg font-bold text-gray-900 dark:text-white">
-                    JobHub
-                  </span>
+                  <span className="text-lg font-bold text-gray-900 dark:text-white">JobHub</span>
                 </div>
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex size-8 items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
-                  aria-label="Close menu"
-                >
+                <button onClick={() => setIsMobileMenuOpen(false)} className="flex size-8 items-center justify-center rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors" aria-label="Close menu">
                   <X className="size-5" />
                 </button>
               </div>
 
               <div className="flex-1 overflow-y-auto px-3 py-4">
                 <div className="space-y-1">
-                  {currentLinks.map((link) => (
-                    <Link
-                      key={link.path}
-                      to={link.path}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
-                    >
-                      {link.name}
-                    </Link>
-                  ))}
+                  {isRecruiter ? (
+                    recruiterLinks.map((link) => (
+                      <Link key={link.path} to={link.path} onClick={() => setIsMobileMenuOpen(false)}
+                        className={cn("flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                          location.pathname === link.path
+                            ? "text-[#0A66C2] bg-blue-50 dark:bg-blue-900/30"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800"
+                        )}>
+                        {link.name}
+                      </Link>
+                    ))
+                  ) : (
+                    <>
+                      {[...mainLinks, ...rightLinks].map((link) => (
+                        <Link key={link.path} to={link.path} onClick={() => setIsMobileMenuOpen(false)}
+                          className={cn("flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                            location.pathname === link.path
+                              ? "text-[#0A66C2] bg-blue-50 dark:bg-blue-900/30"
+                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800"
+                          )}>
+                          {link.name}
+                        </Link>
+                      ))}
+
+                      <div className="border-t border-gray-100 dark:border-gray-800 my-2" />
+
+                      <button
+                        onClick={() => setMobileCareerOpen(!mobileCareerOpen)}
+                        className="flex items-center justify-between w-full rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <span>Career Tools</span>
+                        <ChevronDown className={cn("h-4 w-4 transition-transform", mobileCareerOpen && "rotate-180")} />
+                      </button>
+                      {mobileCareerOpen && (
+                        <div className="ml-3 space-y-0.5 border-l-2 border-blue-200 dark:border-blue-800 pl-2">
+                          {careerTools.map((item) => (
+                            <Link key={item.path} to={item.path} onClick={() => setIsMobileMenuOpen(false)}
+                              className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                                location.pathname === item.path
+                                  ? "text-[#0A66C2] bg-blue-50 dark:bg-blue-900/30"
+                                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800"
+                              )}>
+                              <item.icon className="h-4 w-4" /> {item.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+
+                      <button
+                        onClick={() => setMobileResourcesOpen(!mobileResourcesOpen)}
+                        className="flex items-center justify-between w-full rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <span>Resources</span>
+                        <ChevronDown className={cn("h-4 w-4 transition-transform", mobileResourcesOpen && "rotate-180")} />
+                      </button>
+                      {mobileResourcesOpen && (
+                        <div className="ml-3 space-y-0.5 border-l-2 border-blue-200 dark:border-blue-800 pl-2">
+                          {resourcesLinks.map((item) => (
+                            <Link key={item.path} to={item.path} onClick={() => setIsMobileMenuOpen(false)}
+                              className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                                location.pathname === item.path
+                                  ? "text-[#0A66C2] bg-blue-50 dark:bg-blue-900/30"
+                                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800"
+                              )}>
+                              <item.icon className="h-4 w-4" /> {item.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -313,9 +471,7 @@ export default function Navbar() {
                 {!user ? (
                   <div className="flex flex-col gap-2">
                     <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="outline" className="w-full btn-secondary text-gray-600 dark:text-gray-400">
-                        Login
-                      </Button>
+                      <Button variant="outline" className="w-full btn-secondary text-gray-600 dark:text-gray-400">Login</Button>
                     </Link>
                     <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>
                       <Button className="w-full btn-primary">Signup</Button>
@@ -325,47 +481,29 @@ export default function Navbar() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-3 px-1">
                       <Avatar className="size-9">
-                        <AvatarImage
-                          src={user?.profile?.profilePhoto}
-                          alt={user?.fullname}
-                        />
+                        <AvatarImage src={user?.profile?.profilePhoto} alt={user?.fullname} />
                       </Avatar>
                       <div className="min-w-0">
-                        <p className="font-semibold text-sm text-gray-900 dark:text-white truncate">
-                          {user?.fullname}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {user?.email}
-                        </p>
+                        <p className="font-semibold text-sm text-gray-900 dark:text-white truncate">{user?.fullname}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
                       </div>
                     </div>
                     <div className="space-y-1">
                       {(!user?.roles?.recruiter || user?.currentRole === "jobSeeker") && (
                         <>
-                          <Link
-                            to="/profile"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
-                          >
-                            <User2 className="size-4" />
-                            View Profile
+                          <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors">
+                            <User2 className="size-4" /> View Profile
                           </Link>
-                          <Link
-                            to="/saved-jobs"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
-                          >
-                            <Bookmark className="size-4" />
-                            Saved Jobs
+                          <Link to="/saved-jobs" onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors">
+                            <Bookmark className="size-4" /> Saved Jobs
                           </Link>
                         </>
                       )}
-                      <button
-                        onClick={handleLogout}
-                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors"
-                      >
-                        <LogOut className="size-4" />
-                        Logout
+                      <button onClick={handleLogout}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors">
+                        <LogOut className="size-4" /> Logout
                       </button>
                     </div>
                   </div>
@@ -375,7 +513,6 @@ export default function Navbar() {
           </motion.div>
         </>
       )}
-
     </>
   );
 }
