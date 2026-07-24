@@ -1,0 +1,9 @@
+{
+  "name": "job-portal-workspace",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "groq-agent": "node scripts/groq-agent.js",
+    "test-groq": "node scripts/test-groq.js"
+  }
+}
