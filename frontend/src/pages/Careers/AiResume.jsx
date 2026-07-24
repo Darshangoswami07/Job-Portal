@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Component } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -7,7 +7,36 @@ import { toast } from "sonner";
 import { RESUME_API_END_POINT } from "@/utils/constant";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
+import { saveAs } from "file-saver";
 import Navbar from "@/components/shared/Navbar";
+
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-[#F3F2EF] dark:bg-[#0D1117] flex items-center justify-center p-8">
+          <div className="max-w-md text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Something went wrong</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{this.state.error?.message || "An unexpected error occurred while loading the resume builder."}</p>
+            <Button onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload(); }} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl">
+              Reload Page
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import PageHero from "@/components/sections/PageHero";
 import CTABanner from "@/components/sections/CTABanner";
 import { Button } from "@/components/ui/button";
@@ -23,7 +52,8 @@ import {
   AlertCircle, Inbox, FileText, X, ChevronLeft,
   GraduationCap, Briefcase, Code, Award, Globe, Link, Languages,
   User, Mail, Phone, MapPin, BookOpen, Lightbulb, Target,
-  CheckCircle2, Clock, Gauge, PlusCircle,
+  CheckCircle2, Clock, Gauge, PlusCircle, Star, Printer, RotateCcw,
+  FileJson, Palette, RefreshCw, Wand2,
 } from "lucide-react";
 
 const toDateInputValue = (d) => d ? d.split("T")[0] : "";
@@ -95,7 +125,18 @@ const emptyResume = {
   atsScore: 0,
 };
 
-export default function AiResume() {
+const templates = [
+  { id: "modern", name: "Modern", color: "#0A66C2" },
+  { id: "professional", name: "Professional", color: "#1f2937" },
+  { id: "minimal", name: "Minimal", color: "#6b7280" },
+  { id: "executive", name: "Executive", color: "#1e3a5f" },
+  { id: "creative", name: "Creative", color: "#7c3aed" },
+  { id: "ats-friendly", name: "ATS Friendly", color: "#059669" },
+  { id: "corporate", name: "Corporate", color: "#1d4ed8" },
+  { id: "elegant", name: "Elegant", color: "#881337" },
+];
+
+function AiResume() {
   const { user } = useSelector((s) => s.auth);
   const navigate = useNavigate();
 
@@ -124,17 +165,12 @@ export default function AiResume() {
 
   const resumePreviewRef = useRef(null);
 
-  useEffect(() => {
-    if (!user) { navigate("/login"); return; }
-    fetchResumes();
-  }, []);
-
-  const fetchResumes = async () => {
+  const fetchResumes = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await axios.get(RESUME_API_END_POINT, { withCredentials: true });
-      setResumes(res.data.data || res.data.resumes || []);
+      setResumes(res.data.resumes || res.data.data || []);
     } catch (err) {
       if (err.response?.status === 401) { navigate("/login"); return; }
       setError(err.response?.data?.message || "Failed to load resumes");
@@ -142,14 +178,19 @@ export default function AiResume() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!user) { navigate("/login"); return; }
+    fetchResumes();
+  }, [user, navigate, fetchResumes]);
 
   const fetchResumeById = async (id) => {
     setDetailLoading(true);
     setDetailError(null);
     try {
       const res = await axios.get(`${RESUME_API_END_POINT}/${id}`, { withCredentials: true });
-      const data = res.data.data || res.data.resume || res.data;
+      const data = res.data.resume || res.data.data || res.data;
       setSelectedResume(data);
       return data;
     } catch (err) {
@@ -214,7 +255,7 @@ export default function AiResume() {
   const createResume = async () => {
     try {
       const res = await axios.post(RESUME_API_END_POINT, { title: "Untitled Resume" }, { withCredentials: true });
-      const data = res.data.data || res.data.resume || res.data;
+      const data = res.data.resume || res.data.data || res.data;
       toast.success("New resume created");
       setResumes((prev) => [data, ...prev]);
       isInitialLoadRef.current = true;
@@ -238,10 +279,10 @@ export default function AiResume() {
       const payload = { ...form };
       delete payload._id;
       const res = await axios.put(`${RESUME_API_END_POINT}/${form._id}`, payload, { withCredentials: true });
-      const updated = res.data.data || res.data.resume || res.data;
+      const updated = res.data.resume || res.data.data || res.data;
       setSelectedResume(updated);
       setResumes((prev) => prev.map((r) => (r._id === updated._id ? updated : r)));
-    } catch (err) {
+    } catch {
       toast.error("Auto-save failed");
     } finally {
       setSaving(false);
@@ -266,7 +307,7 @@ export default function AiResume() {
   const duplicateResume = async (id) => {
     try {
       const res = await axios.post(`${RESUME_API_END_POINT}/${id}/duplicate`, {}, { withCredentials: true });
-      const data = res.data.data || res.data.resume || res.data;
+      const data = res.data.resume || res.data.data || res.data;
       setResumes((prev) => [data, ...prev]);
       toast.success("Resume duplicated");
     } catch (err) {
@@ -309,6 +350,122 @@ export default function AiResume() {
     } finally {
       setScoreCalculating(false);
     }
+  };
+
+  const [generating, setGenerating] = useState(false);
+
+  const handleGenerate = async () => {
+    if (!form.fullName.trim() && !form.headline.trim()) {
+      toast.error("Please fill in your name or headline first.");
+      return;
+    }
+    setGenerating(true);
+    try {
+      const payload = {
+        fullName: form.fullName.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        location: form.location.trim(),
+        headline: form.headline.trim(),
+        summary: form.summary.trim(),
+        skills: form.skills,
+        experience: form.experience,
+        education: form.education,
+        projects: form.projects,
+        certifications: form.certifications,
+        languages: form.languages,
+        website: form.website.trim(),
+        linkedin: form.linkedin.trim(),
+        github: form.github.trim(),
+        template: form.template || "modern",
+      };
+      const res = await axios.post(`${RESUME_API_END_POINT}/generate`, payload, { withCredentials: true });
+      const data = res.data.resume || res.data.data || res.data;
+      const newId = data._id;
+      setForm((prev) => ({
+        ...prev,
+        _id: newId,
+        summary: data.summary || prev.summary,
+        headline: data.headline || prev.headline,
+        skills: data.skills || prev.skills,
+        experience: data.experience || prev.experience,
+        education: data.education || prev.education,
+        projects: data.projects || prev.projects,
+        achievements: data.achievements || prev.achievements,
+        title: data.title || prev.title,
+      }));
+      setSelectedResume(data);
+      setResumes((prev) => [data, ...prev.filter((r) => r._id !== newId)]);
+      setEditing(true);
+      isInitialLoadRef.current = true;
+      toast.success("Resume generated successfully!");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to generate resume.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleTemplateChange = (templateId) => {
+    handleFormChange("template", templateId);
+    setSelectedResume((prev) => prev ? { ...prev, template: templateId } : prev);
+  };
+
+  const handleDownloadDocx = async () => {
+    const r = selectedResume || form;
+    const children = [];
+    children.push(new Paragraph({ children: [new TextRun({ text: r.fullName || "Your Name", bold: true, size: 32 })], alignment: AlignmentType.CENTER, spacing: { after: 200 } }));
+    if (r.headline) children.push(new Paragraph({ children: [new TextRun({ text: r.headline, size: 22, color: "555555" })], alignment: AlignmentType.CENTER, spacing: { after: 200 } }));
+    const contact = [r.email, r.phone, r.location].filter(Boolean).join(" | ");
+    if (contact) children.push(new Paragraph({ children: [new TextRun({ text: contact, size: 18, color: "666666" })], alignment: AlignmentType.CENTER, spacing: { after: 400 } }));
+    if (r.summary) {
+      children.push(new Paragraph({ children: [new TextRun({ text: "PROFESSIONAL SUMMARY", bold: true, size: 20 })] }));
+      children.push(new Paragraph({ children: [new TextRun({ text: r.summary, size: 20 })], spacing: { after: 300 } }));
+    }
+    (r.experience || []).forEach((exp) => {
+      children.push(new Paragraph({ children: [new TextRun({ text: "EXPERIENCE", bold: true, size: 20 })], spacing: { before: 300, after: 100 } }));
+      children.push(new Paragraph({ children: [new TextRun({ text: exp.title || "", bold: true, size: 20 })], spacing: { after: 50 } }));
+      children.push(new Paragraph({ children: [new TextRun({ text: `${exp.company || ""}${exp.location ? ` — ${exp.location}` : ""}`, size: 18, color: "555555" })], spacing: { after: 50 } }));
+      if (exp.description) children.push(new Paragraph({ children: [new TextRun({ text: exp.description, size: 20 })], spacing: { after: 200 } }));
+    });
+    (r.education || []).forEach((edu) => {
+      children.push(new Paragraph({ children: [new TextRun({ text: "EDUCATION", bold: true, size: 20 })], spacing: { before: 300, after: 100 } }));
+      children.push(new Paragraph({ children: [new TextRun({ text: `${edu.institution || ""}${edu.degree ? ` — ${edu.degree}` : ""}`, size: 20 })], spacing: { after: 50 } }));
+      if (edu.field) children.push(new Paragraph({ children: [new TextRun({ text: edu.field, size: 18, color: "555555" })], spacing: { after: 200 } }));
+    });
+    if (r.skills?.length > 0) {
+      children.push(new Paragraph({ children: [new TextRun({ text: "SKILLS", bold: true, size: 20 })], spacing: { before: 300, after: 100 } }));
+      children.push(new Paragraph({ children: [new TextRun({ text: r.skills.join(" • "), size: 20 })], spacing: { after: 200 } }));
+    }
+    const doc = new Document({ sections: [{ properties: { page: { margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 } } }, children }] });
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `${(r.title || "resume").replace(/\s+/g, "_")}.docx`);
+    toast.success("Word document downloaded!");
+  };
+
+  const handlePrint = () => window.print();
+
+  const handleCopyText = () => {
+    const r = selectedResume || form;
+    const parts = [r.fullName, r.headline, r.email, r.phone, r.location, "", r.summary ? `Summary:\n${r.summary}\n` : ""];
+    if (r.experience?.length > 0) {
+      parts.push("Experience:");
+      r.experience.forEach((exp) => parts.push(`  ${exp.title} at ${exp.company}\n  ${exp.description || ""}`));
+    }
+    if (r.education?.length > 0) {
+      parts.push("Education:");
+      r.education.forEach((edu) => parts.push(`  ${edu.degree} in ${edu.field} - ${edu.institution}`));
+    }
+    if (r.skills?.length > 0) parts.push(`Skills: ${r.skills.join(", ")}`);
+    navigator.clipboard.writeText(parts.filter(Boolean).join("\n"));
+    toast.success("Copied to clipboard!");
+  };
+
+  const handleDownloadJson = () => {
+    const data = selectedResume || form;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    saveAs(blob, `${(data.title || "resume").replace(/\s+/g, "_")}.json`);
+    toast.success("JSON downloaded!");
   };
 
   const handleDownloadPDF = async () => {
@@ -440,10 +597,13 @@ export default function AiResume() {
               </p>
             )}
             <div className="mt-auto flex flex-wrap gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
-              <Button size="xs" variant="outline" onClick={() => openResume(r._id, "view")} className="rounded-lg"><Eye className="h-3.5 w-3.5 mr-1" />View</Button>
-              <Button size="xs" variant="outline" onClick={() => openResume(r._id, "edit")} className="rounded-lg"><Edit3 className="h-3.5 w-3.5 mr-1" />Edit</Button>
-              <Button size="xs" variant="outline" onClick={() => duplicateResume(r._id)} className="rounded-lg"><Copy className="h-3.5 w-3.5 mr-1" />Copy</Button>
-              <Button size="xs" variant="outline" onClick={() => confirmDelete(r._id)} className="rounded-lg text-red-500 hover:text-red-600 hover:border-red-200"><Trash2 className="h-3.5 w-3.5" /></Button>
+              <Button size="sm" variant="outline" onClick={() => openResume(r._id, "view")} className="rounded-lg"><Eye className="h-3.5 w-3.5 mr-1" />View
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => openResume(r._id, "edit")} className="rounded-lg"><Edit3 className="h-3.5 w-3.5 mr-1" />Edit
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => duplicateResume(r._id)} className="rounded-lg"><Copy className="h-3.5 w-3.5 mr-1" />Copy
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => confirmDelete(r._id)} className="rounded-lg text-red-500 hover:text-red-600 hover:border-red-200"><Trash2 className="h-3.5 w-3.5" /></Button>
             </div>
           </motion.div>
         ))}
@@ -464,6 +624,33 @@ export default function AiResume() {
 
   const renderEditorForm = () => (
     <div className="space-y-8">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2"><Palette className="h-5 w-5 text-blue-600" />Template</h3>
+          {!form._id && (
+            <Button onClick={handleGenerate} disabled={generating} className="bg-[#0A66C2] hover:bg-[#004182] text-white rounded-xl">
+              {generating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Generating...</> : <><Sparkles className="h-4 w-4 mr-2" /> Generate with AI</>}
+            </Button>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {templates.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => handleTemplateChange(t.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition ${
+                form.template === t.id
+                  ? "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                  : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-gray-300"
+              }`}
+            >
+              <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: t.color }} />
+              {t.name}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6 space-y-5">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2"><User className="h-5 w-5 text-blue-600" />Personal Info</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -882,6 +1069,18 @@ export default function AiResume() {
                   {pdfExporting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Download className="h-4 w-4 mr-1" />}
                   PDF
                 </Button>
+                <Button size="sm" variant="outline" onClick={handleDownloadDocx} className="rounded-xl">
+                  <FileText className="h-4 w-4 mr-1" />Word
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleCopyText} className="rounded-xl">
+                  <Copy className="h-4 w-4 mr-1" />Copy
+                </Button>
+                <Button size="sm" variant="outline" onClick={handlePrint} className="rounded-xl">
+                  <Printer className="h-4 w-4 mr-1" />Print
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleDownloadJson} className="rounded-xl">
+                  <FileJson className="h-4 w-4 mr-1" />JSON
+                </Button>
               </>
             ) : (
               <Button size="sm" variant="outline" onClick={() => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); saveResume().then(() => { setEditing(false); setSuggestions(null); fetchSuggestions(selectedResume._id); }); }} className="rounded-xl">
@@ -898,6 +1097,17 @@ export default function AiResume() {
     );
   };
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#F3F2EF] dark:bg-[#0D1117] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-500 dark:text-gray-400">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F3F2EF] dark:bg-[#0D1117]">
       <Navbar />
@@ -909,8 +1119,19 @@ export default function AiResume() {
         >
           <div className="flex flex-wrap justify-center gap-4">
             <Button onClick={createResume} className="bg-white text-[#0A66C2] hover:bg-blue-50 rounded-xl px-8 py-5 text-base font-semibold shadow-lg">
+              <Plus className="h-5 w-5 mr-2" />
+              New Resume
+            </Button>
+            <Button
+              onClick={() => {
+                setForm({ ...emptyResume });
+                setView("detail");
+                setEditing(true);
+              }}
+              className="bg-[#0A66C2] hover:bg-[#004182] text-white rounded-xl px-8 py-5 text-base font-semibold shadow-lg"
+            >
               <Sparkles className="h-5 w-5 mr-2" />
-              Build Your Resume
+              Create Resume with AI
             </Button>
           </div>
         </PageHero>
@@ -953,6 +1174,22 @@ export default function AiResume() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .print\\:bg-white, [class*="preview"] { visibility: visible; }
+          .print\\:bg-white *, [class*="preview"] * { visibility: visible; }
+          nav, footer, .no-print { display: none !important; }
+        }
+      `}</style>
     </div>
+  );
+}
+
+export default function AiResumePage() {
+  return (
+    <ErrorBoundary>
+      <AiResume />
+    </ErrorBoundary>
   );
 }

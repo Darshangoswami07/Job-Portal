@@ -126,10 +126,14 @@ DELETE	/api/v1/job/	Delete job
 🧑‍💻 Author
 
 
+Software Engineer & AI Developer
+Abhishek Bisht
+📧 Email: [abhishekbisht0203@gmail.com]
+
 Darshan Goswami
 MERN Stack Developer
 
-📧 Email: goswamidarshan12345@gmail.com
+📧 Email: [EMAIL_ADDRESS]
 🌐 Portfolio: https://silver-bienenstitch-7d8c59.netlify.app
 
 🤝 Contribution

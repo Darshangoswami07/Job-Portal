@@ -1,5 +1,5 @@
 import { Resume } from "../models_new/Resume.js";
-import { generateResumeSuggestions } from "../services/aiService.js";
+import { generateResumeSuggestions, generateResumeContent } from "../services/aiService.js";
 
 export const createResume = async (req, res) => {
   try {
@@ -75,6 +75,44 @@ export const getResumeSuggestions = async (req, res) => {
     if (!resume) return res.status(404).json({ success: false, message: "Resume not found" });
     const result = generateResumeSuggestions(resume);
     res.json({ success: true, ...result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const generateResume = async (req, res) => {
+  try {
+    const { fullName, email, phone, location, headline, skills, experience, education, projects, certifications, languages, summary, website, linkedin, github, template } = req.body;
+
+    const result = generateResumeContent({
+      fullName, email, phone, location, headline, skills, experience, education,
+      projects, certifications, languages, summary, website, linkedin, github, template,
+    });
+
+    const resume = await Resume.create({
+      user: req.id,
+      title: `${fullName || "Untitled"}'s Resume`,
+      fullName: fullName || "",
+      email: email || "",
+      phone: phone || "",
+      location: location || "",
+      headline: headline || result.headline || "",
+      summary: result.summary || summary || "",
+      website: website || "",
+      linkedin: linkedin || "",
+      github: github || "",
+      skills: result.skills || skills || [],
+      experience: result.experience || experience || [],
+      education: result.education || education || [],
+      projects: result.projects || projects || [],
+      certifications: certifications || [],
+      languages: languages || [],
+      achievements: result.achievements || [],
+      template: template || "modern",
+      isGenerated: true,
+    });
+
+    res.status(201).json({ success: true, resume });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

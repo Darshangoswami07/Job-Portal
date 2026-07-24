@@ -79,6 +79,59 @@ export function generateResumeSuggestions(resume) {
   return { suggestions: [...suggestions, ...improvements], score, missingKeywords };
 }
 
+export function generateResumeContent({ fullName, email, phone, location, headline, skills, experience, education, projects, certifications, languages, summary, website, linkedin, github, template }) {
+  const skillList = skills?.length > 0 ? skills : ["Communication", "Problem Solving", "Team Collaboration"];
+  const hasExperience = experience?.length > 0;
+  const hasEducation = education?.length > 0;
+
+  const generatedSummary = summary && summary.length > 10 ? summary :
+    `Results-driven ${headline || "professional"} with expertise in ${skillList.slice(0, 3).join(", ")}. Proven track record of delivering high-impact solutions and driving business growth through innovative approaches and technical excellence.`;
+
+  const generatedExperience = hasExperience ? experience : [{
+    company: "Tech Corp",
+    title: headline || "Software Engineer",
+    location: location || "Remote",
+    startDate: "2021-01",
+    endDate: "",
+    current: true,
+    description: `${resumeActionVerbs[Math.floor(Math.random() * resumeActionVerbs.length)]} scalable features using ${skillList[0] || "modern technologies"}, resulting in improved system performance and team productivity. Collaborated across cross-functional teams to deliver projects on time and within scope.`
+  }];
+
+  const generatedEducation = hasEducation ? education : [{
+    institution: "University of Technology",
+    degree: "Bachelor of Science",
+    field: "Computer Science",
+    startDate: "2016-09",
+    endDate: "2020-06",
+    grade: "3.8 GPA",
+    current: false,
+  }];
+
+  const generatedProjects = projects?.length > 0 ? projects : [{
+    name: `${skillList[0] || "Full Stack"} Platform`,
+    description: `Built a full-stack application using ${skillList.slice(0, 3).join(", ")}. Implemented features including user authentication, real-time updates, and responsive design.`,
+    url: "",
+    technologies: skillList.slice(0, 4),
+  }];
+
+  const achievements = [
+    `${resumeActionVerbs[Math.floor(Math.random() * resumeActionVerbs.length)]} initiative resulting in 40% efficiency improvement`,
+    `Led team of ${Math.floor(Math.random() * 5) + 3} engineers to deliver critical project ahead of schedule`,
+    `Reduced system downtime by 60% through implementation of automated monitoring`,
+    `Recognized as top performer for 2 consecutive quarters`,
+  ];
+
+  return {
+    summary: generatedSummary,
+    headline: headline || "Full Stack Developer",
+    skills: [...new Set([...skillList, ...resumeKeywords[detectCategory(skillList)]?.slice(0, 4) || []])],
+    experience: generatedExperience,
+    education: generatedEducation,
+    projects: generatedProjects,
+    achievements,
+  };
+}
+
 export function generateCoverLetterContent({ jobTitle, companyName, yourName, skills, experienceLevel, tone }) {
   const toneMap = {
     formal: {
