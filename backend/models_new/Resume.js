@@ -125,7 +125,6 @@ const resumeSchema = new mongoose.Schema({
 
 resumeSchema.index({ user: 1, createdAt: -1 });
 resumeSchema.index({ user: 1, title: 1 });
-resumeSchema.index({ publicSlug: 1 }, { sparse: true });
 resumeSchema.index({ isPublic: 1, updatedAt: -1 });
 
 export const Resume = mongoose.model("Resume", resumeSchema);

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
 import { motion } from "framer-motion"
@@ -26,6 +26,13 @@ export default function Login() {
   const [shakeKey, setShakeKey] = useState(0)
   const Motion = motion
   void Motion
+
+  useEffect(() => {
+    if (searchParams.get("error") === "oauth_not_configured") {
+      const provider = searchParams.get("provider") || "This"
+      toast.error(`${provider.charAt(0).toUpperCase()}${provider.slice(1)} sign-in isn't configured yet. Please use email/password or try again later.`)
+    }
+  }, [searchParams])
 
   const validate = () => {
     const errs = {}

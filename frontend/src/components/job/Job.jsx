@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Bookmark, MapPin } from "lucide-react";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { CompanyLogo } from "@/components/shared/CompanyLogo";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -41,9 +41,11 @@ export default function Job({ job, isSaved = false, onToggleSaved = () => {} }) 
       <div className="p-5">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 rounded-md group-hover:rotate-3 transition-transform duration-300">
-              <AvatarImage src={job.company?.logo} alt={job.company?.name} />
-            </Avatar>
+            <CompanyLogo
+              name={job.company?.name}
+              logo={job.company?.logo}
+              className="h-10 w-10 rounded-md group-hover:rotate-3 transition-transform duration-300"
+            />
             <div>
               <h3 className="font-medium text-sm text-gray-900">{job.company?.name}</h3>
               <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">

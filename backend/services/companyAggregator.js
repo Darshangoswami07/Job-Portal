@@ -169,7 +169,6 @@ export async function aggregateCompanies() {
 
       const profileInput = {
         normalizedName,
-        aliases: [company.name],
         name: company.name,
         description: company.description || "",
         website: company.website || "",

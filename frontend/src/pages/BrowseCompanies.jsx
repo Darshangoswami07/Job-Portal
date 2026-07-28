@@ -10,7 +10,7 @@ import {
   Shield, Zap, BarChart3, Hash, Layers, Grid, List,
 } from "lucide-react";
 import Navbar from "@/components/shared/Navbar";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { CompanyLogo } from "@/components/shared/CompanyLogo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -420,9 +420,7 @@ export default function BrowseCompanies() {
         <div className="p-6">
           <div className="flex items-start gap-4 mb-4">
             <div className="h-16 w-16 rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 group-hover:scale-105 transition-transform duration-300 shrink-0">
-              <Avatar className="h-full w-full rounded-2xl">
-                <AvatarImage src={company.logo} alt={company.name} />
-              </Avatar>
+              <CompanyLogo name={company.name} logo={company.logo} className="h-full w-full rounded-2xl" />
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="font-semibold text-lg text-gray-900 truncate group-hover:text-[#0A66C2] transition-colors">
@@ -712,9 +710,7 @@ export default function BrowseCompanies() {
                         className="bg-white rounded-2xl border border-gray-100 card-shadow hover:card-shadow-hover hover:border-[#0A66C2]/30 cursor-pointer transition-all duration-300 p-5 flex items-center gap-5"
                       >
                         <div className="h-14 w-14 rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 shrink-0">
-                          <Avatar className="h-full w-full rounded-xl">
-                            <AvatarImage src={company.logo} alt={company.name} />
-                          </Avatar>
+                          <CompanyLogo name={company.name} logo={company.logo} className="h-full w-full rounded-xl" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">

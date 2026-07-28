@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { CompanyLogo } from "@/components/shared/CompanyLogo";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Edit2, MoreHorizontal, Building2 } from "lucide-react";
 import { useSelector } from "react-redux";
@@ -47,9 +47,7 @@ export default function CompanyTable() {
             filteredCompanies.map((company) => (
               <TableRow key={company._id} className="hover:bg-gray-50 transition-colors">
                 <TableCell className="py-3">
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={company.logo} />
-                  </Avatar>
+                  <CompanyLogo name={company.name} logo={company.logo} className="h-8 w-8 rounded-lg" />
                 </TableCell>
                 <TableCell className="py-3 text-sm font-medium text-gray-900">{company.name}</TableCell>
                 <TableCell className="py-3 text-sm text-gray-500">{company.createdAt?.split("T")[0]}</TableCell>

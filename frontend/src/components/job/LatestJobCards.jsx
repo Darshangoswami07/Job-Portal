@@ -2,7 +2,7 @@ import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import { MapPin } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarImage } from "@/components/ui/avatar"
+import { CompanyLogo } from "@/components/shared/CompanyLogo"
 
 export default function LatestJobCard({ job }) {
   const navigate = useNavigate()
@@ -16,9 +16,11 @@ export default function LatestJobCard({ job }) {
       className="group bg-white border border-gray-200 rounded-lg card-shadow hover:card-shadow-hover hover:-translate-y-1 hover:border-[#0A66C2] transition-all duration-300 p-5 cursor-pointer"
     >
       <div className="flex items-center gap-3 mb-3">
-        <Avatar className="h-10 w-10 rounded-md group-hover:rotate-3 transition-transform duration-300">
-          <AvatarImage src={job?.company?.logo} alt={job?.company?.name} />
-        </Avatar>
+        <CompanyLogo
+          name={job?.company?.name}
+          logo={job?.company?.logo}
+          className="h-10 w-10 rounded-md group-hover:rotate-3 transition-transform duration-300"
+        />
         <div>
           <h3 className="font-medium text-sm text-gray-900">
             {job?.company?.name || "Company"}

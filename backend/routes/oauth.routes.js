@@ -6,13 +6,23 @@ const frontendUrl = getFrontendUrl();
 
 const router = express.Router();
 
+const requireStrategy = (name) => (req, res, next) => {
+  if (!passport._strategy(name)) {
+    console.error(`OAuth strategy "${name}" is not configured (missing client ID/secret env vars)`);
+    return res.redirect(`${frontendUrl}/login?error=oauth_not_configured&provider=${name}`);
+  }
+  next();
+};
+
 router.get(
   "/google",
+  requireStrategy("google"),
   passport.authenticate("google", { scope: ["profile", "email"], session: false })
 );
 
 router.get(
   "/google/callback",
+  requireStrategy("google"),
   passport.authenticate("google", {
     session: false,
     failureRedirect: `${frontendUrl}/login`,
@@ -38,11 +48,13 @@ router.get(
 
 router.get(
   "/github",
+  requireStrategy("github"),
   passport.authenticate("github", { scope: ["user:email"], session: false })
 );
 
 router.get(
   "/github/callback",
+  requireStrategy("github"),
   passport.authenticate("github", {
     session: false,
     failureRedirect: `${frontendUrl}/login`,

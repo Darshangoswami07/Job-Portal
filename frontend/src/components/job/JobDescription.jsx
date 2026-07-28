@@ -13,7 +13,7 @@ import {
 import Navbar from "@/components/shared/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { CompanyLogo } from "@/components/shared/CompanyLogo";
 import { cn } from "@/lib/utils";
 
 function SkeletonBlock({ className }) {
@@ -173,9 +173,7 @@ export default function JobDescription() {
             >
               <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-6">
                 <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg overflow-hidden">
-                  <Avatar className="h-16 w-16 rounded-lg">
-                    <AvatarImage src={singleJob.company?.logo} alt={singleJob.company?.name} />
-                  </Avatar>
+                  <CompanyLogo name={singleJob.company?.name} logo={singleJob.company?.logo} className="h-16 w-16 rounded-lg" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -301,27 +299,43 @@ export default function JobDescription() {
               className="bg-white border border-gray-200 rounded-lg card-shadow p-6 sticky top-24"
             >
               <h3 className="font-semibold text-gray-900 mb-4">Apply for this position</h3>
-              <Button
-                onClick={isApplied ? undefined : applyJobHandler}
-                disabled={isApplied}
-                className={cn(
-                  "w-full rounded-lg font-semibold text-sm py-5",
-                  isApplied
-                    ? "bg-green-600 text-white cursor-not-allowed"
-                    : "btn-primary"
-                )}
-              >
-                {isApplied ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <CheckCircle className="h-5 w-5" />
-                    Applied
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    Apply Now
-                  </span>
-                )}
-              </Button>
+              {singleJob.sourceUrl && singleJob.source && singleJob.source !== "JobHub" ? (
+                <a
+                  href={singleJob.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary w-full rounded-lg font-semibold text-sm py-3 flex items-center justify-center gap-2"
+                >
+                  Apply on {singleJob.source}
+                </a>
+              ) : (
+                <Button
+                  onClick={isApplied ? undefined : applyJobHandler}
+                  disabled={isApplied}
+                  className={cn(
+                    "w-full rounded-lg font-semibold text-sm py-5",
+                    isApplied
+                      ? "bg-green-600 text-white cursor-not-allowed"
+                      : "btn-primary"
+                  )}
+                >
+                  {isApplied ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <CheckCircle className="h-5 w-5" />
+                      Applied
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      Apply Now
+                    </span>
+                  )}
+                </Button>
+              )}
+              {singleJob.sourceUrl && singleJob.source && singleJob.source !== "JobHub" && (
+                <p className="mt-2 text-xs text-gray-500 text-center">
+                  This listing is sourced from {singleJob.source}. You'll apply on their site.
+                </p>
+              )}
 
               <div className="mt-6 space-y-4">
                 <h3 className="font-semibold text-gray-900">Job Details</h3>
@@ -386,9 +400,7 @@ export default function JobDescription() {
             >
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg overflow-hidden">
-                  <Avatar className="h-12 w-12 rounded-lg">
-                    <AvatarImage src={singleJob.company?.logo} alt={singleJob.company?.name} />
-                  </Avatar>
+                  <CompanyLogo name={singleJob.company?.name} logo={singleJob.company?.logo} className="h-12 w-12 rounded-lg" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">{singleJob.company?.name}</h3>
@@ -436,9 +448,7 @@ function JobCard({ job }) {
       onClick={() => navigate(`/description/${job._id}`)}
     >
       <div className="flex items-center gap-3 mb-3">
-        <Avatar className="h-10 w-10 rounded-md">
-          <AvatarImage src={job.company?.logo} alt={job.company?.name} />
-        </Avatar>
+        <CompanyLogo name={job.company?.name} logo={job.company?.logo} className="h-10 w-10 rounded-md" />
         <div>
           <h3 className="font-medium text-sm text-gray-900">{job.company?.name}</h3>
           <p className="text-xs text-gray-500 flex items-center gap-1">

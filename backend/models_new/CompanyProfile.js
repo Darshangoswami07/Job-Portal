@@ -75,7 +75,6 @@ const companyProfileSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
-companyProfileSchema.index({ normalizedName: 1 });
 companyProfileSchema.index({ name: "text", description: "text", industry: "text" });
 companyProfileSchema.index({ industry: 1 });
 companyProfileSchema.index({ hiringStatus: 1 });

@@ -44,6 +44,14 @@ export default function Profile() {
   void Motion
 
   useEffect(() => {
+    axios.get(`${USER_API_END_POINT}/profile`, { withCredentials: true })
+      .then((res) => {
+        if (res.data.success) dispatch(updateUser(res.data.user))
+      })
+      .catch(() => {})
+  }, [dispatch])
+
+  useEffect(() => {
     if (!user) return
     const p = user.profile || {}
     setForm({
@@ -310,6 +318,7 @@ export default function Profile() {
                 <ResumeTab
                   form={form} changeHandler={changeHandler}
                   resumeFile={resumeFile} resumeName={resumeName}
+                  resumeUrl={user?.profile?.resume}
                   resumeInputRef={resumeInputRef} handleResumeChange={handleResumeChange}
                   onRemoveResume={() => { setResumeFile(null); setResumeName("") }}
                 />
@@ -548,13 +557,31 @@ function RoleTab({ form, changeHandler, roles, setRoles, experience, addExperien
   )
 }
 
-function ResumeTab({ form, changeHandler, resumeFile, resumeName, resumeInputRef, handleResumeChange, onRemoveResume }) {
+function ResumeTab({ form, changeHandler, resumeFile, resumeName, resumeUrl, resumeInputRef, handleResumeChange, onRemoveResume }) {
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-bold text-foreground">Resume & Portfolio</h3>
         <p className="text-sm text-muted-foreground mt-1">Upload your resume to let recruiters know about your experience.</p>
       </div>
+
+      {resumeUrl && !resumeFile && (
+        <a
+          href={resumeUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 rounded-xl border border-input bg-background/50 p-4 hover:border-primary hover:bg-primary/5 transition-all"
+        >
+          <div className="h-10 w-10 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center shrink-0">
+            <FileText className="h-5 w-5 text-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-foreground truncate">{resumeName || "Your resume"}</p>
+            <p className="text-xs text-muted-foreground">View / Download current CV</p>
+          </div>
+          <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0" />
+        </a>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-foreground mb-1.5">Resume (PDF)</label>

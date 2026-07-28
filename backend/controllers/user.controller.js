@@ -224,9 +224,18 @@ export const updateProfile = async (req, res) => {
     if (preferredSalary !== undefined) user.profile.preferredSalary = preferredSalary;
     if (employmentType !== undefined) user.profile.employmentType = employmentType;
     if (workPreference !== undefined) user.profile.workPreference = workPreference;
+    const parseJsonField = (value) => {
+      if (typeof value !== "string") return value;
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value;
+      }
+    };
+
     if (certifications !== undefined) user.profile.certifications = certifications;
-    if (experience !== undefined) user.profile.experience = experience;
-    if (education !== undefined) user.profile.education = education;
+    if (experience !== undefined) user.profile.experience = parseJsonField(experience);
+    if (education !== undefined) user.profile.education = parseJsonField(education);
     if (companyName !== undefined) user.profile.companyName = companyName;
     if (companyEmail !== undefined) user.profile.companyEmail = companyEmail;
     if (companyWebsite !== undefined) user.profile.companyWebsite = companyWebsite;
@@ -248,7 +257,7 @@ export const updateProfile = async (req, res) => {
     }
 
     if (currentRole !== undefined) {
-      user.currentRole = currentRole;
+      user.currentRole = currentRole === "null" || currentRole === "" ? null : currentRole;
     }
 
     if (profileCompleted !== undefined) {
@@ -333,6 +342,13 @@ export const updateProfile = async (req, res) => {
     if (error?.code === 11000) {
       return res.status(409).json({
         message: "Email is already in use",
+        success: false,
+      });
+    }
+
+    if (error?.name === "ValidationError" || error?.name === "CastError") {
+      return res.status(400).json({
+        message: error?.message || "Invalid profile data",
         success: false,
       });
     }
