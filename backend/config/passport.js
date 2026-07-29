@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import passport from "passport";
 import GoogleStrategy from "passport-google-oauth20";
 import GitHubStrategy from "passport-github2";

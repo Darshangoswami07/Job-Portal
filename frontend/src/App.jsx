@@ -1,10 +1,11 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, useLocation, BrowserRouter, Navigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setCredentials } from "@/store/slices/authSlice";
+import { toast } from "sonner";
 import Home from "./pages/Home";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
@@ -99,25 +100,51 @@ function SuspenseWrapper({ children }) {
 function OAuthCallbackHandler() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const handledRef = useRef(false);
 
   useEffect(() => {
+    // React 18 StrictMode double-invokes effects in development. The first
+    // invocation reads token/user off the URL and navigates away (replace)
+    // to /profile or /login; by the time a second invocation runs,
+    // window.location.search no longer has those params, so it would fall
+    // into the "no token" branch and immediately navigate to /login,
+    // clobbering the correct redirect that just happened. Guard so the
+    // params are only ever processed once per mount.
+    if (handledRef.current) return;
+    handledRef.current = true;
+
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     const userStr = params.get("user");
 
-    if (token && userStr) {
-      try {
-        const user = JSON.parse(decodeURIComponent(userStr));
-        dispatch(setCredentials({ user, token }));
-        if (!user.profileCompleted) {
-          navigate("/profile", { replace: true });
-        } else {
-          navigate("/", { replace: true });
-        }
-      } catch {
-        navigate("/login", { replace: true });
+    if (!token || !userStr) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    if (token.split(".").length !== 3) {
+      console.error("OAuth callback received a malformed token (not 3 JWT segments):", token);
+      toast.error("Login failed — the session token from the provider looked invalid. Please try again.");
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    try {
+      // URLSearchParams.get() already URL-decodes the value once; decoding
+      // again here would throw "URI malformed" whenever any profile field
+      // contains a literal "%" (e.g. "50% complete" in a bio), silently
+      // bouncing the user back to /login after a successful Google/GitHub
+      // login.
+      const user = JSON.parse(userStr);
+      dispatch(setCredentials({ user, token }));
+      if (!user.profileCompleted) {
+        navigate("/profile", { replace: true });
+      } else {
+        navigate("/", { replace: true });
       }
-    } else {
+    } catch (error) {
+      console.error("OAuth callback received an unparseable user payload:", userStr, error);
+      toast.error("Login failed — couldn't read your account details. Please try again.");
       navigate("/login", { replace: true });
     }
   }, [dispatch, navigate]);
