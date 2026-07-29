@@ -82,7 +82,11 @@ export async function runJobAggregation() {
   };
 
   if (!configured.adzuna && !configured.jsearch && !configured.jooble) {
-    console.log("Job aggregation skipped: no aggregator API keys configured (ADZUNA_APP_ID/ADZUNA_APP_KEY, RAPIDAPI_KEY, JOOBLE_API_KEY)");
+    console.log(
+      "[info] Optional feature disabled: external job aggregation (Adzuna/JSearch/Jooble) — " +
+        "set ADZUNA_APP_ID/ADZUNA_APP_KEY, RAPIDAPI_KEY, or JOOBLE_API_KEY to enable it. " +
+        "The app works fine without it using locally seeded jobs."
+    );
     return { success: true, upserted: 0, fetched: 0, skipped: true };
   }
 

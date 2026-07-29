@@ -14,6 +14,7 @@ import "./config/passport.js";
 import { getAllowedOrigins } from "./config/runtimeUrls.js";
 
 import userRoutes from "./routes/user.route.js";
+import authRoutes from "./routes/auth.route.js";
 import companyRoutes from "./routes/company.route.js";
 import jobRoutes from "./routes/job.route.js";
 import applicationRoutes from "./routes/application.route.js";
@@ -85,6 +86,7 @@ app.use(passport.session());
 
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/user", oauthRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/v1/company", companyRoutes);
 app.use("/api/v1/job", jobRoutes);
 app.use("/api/v1/application", applicationRoutes);

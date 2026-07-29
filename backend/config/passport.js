@@ -3,8 +3,8 @@ import GoogleStrategy from "passport-google-oauth20";
 import GitHubStrategy from "passport-github2";
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { getBackendUrl } from "./runtimeUrls.js";
+import { signAccessToken, signRefreshToken } from "../utils/tokens.js";
 
 const backendUrl = getBackendUrl();
 
@@ -48,11 +48,10 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             });
           }
 
-          const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
-            expiresIn: "7d",
-          });
+          const token = signAccessToken(user._id);
+          const refreshToken = signRefreshToken(user._id);
 
-          return done(null, user, { token });
+          return done(null, user, { token, refreshToken });
         } catch (error) {
           return done(error, null);
         }
@@ -103,11 +102,10 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
             });
           }
 
-          const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
-            expiresIn: "7d",
-          });
+          const token = signAccessToken(user._id);
+          const refreshToken = signRefreshToken(user._id);
 
-          return done(null, user, { token });
+          return done(null, user, { token, refreshToken });
         } catch (error) {
           return done(error, null);
         }

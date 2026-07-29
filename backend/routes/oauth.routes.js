@@ -1,6 +1,7 @@
 import express from "express";
 import passport from "passport";
 import { getFrontendUrl } from "../config/runtimeUrls.js";
+import { getBaseCookieOptions, getRefreshCookieOptions } from "../utils/tokens.js";
 
 const frontendUrl = getFrontendUrl();
 
@@ -29,6 +30,7 @@ router.get(
   }),
   (req, res) => {
     const token = req.authInfo?.token;
+    const refreshToken = req.authInfo?.refreshToken;
     const user = req.user;
     const safeUser = {
       _id: user._id,
@@ -40,6 +42,9 @@ router.get(
       profileCompleted: user.profileCompleted || false,
       profile: user.profile,
     };
+    if (refreshToken) {
+      res.cookie("refreshToken", refreshToken, getRefreshCookieOptions(getBaseCookieOptions(req)));
+    }
     res.redirect(
       `${frontendUrl}/oauth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify(safeUser))}`
     );
@@ -61,6 +66,7 @@ router.get(
   }),
   (req, res) => {
     const token = req.authInfo?.token;
+    const refreshToken = req.authInfo?.refreshToken;
     const user = req.user;
     const safeUser = {
       _id: user._id,
@@ -72,6 +78,9 @@ router.get(
       profileCompleted: user.profileCompleted || false,
       profile: user.profile,
     };
+    if (refreshToken) {
+      res.cookie("refreshToken", refreshToken, getRefreshCookieOptions(getBaseCookieOptions(req)));
+    }
     res.redirect(
       `${frontendUrl}/oauth/callback?token=${token}&user=${encodeURIComponent(JSON.stringify(safeUser))}`
     );
