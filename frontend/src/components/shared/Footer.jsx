@@ -4,8 +4,8 @@ import { Facebook, Twitter, Linkedin, Github, Mail, Sparkles, BookOpen } from "l
 const socialLinks = [
   { icon: Facebook, href: "#", label: "Facebook" },
   { icon: Twitter, href: "#", label: "Twitter" },
-  { icon: Linkedin, href: "#", label: "LinkedIn" },
-  { icon: Github, href: "#", label: "GitHub" },
+  { icon: Linkedin, href: "https://www.linkedin.com/in/darshan-goswami-b09137222/", label: "LinkedIn" },
+  { icon: Github, href: "https://github.com/Darshangoswami07", label: "GitHub" },
 ];
 
 const quickLinks = [

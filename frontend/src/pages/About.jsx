@@ -164,17 +164,17 @@ export default function About() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
             <FounderCard founder={{
-              name: "Abhishek Bisht",
+              name: "Darshan Goswami",
               position: "CTO & Co-Founder",
               role: "Software Engineer • AI/ML Engineer • Full Stack Developer",
-              bio: "Abhishek Bisht is responsible for the technology, AI systems, backend architecture, and product engineering of JobHub. He specializes in Full Stack Development, Artificial Intelligence, Machine Learning, scalable backend systems, cloud deployment, and modern web technologies. His vision is to build AI-powered career solutions that simplify job searching and career growth for millions of users.",
+              bio: "Darshan Goswami is responsible for the technology, AI systems, backend architecture, and product engineering of JobHub. He specializes in Full Stack Development, Artificial Intelligence, Machine Learning, scalable backend systems, cloud deployment, and modern web technologies. His vision is to build AI-powered career solutions that simplify job searching and career growth for millions of users.",
               skills: ["Artificial Intelligence", "Machine Learning", "Full Stack Development", "React", "Next.js", "FastAPI", "Django", "Node.js", "PostgreSQL", "Docker", "LangChain", "LangGraph", "RAG", "MCP", "Cloud Computing"],
-              avatarInitials: "AB",
+              avatarInitials: "DG",
               avatarColor: "from-blue-500 to-cyan-500",
-              linkedInUrl: "https://linkedin.com/in/abhishek-bisht",
-              githubUrl: "https://github.com/abhishekbisht",
-              portfolioUrl: "https://abhishekbisht.com",
-              email: "abhishek@jobhub.com"
+              linkedInUrl: "https://www.linkedin.com/in/darshan-goswami-b09137222/",
+              githubUrl: "https://github.com/Darshangoswami07",
+              portfolioUrl: "https://darshangoswami.com",
+              email: "darshan@jobhub.com"
             }} />
             <FounderCard founder={{
               name: "Darshan Goswami",
@@ -184,8 +184,8 @@ export default function About() {
               skills: ["Artificial Intelligence", "Machine Learning", "Full Stack Development", "React", "Next.js", "Python", "Node.js", "Product Strategy", "Leadership", "Software Engineering", "Business Development", "Product Management", "System Design", "Cloud Computing"],
               avatarInitials: "DG",
               avatarColor: "from-purple-500 to-pink-500",
-              linkedInUrl: "https://linkedin.com/in/darshan-goswami",
-              githubUrl: "https://github.com/darshangoswami",
+              linkedInUrl: "https://www.linkedin.com/in/darshan-goswami-b09137222/",
+              githubUrl: "https://github.com/Darshangoswami07",
               portfolioUrl: "https://darshangoswami.com",
               email: "darshan@jobhub.com"
             } }/>

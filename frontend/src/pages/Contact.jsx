@@ -15,9 +15,9 @@ const offices = [
 ];
 
 const socialLinks = [
-  { icon: Linkedin, label: "LinkedIn", href: "#" },
+  { icon: Linkedin, label: "LinkedIn", href: "https://www.linkedin.com/in/darshan-goswami-b09137222/" },
   { icon: Twitter, label: "Twitter", href: "#" },
-  { icon: Github, label: "GitHub", href: "#" },
+  { icon: Github, label: "GitHub", href: "https://github.com/Darshangoswami07" },
   { icon: MessageCircle, label: "Discord", href: "#" },
 ];
 
