@@ -164,12 +164,12 @@ export default function About() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
             <FounderCard founder={{
-              name: "Darshan Goswami",
+              name: "Abhishek Bisht",
               position: "CTO & Co-Founder",
               role: "Software Engineer • AI/ML Engineer • Full Stack Developer",
-              bio: "Darshan Goswami is responsible for the technology, AI systems, backend architecture, and product engineering of JobHub. He specializes in Full Stack Development, Artificial Intelligence, Machine Learning, scalable backend systems, cloud deployment, and modern web technologies. His vision is to build AI-powered career solutions that simplify job searching and career growth for millions of users.",
+              bio: "Abhishek Bisht is responsible for the technology, AI systems, backend architecture, and product engineering of JobHub. He specializes in Full Stack Development, Artificial Intelligence, Machine Learning, scalable backend systems, cloud deployment, and modern web technologies. His vision is to build AI-powered career solutions that simplify job searching and career growth for millions of users.",
               skills: ["Artificial Intelligence", "Machine Learning", "Full Stack Development", "React", "Next.js", "FastAPI", "Django", "Node.js", "PostgreSQL", "Docker", "LangChain", "LangGraph", "RAG", "MCP", "Cloud Computing"],
-              avatarInitials: "DG",
+              avatarInitials: "AB",
               avatarColor: "from-blue-500 to-cyan-500",
               linkedInUrl: "https://www.linkedin.com/in/darshan-goswami-b09137222/",
               githubUrl: "https://github.com/Darshangoswami07",
