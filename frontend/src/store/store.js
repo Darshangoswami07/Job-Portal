@@ -13,12 +13,13 @@ import {
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import applicationSlice from "./slices/applicationSlice";
+import chatSlice from "./slices/chatSlice";
 
 const persistConfig = {
   key: "root",
   version: 1,
   storage,
-  blacklist: ["job"],
+  blacklist: ["job", "chat"],
 };
 
 const rootReducer = combineReducers({
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
   job: jobSlice,
   company: companySlice,
   application: applicationSlice,
+  chat: chatSlice,
 });
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 

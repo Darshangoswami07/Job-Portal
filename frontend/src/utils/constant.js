@@ -41,3 +41,4 @@ export const SUPPORT_TICKET_API_END_POINT = `${BACKEND_URL}/api/v1/support-ticke
 export const SUBSCRIPTION_API_END_POINT = `${BACKEND_URL}/api/v1/subscriptions`;
 export const NOTIFICATION_API_END_POINT = `${BACKEND_URL}/api/v1/notifications`;
 export const COMPANY_PROFILE_API_END_POINT = `${BACKEND_URL}/api/v1/company-profiles`;
+export const CHAT_API_END_POINT = `${BACKEND_URL}/api/v1/chat`;

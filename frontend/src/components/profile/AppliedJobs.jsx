@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -8,8 +9,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { MessageSquare } from "lucide-react";
+import { toast } from "sonner";
 import useGetAppliedJobs from "@/hooks/useGetAppliedJobs";
 import { useSelector } from "react-redux";
+import { getOrCreateConversation } from "@/services/chat.api";
 
 const statusStyles = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -20,8 +25,25 @@ const statusStyles = {
 export default function AppliedJobs() {
   useGetAppliedJobs();
   const { allAppliedJobs } = useSelector((store) => store.job);
+  const navigate = useNavigate();
+  const [messagingId, setMessagingId] = useState(null);
 
   const isEmpty = !allAppliedJobs || allAppliedJobs.length === 0;
+
+  const messageRecruiterHandler = async (applicationId) => {
+    if (!applicationId || messagingId) return;
+    setMessagingId(applicationId);
+    try {
+      const res = await getOrCreateConversation(applicationId);
+      if (res.data.success) {
+        navigate(`/messages/${res.data.conversation._id}`);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Couldn't open the conversation");
+    } finally {
+      setMessagingId(null);
+    }
+  };
 
   return (
     <div className="mt-5 bg-white card-shadow rounded-lg overflow-hidden">
@@ -33,12 +55,13 @@ export default function AppliedJobs() {
               <TableHead className="font-semibold text-gray-600 text-sm">Job Role</TableHead>
               <TableHead className="font-semibold text-gray-600 text-sm">Company</TableHead>
               <TableHead className="text-right font-semibold text-gray-600 text-sm">Status</TableHead>
+              <TableHead className="text-right font-semibold text-gray-600 text-sm">Message</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isEmpty ? (
               <TableRow>
-                <TableCell colSpan={4}>
+                <TableCell colSpan={5}>
                   <div className="flex flex-col items-center justify-center py-16">
                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
                       <span className="text-2xl font-bold text-gray-300">!</span>
@@ -83,6 +106,20 @@ export default function AppliedJobs() {
                       >
                         {status.charAt(0).toUpperCase() + status.slice(1)}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {job.title && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-lg border-gray-200 text-xs"
+                          disabled={messagingId === appliedjob._id}
+                          onClick={() => messageRecruiterHandler(appliedjob._id)}
+                        >
+                          <MessageSquare className="h-3.5 w-3.5" />
+                          Message Recruiter
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

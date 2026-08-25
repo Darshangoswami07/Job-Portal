@@ -8,13 +8,14 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import {
   Building2, MapPin, Briefcase, Clock, DollarSign,
-  Share2, Bookmark, CheckCircle, ArrowLeft
+  Share2, Bookmark, CheckCircle, ArrowLeft, MessageSquare
 } from "lucide-react";
 import Navbar from "@/components/shared/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CompanyLogo } from "@/components/shared/CompanyLogo";
 import { cn } from "@/lib/utils";
+import { getOrCreateConversation } from "@/services/chat.api";
 
 function SkeletonBlock({ className }) {
   return (
@@ -68,9 +69,37 @@ export default function JobDescription() {
     [singleJob, user]
   );
 
+  const myApplicationId = useMemo(() => {
+    const app = singleJob?.applications?.find(
+      (app) => String(app.applicant?._id || app.applicant) === String(user?._id)
+    );
+    return app?._id || null;
+  }, [singleJob, user]);
+
   const [isApplied, setIsApplied] = useState(isInitiallyApplied);
+  const [applicationId, setApplicationId] = useState(myApplicationId);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [messaging, setMessaging] = useState(false);
+
+  useEffect(() => {
+    setApplicationId(myApplicationId);
+  }, [myApplicationId]);
+
+  const messageRecruiterHandler = async () => {
+    if (!applicationId || messaging) return;
+    setMessaging(true);
+    try {
+      const res = await getOrCreateConversation(applicationId);
+      if (res.data.success) {
+        navigate(`/messages/${res.data.conversation._id}`);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Couldn't open the conversation");
+    } finally {
+      setMessaging(false);
+    }
+  };
 
   const relatedJobs = useMemo(() => {
     if (!singleJob) return [];
@@ -87,9 +116,13 @@ export default function JobDescription() {
       );
       if (res.data.success) {
         setIsApplied(true);
+        setApplicationId(res.data.application?._id || null);
         const updatedJob = {
           ...singleJob,
-          applications: [...(singleJob?.applications || []), { applicant: user?._id }],
+          applications: [
+            ...(singleJob?.applications || []),
+            { _id: res.data.application?._id, applicant: user?._id },
+          ],
         };
         dispatch(setSingleJob(updatedJob));
         toast.success(res.data.message);
@@ -329,6 +362,17 @@ export default function JobDescription() {
                       Apply Now
                     </span>
                   )}
+                </Button>
+              )}
+              {isApplied && applicationId && (
+                <Button
+                  onClick={messageRecruiterHandler}
+                  disabled={messaging}
+                  variant="outline"
+                  className="mt-2 w-full rounded-lg border-gray-200 font-semibold text-sm py-5"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  Message Recruiter
                 </Button>
               )}
               {singleJob.sourceUrl && singleJob.source && singleJob.source !== "JobHub" && (

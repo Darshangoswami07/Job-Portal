@@ -50,6 +50,7 @@ const rightLinks = [
 const recruiterLinks = [
   { name: "Companies", path: "/admin/companies" },
   { name: "My Jobs", path: "/admin/jobs" },
+  { name: "Messages", path: "/messages" },
   { name: "Questions", path: "/admin/questions" },
   { name: "Templates", path: "/admin/resume-templates" },
 ];
@@ -159,8 +160,18 @@ function DropdownNav({ label, items, isOpen, onToggle, onClose }) {
   );
 }
 
+function MessagesBadge({ count }) {
+  if (!count) return null;
+  return (
+    <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0A66C2] px-1 text-[10px] font-semibold text-white">
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
 export default function Navbar() {
   const { user } = useSelector((store) => store.auth);
+  const { unreadCount } = useSelector((store) => store.chat);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -244,7 +255,10 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-1">
               {isRecruiter ? (
                 recruiterLinks.map((link) => (
-                  <NavLink key={link.path} to={link.path}>{link.name}</NavLink>
+                  <NavLink key={link.path} to={link.path}>
+                    {link.name}
+                    {link.name === "Messages" && <MessagesBadge count={unreadCount} />}
+                  </NavLink>
                 ))
               ) : (
                 <>
@@ -265,6 +279,12 @@ export default function Navbar() {
                     onToggle={() => { setResourcesOpen(!resourcesOpen); setCareerOpen(false); }}
                     onClose={() => setResourcesOpen(false)}
                   />
+                  {user && (
+                    <NavLink to="/messages">
+                      Messages
+                      <MessagesBadge count={unreadCount} />
+                    </NavLink>
+                  )}
                   {rightLinks.map((link) => (
                     <NavLink key={link.path} to={link.path}>{link.name}</NavLink>
                   ))}
@@ -347,6 +367,10 @@ export default function Navbar() {
                           <Link to="/profile" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors">
                             <User2 className="size-4" /> View Profile
                           </Link>
+                          <Link to="/messages" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors">
+                            <MessageSquare className="size-4" /> Messages
+                            <MessagesBadge count={unreadCount} />
+                          </Link>
                           <Link to="/saved-jobs" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors">
                             <Bookmark className="size-4" /> Saved Jobs
                           </Link>
@@ -404,6 +428,7 @@ export default function Navbar() {
                             : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800"
                         )}>
                         {link.name}
+                        {link.name === "Messages" && <MessagesBadge count={unreadCount} />}
                       </Link>
                     ))
                   ) : (
@@ -496,6 +521,11 @@ export default function Navbar() {
                           <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)}
                             className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors">
                             <User2 className="size-4" /> View Profile
+                          </Link>
+                          <Link to="/messages" onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors">
+                            <MessageSquare className="size-4" /> Messages
+                            <MessagesBadge count={unreadCount} />
                           </Link>
                           <Link to="/saved-jobs" onClick={() => setIsMobileMenuOpen(false)}
                             className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 transition-colors">

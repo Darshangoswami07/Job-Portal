@@ -31,6 +31,7 @@ import NotFound from "./components/shared/NotFound";
 import ScrollToTop from "./components/shared/ScrollToTop";
 import CursorGlow from "./components/shared/CursorGlow";
 import PageLoader from "./components/shared/PageLoader";
+import useChatConnection from "./hooks/useChatConnection";
 
 const AiResume = lazy(() => import("./pages/Careers/AiResume"));
 const CoverLetter = lazy(() => import("./pages/Careers/CoverLetter"));
@@ -55,6 +56,7 @@ const Contact = lazy(() => import("./pages/Contact"));
 const Privacy = lazy(() => import("./pages/Legal/Privacy"));
 const Terms = lazy(() => import("./pages/Legal/Terms"));
 const CompanyDetails = lazy(() => import("./components/company/CompanyDetails"));
+const ChatLayout = lazy(() => import("./pages/Messages/ChatLayout"));
 
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
@@ -161,6 +163,7 @@ function OAuthCallbackHandler() {
 
 function AnimatedRoutes() {
   const location = useLocation();
+  useChatConnection();
 
   return (
     <>
@@ -193,6 +196,9 @@ function AnimatedRoutes() {
           <Route path="/admin/blogs/:id" element={<PageWrapper><AuthGuard><AdminBlogEdit /></AuthGuard></PageWrapper>} />
           <Route path="/admin/career-guides" element={<PageWrapper><AuthGuard><AdminCareerGuides /></AuthGuard></PageWrapper>} />
           <Route path="/admin/career-guides/create" element={<PageWrapper><AuthGuard><AdminCareerGuideCreate /></AuthGuard></PageWrapper>} />
+          <Route path="/messages" element={<SuspenseWrapper><PageWrapper><AuthGuard><ChatLayout /></AuthGuard></PageWrapper></SuspenseWrapper>} />
+          <Route path="/messages/:conversationId" element={<SuspenseWrapper><PageWrapper><AuthGuard><ChatLayout /></AuthGuard></PageWrapper></SuspenseWrapper>} />
+          <Route path="/admin/messages" element={<Navigate to="/messages" replace />} />
 
           <Route path="/ai-resume" element={<SuspenseWrapper><PageWrapper><AuthGuard><AiResume /></AuthGuard></PageWrapper></SuspenseWrapper>} />
           <Route path="/cover-letter" element={<SuspenseWrapper><PageWrapper><AuthGuard><CoverLetter /></AuthGuard></PageWrapper></SuspenseWrapper>} />

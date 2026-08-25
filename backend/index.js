@@ -12,6 +12,7 @@ import passport from "passport";
 import connectDB from "./config/database.js";
 import "./config/passport.js";
 import { getAllowedOrigins } from "./config/runtimeUrls.js";
+import { initSocket } from "./config/socket.js";
 
 import userRoutes from "./routes/user.route.js";
 import authRoutes from "./routes/auth.route.js";
@@ -37,6 +38,7 @@ import subscriptionRoutes from "./routes_new/subscription.routes.js";
 import notificationRoutes from "./routes_new/notification.routes.js";
 import companyAggregatorRoutes from "./routes_new/companyAggregator.routes.js";
 import jobAggregationRoutes from "./routes_new/jobAggregation.routes.js";
+import chatRoutes from "./routes_new/chat.routes.js";
 import { aggregateCompanies } from "./services/companyAggregator.js";
 import { runJobAggregation } from "./services/jobAggregationPipeline.js";
 import cron from "node-cron";
@@ -108,6 +110,7 @@ app.use("/api/v1/subscriptions", subscriptionRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/company-profiles", companyAggregatorRoutes);
 app.use("/api/v1/job-aggregation", jobAggregationRoutes);
+app.use("/api/v1/chat", chatRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running 🚀");
@@ -140,6 +143,7 @@ connectDB()
     // Bind the port and register shutdown handlers immediately so nodemon/process
     // managers can restart cleanly without racing a slow startup data sync.
     const server = http.createServer(app);
+    initSocket(server, allowedOrigins);
 
     let bindAttemptsLeft = 15;
     server.on("error", (err) => {

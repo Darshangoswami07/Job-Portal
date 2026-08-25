@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -11,7 +12,8 @@ import {
 import axios from "axios";
 import { APPLICATION_API_END_POINT } from "@/utils/constant";
 import { toast } from "sonner";
-import { FileText, CheckCircle2, XCircle } from "lucide-react";
+import { FileText, CheckCircle2, XCircle, MessageSquare } from "lucide-react";
+import { getOrCreateConversation } from "@/services/chat.api";
 
 const statusStyles = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -20,6 +22,23 @@ const statusStyles = {
 };
 
 function ApplicantsTable({ applicants = [] }) {
+  const navigate = useNavigate();
+  const [messagingId, setMessagingId] = useState(null);
+
+  const messageApplicantHandler = async (applicationId) => {
+    if (!applicationId || messagingId) return;
+    setMessagingId(applicationId);
+    try {
+      const res = await getOrCreateConversation(applicationId);
+      if (res.data.success) {
+        navigate(`/messages/${res.data.conversation._id}`);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Couldn't open the conversation");
+    } finally {
+      setMessagingId(null);
+    }
+  };
 
   const statusHandler = async (status, id) => {
     try {
@@ -109,6 +128,15 @@ function ApplicantsTable({ applicants = [] }) {
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[currentStatus] || "bg-gray-100 text-gray-600"}`}>
                         {currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
                       </span>
+
+                      <button
+                        onClick={() => messageApplicantHandler(applicantRow._id)}
+                        disabled={messagingId === applicantRow._id}
+                        className="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-[#0A66C2] transition hover:bg-blue-100 disabled:opacity-50"
+                      >
+                        <MessageSquare className="h-3 w-3" />
+                        Message
+                      </button>
 
                       {currentStatus === "pending" && (
                         <div className="flex gap-1.5">
