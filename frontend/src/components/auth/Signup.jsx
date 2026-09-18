@@ -126,7 +126,7 @@ export default function Signup() {
             transition={{ delay: 0.25, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
             className="mt-3 text-sm text-gray-500 dark:text-gray-400 leading-relaxed"
           >
-            Join thousands of professionals on JobHub
+            Join thousands of professionals on JobPilot Ai
           </motion.p>
         </div>
       </div>

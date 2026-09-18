@@ -1,5 +1,7 @@
 import SavedJob from "../models/savedJob.model.js";
 import { Job } from "../models/job.model.js";
+import { invalidateUser } from "../services/jobs/recoCache.js";
+import { recordEvent } from "../services/analytics/events.js";
 
 export const saveJob = async (req, res) => {
   try {
@@ -31,6 +33,9 @@ export const saveJob = async (req, res) => {
     }
 
     const savedJob = await SavedJob.create({ userId, jobId });
+    invalidateUser(userId); // a saved job changes recommendation signal
+    recordEvent("job_saved", { userId, meta: { source: req.body?.source ? String(req.body.source).slice(0, 40) : "" } });
+    if (req.body?.fromRecommendation) recordEvent("recommendation_saved", { userId });
     await savedJob.populate({ path: "jobId", populate: { path: "company" } });
 
     return res.status(201).json({
@@ -79,6 +84,10 @@ export const removeSavedJob = async (req, res) => {
     const userId = req.id;
     const { jobId } = req.params;
     const removed = await SavedJob.findOneAndDelete({ userId, jobId });
+    if (removed) {
+      invalidateUser(userId);
+      recordEvent("job_unsaved", { userId });
+    }
 
     if (!removed) {
       return res.status(404).json({

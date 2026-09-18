@@ -48,6 +48,18 @@ function extractDomain(website) {
   }
 }
 
+const CLEARBIT_LOGO_RE = /^https?:\/\/logo\.clearbit\.com\/([^/?#]+)/;
+
+function normalizeLogoUrl(url) {
+  if (!url) return "";
+  const match = url.match(CLEARBIT_LOGO_RE);
+  if (match) {
+    const domain = match[1].replace(/^\*\./, "");
+    return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`;
+  }
+  return url;
+}
+
 function extractTechStack(requirements) {
   if (!requirements || !Array.isArray(requirements)) return [];
   const text = requirements.join(" ").toLowerCase();
@@ -169,11 +181,12 @@ export async function aggregateCompanies() {
 
       const profileInput = {
         normalizedName,
+        aliases: [company.name],
         name: company.name,
         description: company.description || "",
         website: company.website || "",
         domain,
-        logo: company.logo || "",
+        logo: normalizeLogoUrl(company.logo) || "",
         industry,
         companySize: "Unknown",
         headquarters: company.location || "",
@@ -192,9 +205,12 @@ export async function aggregateCompanies() {
 
       profileInput.aiInsights = generateAiInsights(profileInput);
 
+      const existingProfile = await CompanyProfile.findOne({ normalizedName });
+      const mergedAliases = [...new Set([...(existingProfile?.aliases || []), company.name])];
+
       const profile = await CompanyProfile.findOneAndUpdate(
         { normalizedName },
-        { $set: profileInput, $addToSet: { aliases: { $each: [company.name] } } },
+        { $set: { ...profileInput, aliases: mergedAliases } },
         { upsert: true, new: true },
       );
 
@@ -253,7 +269,7 @@ export async function syncCompanyOnJobCreate(job) {
       updateData.description = company.description || "";
       updateData.website = company.website || "";
       updateData.domain = domain;
-      updateData.logo = company.logo || "";
+      updateData.logo = normalizeLogoUrl(company.logo) || "";
       updateData.industry = industry;
       updateData.headquarters = company.location || "";
       updateData.source = "local";

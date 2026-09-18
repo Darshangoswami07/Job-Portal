@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BLOG_API_END_POINT } from "@/utils/constant";
 import { useSelector } from "react-redux";
+import { copyToClipboard } from "@/utils/clipboard";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 function parseTOC(html) {
   const div = document.createElement("div");
@@ -193,7 +195,7 @@ export default function BlogDetail() {
   };
 
   const shareUrl = window.location.href;
-  const shareTitle = blog?.title || "JobHub Blog";
+  const shareTitle = blog?.title || "JobPilot Ai Blog";
 
   if (loading) {
     return (
@@ -267,7 +269,7 @@ export default function BlogDetail() {
 
               <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-gray-500 dark:text-gray-400 mb-8 pb-6 border-b border-gray-200 dark:border-gray-700">
                 <span className="flex items-center gap-1.5">
-                  <User className="h-4 w-4" /> {blog.author?.fullname || "JobHub Editorial"}
+                  <User className="h-4 w-4" /> {blog.author?.fullname || "JobPilot Ai Editorial"}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Calendar className="h-4 w-4" /> {formatDate(blog.publishedAt || blog.createdAt)}
@@ -282,7 +284,7 @@ export default function BlogDetail() {
 
               <div
                 className="prose prose-lg dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: toc.html }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(toc.html) }}
               />
 
               {blog.tags?.length > 0 && (
@@ -325,7 +327,7 @@ export default function BlogDetail() {
                 <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`)}>
                   <Linkedin className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={() => navigator.clipboard.writeText(shareUrl)}>
+                <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={() => copyToClipboard(shareUrl)}>
                   <Share2 className="h-4 w-4" />
                 </Button>
               </div>

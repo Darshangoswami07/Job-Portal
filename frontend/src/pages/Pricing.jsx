@@ -9,11 +9,20 @@ import axios from "axios";
 import { SUBSCRIPTION_API_END_POINT } from "@/utils/constant";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
+import useCurrency from "@/hooks/useCurrency";
+import {
+  pricingPlans,
+  ANNUAL_DISCOUNT,
+  getMonthlyPrice,
+  getAnnualPrice,
+  getAnnualPerMonth,
+  formatPrice,
+} from "@/config/pricing";
 
 const testimonials = [
   { name: "Rahul S.", role: "Software Engineer at Google", text: "The Pro plan was a game-changer. The AI resume optimization helped me land interviews at top tech companies." },
-  { name: "Priya M.", role: "Product Manager at Amazon", text: "JobHub's tools are incredible. The cover letter generator alone saved me hours of work." },
-  { name: "Arun K.", role: "Data Scientist at Microsoft", text: "From resume building to interview prep, JobHub has everything you need for a successful job search." },
+  { name: "Priya M.", role: "Product Manager at Amazon", text: "JobPilot Ai's tools are incredible. The cover letter generator alone saved me hours of work." },
+  { name: "Arun K.", role: "Data Scientist at Microsoft", text: "From resume building to interview prep, JobPilot Ai has everything you need for a successful job search." },
 ];
 
 const faqs = [
@@ -24,130 +33,120 @@ const faqs = [
   { q: "Is my data secure?", a: "Absolutely. We use 256-bit encryption and follow industry best practices for data security. Your information is never shared with third parties." },
 ];
 
-const freePlan = {
-  _id: "free",
-  name: "Free",
-  slug: "free",
-  monthlyPrice: 0,
-  annualPrice: 0,
-  description: "Perfect for getting started with your job search.",
-  features: ["Browse 500+ jobs", "Create basic profile", "Save up to 10 jobs", "Email alerts", "Basic resume builder"],
-  isPopular: false,
-};
+const PERCENT_OFF = Math.round(ANNUAL_DISCOUNT * 100);
 
 export default function Pricing() {
   const navigate = useNavigate();
   const { user } = useSelector((store) => store.auth);
+  const { currencyCode, currencies, setCurrency, detecting, isManual } = useCurrency();
   const [billing, setBilling] = useState("monthly");
   const [openFaq, setOpenFaq] = useState(null);
-  const [plans, setPlans] = useState([]);
+  const [backendPlans, setBackendPlans] = useState([]);
   const [mySubscription, setMySubscription] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [subscribing, setSubscribing] = useState(null);
 
+  // Backend plans are optional — the page renders from local config regardless.
+  // When plans exist in the DB (matched by slug) the CTA uses the real
+  // subscription API; otherwise it routes to sign-up.
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        setLoading(true);
-        setError(null);
         const res = await axios.get(`${SUBSCRIPTION_API_END_POINT}/plans`);
-        if (res.data.success) {
-          setPlans(res.data.plans);
-        }
-      } catch (err) {
-        setError(err.response?.data?.message || "Failed to load pricing plans");
-      } finally {
-        setLoading(false);
+        if (res.data.success) setBackendPlans(res.data.plans || []);
+      } catch {
+        /* config-only fallback */
       }
     };
     fetchPlans();
   }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setMySubscription(null);
+      return;
+    }
     const fetchMySubscription = async () => {
       try {
         const res = await axios.get(`${SUBSCRIPTION_API_END_POINT}/my`, { withCredentials: true });
-        if (res.data.success && res.data.subscription) {
-          setMySubscription(res.data.subscription);
-        }
+        if (res.data.success && res.data.subscription) setMySubscription(res.data.subscription);
       } catch {
-        // no subscription
+        /* no subscription */
       }
     };
     fetchMySubscription();
   }, [user]);
 
-  const allPlans = [freePlan, ...plans];
+  const backendBySlug = backendPlans.reduce((acc, p) => {
+    if (p.slug) acc[p.slug] = p;
+    return acc;
+  }, {});
 
-  const allFeatures = [...new Set(allPlans.flatMap(p => p.features))];
-  const features = allFeatures.map(feature => {
-    const row = { name: feature };
-    allPlans.forEach(p => {
-      row[p.slug] = p.features.includes(feature);
+  const featureRows = (() => {
+    const all = [...new Set(pricingPlans.flatMap((p) => p.features))];
+    return all.map((name) => {
+      const row = { name };
+      pricingPlans.forEach((p) => {
+        row[p.slug] = p.features.includes(name);
+      });
+      return row;
     });
-    return row;
-  });
+  })();
+
+  const subscribedSlug = (() => {
+    if (!mySubscription || mySubscription.status !== "active") return null;
+    const plan = mySubscription.plan;
+    if (plan && typeof plan === "object") return plan.slug || null;
+    const match = backendPlans.find((p) => p._id === plan);
+    return match?.slug || null;
+  })();
+
+  const isSubscribed = (plan) => subscribedSlug === plan.slug;
 
   const handleSubscribe = async (plan) => {
-    if (plan.slug === "free") {
-      if (!user) navigate("/signup");
-      return;
-    }
+    // Not authenticated → send everyone through sign-up first.
     if (!user) {
       navigate("/signup");
       return;
     }
-    if (mySubscription && mySubscription.status === "active") {
-      const subPlanId = typeof mySubscription.plan === "object" ? mySubscription.plan._id : mySubscription.plan;
-      if (subPlanId === plan._id) {
-        toast.info("You are already subscribed to this plan");
-        return;
-      }
+    if (plan.slug === "free") {
+      toast.info("You're on the Free plan — nothing to do here.");
+      navigate("/");
+      return;
     }
+    if (isSubscribed(plan)) {
+      toast.info("You're already on this plan.");
+      return;
+    }
+
+    const backendPlan = backendBySlug[plan.slug];
+    // No real payment/subscription backend configured for this plan yet.
+    if (!backendPlan) {
+      toast.info("Paid plans are launching soon — we'll notify you when checkout opens.");
+      return;
+    }
+
     try {
-      setSubscribing(plan._id);
+      setSubscribing(plan.slug);
       const res = await axios.post(
         `${SUBSCRIPTION_API_END_POINT}/subscribe`,
-        { planId: plan._id, billingCycle: billing },
+        { planId: backendPlan._id, billingCycle: billing },
         { withCredentials: true }
       );
       if (res.data.success) {
-        toast.success("Subscription successful!");
+        toast.success("Subscription activated!");
         const subRes = await axios.get(`${SUBSCRIPTION_API_END_POINT}/my`, { withCredentials: true });
-        if (subRes.data.success && subRes.data.subscription) {
-          setMySubscription(subRes.data.subscription);
-        }
+        if (subRes.data.success && subRes.data.subscription) setMySubscription(subRes.data.subscription);
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to subscribe");
+      toast.error(err.response?.data?.message || "Failed to subscribe. Please try again.");
     } finally {
       setSubscribing(null);
     }
   };
 
-  const getPrice = (plan) => {
-    if (plan.monthlyPrice === 0) return "₹0";
-    if (billing === "annual") return `₹${plan.annualPrice?.toLocaleString("en-IN")}`;
-    return `₹${plan.monthlyPrice.toLocaleString("en-IN")}`;
-  };
-
-  const getPeriod = (plan) => {
-    if (plan.monthlyPrice === 0) return "forever";
-    return billing === "annual" ? "/year" : "/month";
-  };
-
-  const isSubscribed = (plan) => {
-    if (!mySubscription || mySubscription.status !== "active") return false;
-    const subPlanId = typeof mySubscription.plan === "object" ? mySubscription.plan._id : mySubscription.plan;
-    return subPlanId === plan._id;
-  };
-
   const getCtaText = (plan) => {
-    if (plan.slug === "free") return "Get Started";
     if (isSubscribed(plan)) return "Current Plan";
-    return "Start Free Trial";
+    return plan.cta;
   };
 
   const getGradient = (plan) => {
@@ -162,43 +161,50 @@ export default function Pricing() {
     return "text-purple-600 dark:text-purple-400";
   };
 
-  const renderSkeleton = () => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-      {[1, 2, 3].map((_, i) => (
-        <div key={i} className="rounded-2xl border border-gray-200 dark:border-gray-700 card-shadow overflow-hidden animate-pulse">
-          <div className="p-6 space-y-4">
-            <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-16" />
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24" />
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48" />
+  const renderPrice = (plan) => {
+    const monthly = getMonthlyPrice(plan, currencyCode);
+    if (monthly === 0) {
+      return (
+        <>
+          <div className="flex items-baseline gap-1">
+            <span className="text-4xl font-bold text-gray-900 dark:text-white">{formatPrice(0, currencyCode)}</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">/month</span>
           </div>
-          <div className="p-6 space-y-3">
-            {[...Array(6)].map((_, j) => (
-              <div key={j} className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-            ))}
-            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-xl mt-4" />
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 h-4">Free forever</p>
+        </>
+      );
+    }
+
+    if (billing === "annual") {
+      const annual = getAnnualPrice(plan, currencyCode);
+      const perMonth = getAnnualPerMonth(plan, currencyCode);
+      const saved = monthly * 12 - annual;
+      return (
+        <>
+          <div className="flex items-baseline gap-1">
+            <span className="text-4xl font-bold text-gray-900 dark:text-white">{formatPrice(perMonth, currencyCode)}</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">/month</span>
           </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 h-4">
+            {formatPrice(annual, currencyCode)}/year
+            <span className="ml-1.5 text-green-600 dark:text-green-400 font-medium">
+              save {formatPrice(saved, currencyCode)}
+            </span>
+          </p>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <div className="flex items-baseline gap-1">
+          <span className="text-4xl font-bold text-gray-900 dark:text-white">{formatPrice(monthly, currencyCode)}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">/month</span>
         </div>
-      ))}
-    </div>
-  );
-
-  const renderError = () => (
-    <div className="text-center py-12 mb-16">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 mb-4">
-        <X className="h-8 w-8 text-red-500" />
-      </div>
-      <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
-      <Button onClick={() => window.location.reload()} variant="outline">
-        Try Again
-      </Button>
-    </div>
-  );
-
-  const renderEmpty = () => (
-    <div className="text-center py-12 mb-16">
-      <p className="text-gray-600 dark:text-gray-400">No pricing plans available at the moment.</p>
-    </div>
-  );
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 h-4">Billed monthly</p>
+      </>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-[#F3F2EF] dark:bg-[#0D1117]">
@@ -222,131 +228,144 @@ export default function Pricing() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20">
-        <div className="flex justify-center mb-10">
-          <div className="inline-flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-1 card-shadow">
-            <button
-              onClick={() => setBilling("monthly")}
-              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${billing === "monthly" ? "bg-[#0A66C2] text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700"}`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBilling("annual")}
-              className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${billing === "annual" ? "bg-[#0A66C2] text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700"}`}
-            >
-              Annual
-              <span className="ml-1.5 text-xs bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded-full">Save 20%</span>
-            </button>
-          </div>
-        </div>
-
-        {loading ? (
-          renderSkeleton()
-        ) : error ? (
-          renderError()
-        ) : plans.length === 0 ? (
-          renderEmpty()
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-            {allPlans.map((plan, i) => (
-              <motion.div
-                key={plan._id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + i * 0.1, duration: 0.5 }}
-                className={cn(
-                  "relative rounded-2xl border card-shadow overflow-hidden transition-all duration-300 hover:shadow-xl",
-                  plan.isPopular
-                    ? "border-[#0A66C2] dark:border-blue-500 scale-105 md:scale-110 z-10"
-                    : "border-gray-200 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-800"
-                )}
+        <div className="flex flex-col items-center gap-4 mb-10">
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {/* Billing cycle */}
+            <div className="inline-flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-1 card-shadow">
+              <button
+                onClick={() => setBilling("monthly")}
+                className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${billing === "monthly" ? "bg-[#0A66C2] text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700"}`}
               >
-                {plan.isPopular && (
-                  <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-[#0A66C2] to-blue-600 text-white text-center text-xs font-semibold py-2">
-                    Most Popular
-                  </div>
-                )}
-                <div className={cn("p-6", plan.isPopular ? "pt-10" : "pt-6", getGradient(plan))}>
-                  <h3 className={cn("text-lg font-bold", getAccent(plan))}>{plan.name}</h3>
-                  <div className="mt-4 flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-gray-900 dark:text-white">{getPrice(plan)}</span>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">{getPeriod(plan)}</span>
-                  </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{plan.description}</p>
-                </div>
-                <div className="p-6 space-y-3">
-                  {plan.features.map((f) => (
-                    <div key={f} className="flex items-start gap-3">
-                      <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                      <span className="text-sm text-gray-600 dark:text-gray-300">{f}</span>
-                    </div>
-                  ))}
-                  <Button
-                    onClick={() => handleSubscribe(plan)}
-                    disabled={isSubscribed(plan) || subscribing === plan._id}
-                    className={cn(
-                      "w-full rounded-xl py-5 mt-4 font-semibold",
-                      isSubscribed(plan)
-                        ? "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 cursor-not-allowed"
-                        : plan.isPopular
-                          ? "btn-primary"
-                          : "bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
-                    )}
-                  >
-                    {subscribing === plan._id ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Subscribing...
-                      </span>
-                    ) : (
-                      getCtaText(plan)
-                    )}
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
+                Monthly
+              </button>
+              <button
+                onClick={() => setBilling("annual")}
+                className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${billing === "annual" ? "bg-[#0A66C2] text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700"}`}
+              >
+                Annual
+                <span className="ml-1.5 text-xs bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded-full">Save {PERCENT_OFF}%</span>
+              </button>
+            </div>
 
-        {!loading && !error && plans.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 card-shadow p-6 sm:p-8 mb-16">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">Compare Plans</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100 dark:border-gray-700">
-                    <th className="text-left py-3 pr-4 font-semibold text-gray-700 dark:text-gray-300">Feature</th>
-                    {allPlans.map((plan) => (
-                      <th
-                        key={plan._id}
-                        className={cn(
-                          "text-center py-3 px-4 font-semibold",
-                          plan.slug === "free" && "text-gray-700 dark:text-gray-300",
-                          plan.isPopular && "text-[#0A66C2]",
-                          !plan.isPopular && plan.slug !== "free" && "text-purple-600"
-                        )}
-                      >
-                        {plan.name}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {features.map((f) => (
-                    <tr key={f.name} className="border-b border-gray-50 dark:border-gray-750">
-                      <td className="py-3 pr-4 text-gray-600 dark:text-gray-300">{f.name}</td>
-                      {allPlans.map((plan) => (
-                        <td key={plan._id} className="text-center py-3 px-4">
-                          {f[plan.slug] === true ? <Check className="h-4 w-4 text-green-500 mx-auto" /> : <X className="h-4 w-4 text-gray-300 mx-auto" />}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Currency switcher */}
+            <div className="inline-flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-1 card-shadow">
+              {Object.values(currencies).map((c) => (
+                <button
+                  key={c.code}
+                  onClick={() => setCurrency(c.code)}
+                  aria-label={`Show prices in ${c.label}`}
+                  aria-pressed={currencyCode === c.code}
+                  className={`px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${currencyCode === c.code ? "bg-[#0A66C2] text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-700"}`}
+                >
+                  <span className="mr-1">{c.flag}</span>{c.label}
+                </button>
+              ))}
             </div>
           </div>
-        )}
+          <p className="text-xs text-gray-400 dark:text-gray-500 h-4">
+            {detecting
+              ? "Detecting your region…"
+              : isManual
+                ? "Currency set manually"
+                : `Prices shown in ${currencies[currencyCode].label} based on your region`}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16 max-w-5xl mx-auto items-start">
+          {pricingPlans.map((plan, i) => (
+            <motion.div
+              key={plan.slug}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 + i * 0.1, duration: 0.5 }}
+              className={cn(
+                "relative rounded-2xl border card-shadow overflow-hidden transition-all duration-300 hover:shadow-xl bg-white dark:bg-gray-800",
+                plan.isPopular
+                  ? "border-[#0A66C2] dark:border-blue-500 lg:scale-105 lg:z-10"
+                  : "border-gray-200 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-800"
+              )}
+            >
+              {plan.isPopular && (
+                <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-[#0A66C2] to-blue-600 text-white text-center text-xs font-semibold py-2 tracking-wide">
+                  ★ MOST POPULAR
+                </div>
+              )}
+              <div className={cn("p-6 bg-gradient-to-br", plan.isPopular ? "pt-10" : "pt-6", getGradient(plan))}>
+                <h3 className={cn("text-lg font-bold", getAccent(plan))}>{plan.name}</h3>
+                <div className="mt-4">{renderPrice(plan)}</div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">{plan.description}</p>
+              </div>
+              <div className="p-6 space-y-3">
+                {plan.features.map((f) => (
+                  <div key={f} className="flex items-start gap-3">
+                    <Check className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                    <span className="text-sm text-gray-600 dark:text-gray-300">{f}</span>
+                  </div>
+                ))}
+                <Button
+                  onClick={() => handleSubscribe(plan)}
+                  disabled={isSubscribed(plan) || subscribing === plan.slug}
+                  aria-label={`${getCtaText(plan)} — ${plan.name} plan`}
+                  className={cn(
+                    "w-full rounded-xl py-5 mt-4 font-semibold",
+                    isSubscribed(plan)
+                      ? "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 cursor-not-allowed"
+                      : plan.isPopular
+                        ? "btn-primary"
+                        : "bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
+                  )}
+                >
+                  {subscribing === plan.slug ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Processing...
+                    </span>
+                  ) : (
+                    getCtaText(plan)
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 card-shadow p-6 sm:p-8 mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">Compare Plans</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 dark:border-gray-700">
+                  <th className="text-left py-3 pr-4 font-semibold text-gray-700 dark:text-gray-300">Feature</th>
+                  {pricingPlans.map((plan) => (
+                    <th
+                      key={plan.slug}
+                      className={cn(
+                        "text-center py-3 px-4 font-semibold",
+                        plan.slug === "free" && "text-gray-700 dark:text-gray-300",
+                        plan.isPopular && "text-[#0A66C2]",
+                        !plan.isPopular && plan.slug !== "free" && "text-purple-600"
+                      )}
+                    >
+                      {plan.name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {featureRows.map((f) => (
+                  <tr key={f.name} className="border-b border-gray-50 dark:border-gray-750">
+                    <td className="py-3 pr-4 text-gray-600 dark:text-gray-300">{f.name}</td>
+                    {pricingPlans.map((plan) => (
+                      <td key={plan.slug} className="text-center py-3 px-4">
+                        {f[plan.slug] === true ? <Check className="h-4 w-4 text-green-500 mx-auto" /> : <X className="h-4 w-4 text-gray-300 mx-auto" />}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
         <div className="mb-16">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">What Our Users Say</h2>

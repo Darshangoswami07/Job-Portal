@@ -3,72 +3,19 @@ import { useSelector, useDispatch } from "react-redux"
 import { motion } from "framer-motion"
 import Navbar from "@/components/shared/Navbar"
 import {
-  User, Mail, Phone, MapPin, Globe,
-  Link, Briefcase, FileText, Image as ImageIcon, Check,
+  User, Mail, Phone, MapPin, Globe, Linkedin, Github as GithubIcon,
+  Link, Briefcase, FileText, Upload, X, Image as ImageIcon, Check,
   Camera, Award, BookOpen, GraduationCap, DollarSign, Clock,
   Building2, Users as UsersIcon, BadgeCheck, ChevronDown, Loader2,
-  Save, AlertCircle, Sparkles, Download, Trash2, Star, Plus, FolderKanban, Eye,
+  Save, AlertCircle, ExternalLink, Sparkles
 } from "lucide-react"
 import axios from "axios"
 import { toast } from "sonner"
-import { updateUser } from "@/store/slices/authSlice"
+import { updateUser, setUser } from "@/store/slices/authSlice"
 import { USER_API_END_POINT } from "@/utils/constant"
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { InputField, SelectField, IconButton, ToggleField } from "./sections/fields"
-import { saveAdvancedProfile, groupErrorsByIndex } from "@/services/advancedProfile.api"
-import AboutSection from "./sections/AboutSection"
-import ExperienceSection from "./sections/ExperienceSection"
-import EducationSection from "./sections/EducationSection"
-import SkillsSection from "./sections/SkillsSection"
-import ProjectsSection from "./sections/ProjectsSection"
-import CertificationsSection from "./sections/CertificationsSection"
-import LinksSection from "./sections/LinksSection"
-
-const emptyAdvancedProfile = {
-  summary: "",
-  experience: [],
-  education: [],
-  skills: [],
-  projects: [],
-  certifications: [],
-  socialLinks: { linkedin: "", twitter: "", website: "" },
-  visibility: { profileVisible: true, resumeVisible: true, showEmail: false, openToWork: false },
-}
-
-const MAX_RESUME_SIZE = 5 * 1024 * 1024
-const MAX_RESUMES = 5
-
-const isValidHttpsUrl = (value) => !value || /^https:\/\/\S+/i.test(value.trim())
-const isValidGithubUrl = (value) => !value || /^https:\/\/(www\.)?github\.com\/\S+/i.test(value.trim())
-
-const validateResumeLinks = (form) => {
-  const errs = {}
-  if (form.portfolio && !isValidHttpsUrl(form.portfolio)) {
-    errs.portfolio = "Portfolio URL must start with https://"
-  }
-  if (form.github && !isValidGithubUrl(form.github)) {
-    errs.github = "GitHub URL must be a github.com link"
-  }
-  return errs
-}
-
-const formatBytes = (bytes) => {
-  if (bytes === null || bytes === undefined) return null
-  if (bytes < 1024) return `${bytes} B`
-  const kb = bytes / 1024
-  if (kb < 1024) return `${kb.toFixed(0)} KB`
-  return `${(kb / 1024).toFixed(1)} MB`
-}
-
-const formatDate = (date) => {
-  if (!date) return null
-  const parsed = new Date(date)
-  if (Number.isNaN(parsed.getTime())) return null
-  return parsed.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
-}
 
 export default function Profile() {
-  const { user, token } = useSelector((store) => store.auth)
+  const { user } = useSelector((store) => store.auth)
   const dispatch = useDispatch()
 
   const [saving, setSaving] = useState(false)
@@ -77,33 +24,37 @@ export default function Profile() {
 
   const [form, setForm] = useState({
     fullname: "", email: "", phoneNumber: "", bio: "", headline: "",
-    dateOfBirth: "", gender: "", location: "",
-    github: "", portfolio: "", preferredJobRole: "", preferredSalary: "",
-    employmentType: "", workPreference: "",
+    dateOfBirth: "", gender: "", location: "", website: "", linkedin: "",
+    github: "", portfolio: "", skills: "", preferredJobRole: "", preferredSalary: "",
+    employmentType: "", workPreference: "", certifications: "",
     companyName: "", companyEmail: "", companyWebsite: "", designation: "",
     companySize: "", industry: "",
-    noticePeriod: "", availableFrom: "",
   })
 
   const [roles, setRoles] = useState({ jobSeeker: false, recruiter: false })
   const [profilePhoto, setProfilePhoto] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(null)
-  const [resumes, setResumes] = useState([])
-  const [uploadingResume, setUploadingResume] = useState(false)
-  const [willingToRelocate, setWillingToRelocate] = useState(false)
-  const [advancedProfile, setAdvancedProfile] = useState(emptyAdvancedProfile)
-  const [savingSection, setSavingSection] = useState(null)
+  const [resumeFile, setResumeFile] = useState(null)
+  const [resumeName, setResumeName] = useState("")
+  const [experience, setExperience] = useState([])
+  const [education, setEducation] = useState([])
   const photoInputRef = useRef(null)
   const resumeInputRef = useRef(null)
   const Motion = motion
   void Motion
 
   useEffect(() => {
-    axios.get(`${USER_API_END_POINT}/profile`, { withCredentials: true })
-      .then((res) => {
-        if (res.data.success) dispatch(updateUser(res.data.user))
-      })
-      .catch(() => {})
+    const fetchProfile = async () => {
+      try {
+        const res = await axios.get(`${USER_API_END_POINT}/profile`)
+        if (res.data.success) {
+          dispatch(setUser(res.data.user))
+        }
+      } catch (err) {
+        console.error("Failed to fetch profile from DB:", err)
+      }
+    }
+    fetchProfile()
   }, [dispatch])
 
   useEffect(() => {
@@ -118,43 +69,27 @@ export default function Profile() {
       dateOfBirth: p.dateOfBirth ? p.dateOfBirth.split("T")[0] : "",
       gender: p.gender || "",
       location: p.location || "",
+      website: p.website || "",
+      linkedin: p.linkedin || "",
       github: p.github || "",
       portfolio: p.portfolio || "",
+      skills: (p.skills || []).join(", "),
       preferredJobRole: p.preferredJobRole || "",
       preferredSalary: p.preferredSalary || "",
       employmentType: p.employmentType || "",
       workPreference: p.workPreference || "",
+      certifications: (p.certifications || []).join(", "),
       companyName: p.companyName || "",
       companyEmail: p.companyEmail || "",
       companyWebsite: p.companyWebsite || "",
       designation: p.designation || "",
       companySize: p.companySize || "",
       industry: p.industry || "",
-      noticePeriod: p.noticePeriod || "",
-      availableFrom: p.availableFrom ? p.availableFrom.split("T")[0] : "",
     })
     setRoles(user.roles || { jobSeeker: false, recruiter: false })
-    setResumes(p.resumes || [])
-    setWillingToRelocate(Boolean(p.willingToRelocate))
-    setAdvancedProfile({
-      summary: p.summary || "",
-      experience: p.experience || [],
-      education: p.education || [],
-      skills: p.skills || [],
-      projects: p.projects || [],
-      certifications: p.certifications || [],
-      socialLinks: {
-        linkedin: p.socialLinks?.linkedin || "",
-        twitter: p.socialLinks?.twitter || "",
-        website: p.socialLinks?.website || "",
-      },
-      visibility: {
-        profileVisible: p.visibility?.profileVisible !== false,
-        resumeVisible: p.visibility?.resumeVisible !== false,
-        showEmail: Boolean(p.visibility?.showEmail),
-        openToWork: Boolean(p.visibility?.openToWork),
-      },
-    })
+    setExperience(p.experience || [])
+    setEducation(p.education || [])
+    setResumeName(p.resumeOriginalName || "")
   }, [user])
 
   const changeHandler = (e) => {
@@ -171,98 +106,48 @@ export default function Profile() {
     setPhotoPreview(URL.createObjectURL(file))
   }
 
-  const handleResumeChange = async (e) => {
+  const handleResumeChange = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (resumeInputRef.current) resumeInputRef.current.value = ""
-
-    if (file.type !== "application/pdf") { toast.error("Please upload a PDF file"); return }
-    if (file.size > MAX_RESUME_SIZE) { toast.error("Resume must be 5MB or smaller"); return }
-    if (resumes.length >= MAX_RESUMES) { toast.error(`You can store up to ${MAX_RESUMES} resumes. Delete one first.`); return }
-
-    const uploadData = new FormData()
-    uploadData.append("resume", file)
-
-    setUploadingResume(true)
-    try {
-      const res = await axios.post(`${USER_API_END_POINT}/resumes`, uploadData, { withCredentials: true })
-      if (res.data.success) {
-        setResumes(res.data.resumes)
-        dispatch(updateUser({ profile: { ...user.profile, resumes: res.data.resumes } }))
-        toast.success("Resume uploaded")
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to upload resume")
-    } finally {
-      setUploadingResume(false)
-    }
+    if (file.type !== "application/pdf") { toast.error("Please upload a PDF"); return }
+    setResumeFile(file)
+    setResumeName(file.name)
   }
 
-  const deleteResumeById = async (resumeId) => {
-    try {
-      const res = await axios.delete(`${USER_API_END_POINT}/resumes/${resumeId}`, { withCredentials: true })
-      if (res.data.success) {
-        setResumes(res.data.resumes)
-        dispatch(updateUser({ profile: { ...user.profile, resumes: res.data.resumes } }))
-        toast.success("Resume deleted")
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to delete resume")
-    }
+  const addExperience = () => {
+    setExperience((prev) => [...prev, { title: "", company: "", startDate: "", endDate: "", current: false, description: "" }])
   }
 
-  const setPrimaryResumeById = async (resumeId) => {
-    try {
-      const res = await axios.patch(`${USER_API_END_POINT}/resumes/${resumeId}/primary`, {}, { withCredentials: true })
-      if (res.data.success) {
-        setResumes(res.data.resumes)
-        dispatch(updateUser({ profile: { ...user.profile, resumes: res.data.resumes } }))
-        toast.success("Primary resume updated")
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update primary resume")
-    }
+  const updateExperience = (i, field, value) => {
+    setExperience((prev) => {
+      const updated = [...prev]
+      updated[i] = { ...updated[i], [field]: value }
+      return updated
+    })
   }
 
-  // Backend persists summary/experience/education/skills/projects/
-  // certifications/socialLinks/visibility as one document, so a per-section
-  // save still sends the full advanced-profile shape with only `sectionKey`
-  // changed. Optimistic: apply locally first, roll back if the API fails.
-  const saveSection = async (sectionKey, value) => {
-    const previous = advancedProfile
-    const next = { ...advancedProfile, [sectionKey]: value }
-    setAdvancedProfile(next)
-    setSavingSection(sectionKey)
-    try {
-      const res = await saveAdvancedProfile(next)
-      if (res.success) {
-        dispatch(updateUser({ profile: { ...user.profile, ...res.user.profile } }))
-        toast.success("Saved", { description: "All changes are saved to your account." })
-        return { success: true }
-      }
-      setAdvancedProfile(previous)
-      return { success: false }
-    } catch (err) {
-      setAdvancedProfile(previous)
-      const data = err.response?.data
-      toast.error(data?.message || "Failed to save changes")
-      return { success: false, fieldErrors: groupErrorsByIndex(data?.errors, sectionKey) }
-    } finally {
-      setSavingSection(null)
-    }
+  const removeExperience = (i) => {
+    setExperience((prev) => prev.filter((_, idx) => idx !== i))
+  }
+
+  const addEducation = () => {
+    setEducation((prev) => [...prev, { degree: "", institution: "", field: "", startDate: "", endDate: "", grade: "" }])
+  }
+
+  const updateEducation = (i, field, value) => {
+    setEducation((prev) => {
+      const updated = [...prev]
+      updated[i] = { ...updated[i], [field]: value }
+      return updated
+    })
+  }
+
+  const removeEducation = (i) => {
+    setEducation((prev) => prev.filter((_, idx) => idx !== i))
   }
 
   const submitHandler = async (e) => {
     e.preventDefault()
-
-    const linkErrors = validateResumeLinks(form)
-    if (Object.keys(linkErrors).length > 0) {
-      setErrors((prev) => ({ ...prev, ...linkErrors }))
-      setActiveTab("links")
-      toast.error("Please fix the highlighted links before saving")
-      return
-    }
-
     setSaving(true)
     const formData = new FormData()
     formData.append("fullname", form.fullname)
@@ -273,30 +158,34 @@ export default function Profile() {
     formData.append("dateOfBirth", form.dateOfBirth)
     formData.append("gender", form.gender)
     formData.append("location", form.location)
+    formData.append("website", form.website)
+    formData.append("linkedin", form.linkedin)
     formData.append("github", form.github)
     formData.append("portfolio", form.portfolio)
+    formData.append("skills", form.skills)
     formData.append("preferredJobRole", form.preferredJobRole)
     formData.append("preferredSalary", form.preferredSalary)
     formData.append("employmentType", form.employmentType)
     formData.append("workPreference", form.workPreference)
+    formData.append("certifications", form.certifications)
     formData.append("companyName", form.companyName)
     formData.append("companyEmail", form.companyEmail)
     formData.append("companyWebsite", form.companyWebsite)
     formData.append("designation", form.designation)
     formData.append("companySize", form.companySize)
     formData.append("industry", form.industry)
-    formData.append("noticePeriod", form.noticePeriod)
-    formData.append("availableFrom", form.availableFrom)
-    formData.append("willingToRelocate", String(willingToRelocate))
     formData.append("roles", JSON.stringify(roles))
     formData.append("currentRole", roles.recruiter && !roles.jobSeeker ? "recruiter" : roles.jobSeeker ? "jobSeeker" : null)
     formData.append("profileCompleted", "true")
+    formData.append("experience", JSON.stringify(experience))
+    formData.append("education", JSON.stringify(education))
     if (profilePhoto instanceof File) formData.append("profilePhoto", profilePhoto)
+    if (resumeFile instanceof File) formData.append("resume", resumeFile)
     try {
       const res = await axios.post(`${USER_API_END_POINT}/updateprofile`, formData, { withCredentials: true })
       if (res.data.success) {
         dispatch(updateUser(res.data.user))
-        toast.success("Profile saved successfully", { description: "All changes are saved to your account." })
+        toast.success("Profile saved successfully")
       }
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to save profile")
@@ -323,35 +212,23 @@ export default function Profile() {
     !!form.bio, !!form.headline, !!form.location,
     !!profilePhotoUrl,
     roles.jobSeeker || roles.recruiter,
-    !!advancedProfile.summary,
-    advancedProfile.skills.length > 0,
-    advancedProfile.experience.length > 0,
-    advancedProfile.education.length > 0,
-    advancedProfile.projects.length > 0,
-    advancedProfile.certifications.length > 0,
-    roles.jobSeeker && resumes.length > 0,
+    roles.jobSeeker && !!form.skills,
+    roles.jobSeeker && !!resumeName,
+    roles.jobSeeker && experience.length > 0,
     roles.recruiter && !!form.companyName,
     roles.recruiter && !!form.designation,
   ].filter(Boolean).length
 
-  const totalFields = 13 +
-    (roles.jobSeeker ? 1 : 0) +
+  const totalFields = 8 +
+    (roles.jobSeeker ? 3 : 0) +
     (roles.recruiter ? 2 : 0)
 
   const completionPercent = Math.min(Math.round((completedFields / Math.max(totalFields, 1)) * 100), 100)
 
   const tabs = [
     { id: "personal", label: "Personal Info", icon: User },
-    { id: "about", label: "About", icon: FileText },
     { id: "role", label: "Role & Skills", icon: Briefcase },
-    { id: "experience", label: "Experience", icon: Briefcase },
-    { id: "education", label: "Education", icon: GraduationCap },
-    { id: "skills", label: "Skills", icon: Sparkles },
-    { id: "projects", label: "Projects", icon: FolderKanban },
-    { id: "certifications", label: "Certifications", icon: Award },
     { id: "resume", label: "Resume & Portfolio", icon: FileText },
-    { id: "links", label: "Links", icon: Link },
-    { id: "preferences", label: "Preferences", icon: Clock },
   ]
 
   if (roles.recruiter) tabs.push({ id: "company", label: "Company", icon: Building2 })
@@ -400,9 +277,9 @@ export default function Profile() {
                   { done: !!form.fullname && !!form.email, label: "Basic Information" },
                   { done: !!profilePhotoUrl, label: "Profile Photo" },
                   { done: roles.jobSeeker || roles.recruiter, label: "Select Role" },
-                  { done: !roles.jobSeeker || resumes.length > 0, label: "Upload Resume" },
-                  { done: !roles.jobSeeker || advancedProfile.skills.length > 0, label: "Add Skills" },
-                  { done: !roles.jobSeeker || advancedProfile.experience.length > 0, label: "Add Experience" },
+                  { done: !roles.jobSeeker || !!resumeName, label: "Upload Resume" },
+                  { done: !roles.jobSeeker || !!form.skills, label: "Add Skills" },
+                  { done: !roles.jobSeeker || experience.length > 0, label: "Add Experience" },
                 ].map((item) => (
                   <div key={item.label} className={`flex items-center gap-2 text-xs ${item.done ? "text-green-600 dark:text-green-400" : "text-muted-foreground"}`}>
                     <div className={`h-4 w-4 rounded-full flex items-center justify-center ${item.done ? "bg-green-100 dark:bg-green-900/30" : "bg-muted"}`}>
@@ -433,75 +310,23 @@ export default function Profile() {
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <form onSubmit={submitHandler} className="bg-card rounded-xl border border-border shadow-sm p-6 sm:p-8">
               {activeTab === "personal" && <PersonalTab form={form} changeHandler={changeHandler} errors={errors} />}
-              {activeTab === "about" && (
-                <AboutSection
-                  summary={advancedProfile.summary}
-                  onSave={(value) => saveSection("summary", value)}
-                  saving={savingSection === "summary"}
-                />
-              )}
               {activeTab === "role" && (
-                <RoleTab form={form} changeHandler={changeHandler} roles={roles} setRoles={setRoles} />
-              )}
-              {activeTab === "experience" && (
-                <ExperienceSection
-                  experience={advancedProfile.experience}
-                  onSave={(value) => saveSection("experience", value)}
-                  saving={savingSection === "experience"}
-                />
-              )}
-              {activeTab === "education" && (
-                <EducationSection
-                  education={advancedProfile.education}
-                  onSave={(value) => saveSection("education", value)}
-                  saving={savingSection === "education"}
-                />
-              )}
-              {activeTab === "skills" && (
-                <SkillsSection
-                  skills={advancedProfile.skills}
-                  onSave={(value) => saveSection("skills", value)}
-                  saving={savingSection === "skills"}
-                />
-              )}
-              {activeTab === "projects" && (
-                <ProjectsSection
-                  projects={advancedProfile.projects}
-                  onSave={(value) => saveSection("projects", value)}
-                  saving={savingSection === "projects"}
-                />
-              )}
-              {activeTab === "certifications" && (
-                <CertificationsSection
-                  certifications={advancedProfile.certifications}
-                  onSave={(value) => saveSection("certifications", value)}
-                  saving={savingSection === "certifications"}
+                <RoleTab
+                  form={form} changeHandler={changeHandler}
+                  roles={roles} setRoles={setRoles}
+                  experience={experience} addExperience={addExperience}
+                  updateExperience={updateExperience} removeExperience={removeExperience}
+                  education={education} addEducation={addEducation}
+                  updateEducation={updateEducation} removeEducation={removeEducation}
                 />
               )}
               {activeTab === "resume" && (
                 <ResumeTab
-                  resumes={resumes} uploadingResume={uploadingResume} token={token}
-                  resumeInputRef={resumeInputRef} handleResumeChange={handleResumeChange}
-                  onDeleteResume={deleteResumeById}
-                  onSetPrimaryResume={setPrimaryResumeById}
-                />
-              )}
-              {activeTab === "links" && (
-                <LinksSection
-                  portfolio={form.portfolio} github={form.github}
-                  onLegacyChange={changeHandler} formErrors={errors}
-                  socialLinks={advancedProfile.socialLinks}
-                  onSave={(value) => saveSection("socialLinks", value)}
-                  saving={savingSection === "socialLinks"}
-                />
-              )}
-              {activeTab === "preferences" && (
-                <PreferencesTab
                   form={form} changeHandler={changeHandler}
-                  willingToRelocate={willingToRelocate} setWillingToRelocate={setWillingToRelocate}
-                  visibility={advancedProfile.visibility}
-                  onSaveVisibility={(value) => saveSection("visibility", value)}
-                  savingVisibility={savingSection === "visibility"}
+                  resumeFile={resumeFile} resumeName={resumeName}
+                  resumeInputRef={resumeInputRef} handleResumeChange={handleResumeChange}
+                  onRemoveResume={() => { setResumeFile(null); setResumeName("") }}
+                  resumeUrl={user?.profile?.resume || ""}
                 />
               )}
               {activeTab === "company" && (
@@ -528,6 +353,44 @@ export default function Profile() {
   )
 }
 
+function InputField({ label, name, value, onChange, error, icon: Icon, type = "text", placeholder, optional }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-foreground mb-1.5">
+        {label} {optional && <span className="text-muted-foreground font-normal">(optional)</span>}
+      </label>
+      <div className="relative">
+        {Icon && <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-muted-foreground" />}
+        {type === "textarea" ? (
+          <textarea name={name} value={value} onChange={onChange} rows={3} placeholder={placeholder}
+            className={`w-full rounded-xl border bg-background px-4 py-3 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground/60 focus:border-primary focus:shadow-[0_0_0_3px_rgba(10,102,194,0.1)] resize-none ${Icon ? "pl-11" : ""} ${error ? "border-red-400" : "border-input"}`}
+          />
+        ) : (
+          <input type={type} name={name} value={value} onChange={onChange} placeholder={placeholder}
+            className={`w-full rounded-xl border bg-background text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground/60 focus:border-primary focus:shadow-[0_0_0_3px_rgba(10,102,194,0.1)] ${Icon ? "pl-11 py-3 pr-4" : "px-4 py-3"} ${error ? "border-red-400" : "border-input"}`}
+          />
+        )}
+      </div>
+      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+    </div>
+  )
+}
+
+function SelectField({ label, name, value, onChange, options, placeholder }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-foreground mb-1.5">{label}</label>
+      <select name={name} value={value} onChange={onChange}
+        className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none transition-all focus:border-primary focus:shadow-[0_0_0_3px_rgba(10,102,194,0.1)] appearance-none"
+      >
+        <option value="">{placeholder || "Select..."}</option>
+        {options.map((opt) => (
+          <option key={opt.value || opt} value={opt.value || opt}>{opt.label || opt}</option>
+        ))}
+      </select>
+    </div>
+  )
+}
 
 function PersonalTab({ form, changeHandler, errors }) {
   return (
@@ -548,16 +411,25 @@ function PersonalTab({ form, changeHandler, errors }) {
       </div>
       <InputField label="Headline" name="headline" value={form.headline} onChange={changeHandler} placeholder="e.g. Senior React Developer at Google" optional />
       <InputField label="Bio" name="bio" value={form.bio} onChange={changeHandler} type="textarea" placeholder="Write a short description about yourself..." optional />
-      <p className="text-xs text-muted-foreground">Social links and portfolio/GitHub URLs live in the Links tab.</p>
+
+      <div>
+        <h4 className="text-sm font-semibold text-foreground mb-3">Social Links</h4>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <InputField label="Website" name="website" value={form.website} onChange={changeHandler} icon={Globe} placeholder="https://yoursite.com" optional />
+          <InputField label="LinkedIn" name="linkedin" value={form.linkedin} onChange={changeHandler} icon={Linkedin} placeholder="https://linkedin.com/in/..." optional />
+          <InputField label="GitHub" name="github" value={form.github} onChange={changeHandler} icon={GithubIcon} placeholder="https://github.com/..." optional />
+          <InputField label="Portfolio" name="portfolio" value={form.portfolio} onChange={changeHandler} icon={Link} placeholder="https://..." optional />
+        </div>
+      </div>
     </div>
   )
 }
 
-function RoleTab({ form, changeHandler, roles, setRoles }) {
+function RoleTab({ form, changeHandler, roles, setRoles, experience, addExperience, updateExperience, removeExperience, education, addEducation, updateEducation, removeEducation }) {
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-bold text-foreground">How would you like to use JobHub?</h3>
+        <h3 className="text-lg font-bold text-foreground">How would you like to use JobPilot Ai?</h3>
         <p className="text-sm text-muted-foreground mt-1">You can change these preferences anytime.</p>
       </div>
 
@@ -611,287 +483,169 @@ function RoleTab({ form, changeHandler, roles, setRoles }) {
               options={["Remote", "Hybrid", "On-site"]}
             />
           </div>
-          <p className="text-xs text-muted-foreground">
-            Manage your skills, experience, and education from their own tabs in the sidebar.
-          </p>
+          <InputField label="Skills" name="skills" value={form.skills} onChange={changeHandler} placeholder="React, Node.js, TypeScript..." optional />
+          {form.skills && <p className="text-xs text-muted-foreground -mt-3">Separate skills with commas</p>}
+          <InputField label="Certifications" name="certifications" value={form.certifications} onChange={changeHandler} placeholder="AWS Certified, Google Analytics..." optional />
+
+          <div className="pt-2">
+            <div className="flex items-center justify-between mb-3">
+              <h5 className="text-sm font-semibold text-foreground">Experience</h5>
+              <button type="button" onClick={addExperience}
+                className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+              >+ Add Experience</button>
+            </div>
+            <div className="space-y-3">
+              {experience.map((exp, i) => (
+                <div key={i} className="rounded-xl border border-input bg-background/50 p-4 relative">
+                  <button type="button" onClick={() => removeExperience(i)}
+                    className="absolute top-2 right-2 h-6 w-6 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 flex items-center justify-center hover:bg-red-200"
+                  ><X className="h-3 w-3" /></button>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <InputField label="Title" name={`exp-title-${i}`} value={exp.title} onChange={(e) => updateExperience(i, "title", e.target.value)} placeholder="Job title" />
+                    <InputField label="Company" name={`exp-company-${i}`} value={exp.company} onChange={(e) => updateExperience(i, "company", e.target.value)} placeholder="Company name" />
+                    <InputField label="Start Date" name={`exp-start-${i}`} type="date" value={exp.startDate} onChange={(e) => updateExperience(i, "startDate", e.target.value)} />
+                    <InputField label="End Date" name={`exp-end-${i}`} type="date" value={exp.endDate} onChange={(e) => updateExperience(i, "endDate", e.target.value)} disabled={exp.current} />
+                  </div>
+                  <label className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                    <input type="checkbox" checked={exp.current} onChange={(e) => updateExperience(i, "current", e.target.checked)}
+                      className="rounded border-input h-4 w-4 text-primary focus:ring-primary"
+                    /> I currently work here
+                  </label>
+                  <textarea name={`exp-desc-${i}`} value={exp.description} onChange={(e) => updateExperience(i, "description", e.target.value)}
+                    rows={2} placeholder="Brief description of your role..."
+                    className="mt-2 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary resize-none"
+                  />
+                </div>
+              ))}
+              {experience.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4 bg-muted/30 rounded-xl border border-dashed border-input">
+                  No experience added yet. Click "Add Experience" to get started.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <div className="flex items-center justify-between mb-3">
+              <h5 className="text-sm font-semibold text-foreground">Education</h5>
+              <button type="button" onClick={addEducation}
+                className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+              >+ Add Education</button>
+            </div>
+            <div className="space-y-3">
+              {education.map((edu, i) => (
+                <div key={i} className="rounded-xl border border-input bg-background/50 p-4 relative">
+                  <button type="button" onClick={() => removeEducation(i)}
+                    className="absolute top-2 right-2 h-6 w-6 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 flex items-center justify-center hover:bg-red-200"
+                  ><X className="h-3 w-3" /></button>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <InputField label="Degree" name={`edu-degree-${i}`} value={edu.degree} onChange={(e) => updateEducation(i, "degree", e.target.value)} placeholder="B.S. Computer Science" />
+                    <InputField label="Institution" name={`edu-inst-${i}`} value={edu.institution} onChange={(e) => updateEducation(i, "institution", e.target.value)} placeholder="University name" />
+                    <InputField label="Field of Study" name={`edu-field-${i}`} value={edu.field} onChange={(e) => updateEducation(i, "field", e.target.value)} placeholder="Computer Science" />
+                    <InputField label="Grade" name={`edu-grade-${i}`} value={edu.grade} onChange={(e) => updateEducation(i, "grade", e.target.value)} placeholder="GPA / Percentage" />
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2 mt-3">
+                    <InputField label="Start Date" name={`edu-start-${i}`} type="date" value={edu.startDate} onChange={(e) => updateEducation(i, "startDate", e.target.value)} />
+                    <InputField label="End Date" name={`edu-end-${i}`} type="date" value={edu.endDate} onChange={(e) => updateEducation(i, "endDate", e.target.value)} />
+                  </div>
+                </div>
+              ))}
+              {education.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4 bg-muted/30 rounded-xl border border-dashed border-input">
+                  No education added yet. Click "Add Education" to get started.
+                </p>
+              )}
+            </div>
+          </div>
         </motion.div>
       )}
     </div>
   )
 }
 
-function ResumePreviewModal({ open, onOpenChange, title, previewSrc, downloadHref, downloadFilename }) {
+function ResumeTab({ form, changeHandler, resumeFile, resumeName, resumeInputRef, handleResumeChange, onRemoveResume, resumeUrl }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl p-0 gap-0 overflow-hidden sm:max-w-3xl">
-        <div className="flex items-center justify-between border-b border-border px-5 py-3">
-          <div className="min-w-0 pr-4">
-            <DialogTitle className="text-sm font-semibold truncate">{title}</DialogTitle>
-            <DialogDescription className="sr-only">Resume preview</DialogDescription>
-          </div>
-          {downloadHref && (
-            <a
-              href={downloadHref}
-              download={downloadFilename}
-              aria-label="Download resume"
-              title="Download resume"
-              className="h-9 w-9 shrink-0 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors mr-8"
-            >
-              <Download className="h-4 w-4" />
-            </a>
-          )}
-        </div>
-        <div className="h-[75vh] bg-muted/30">
-          {previewSrc ? (
-            <iframe src={previewSrc} title="Resume preview" className="h-full w-full" />
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              Preview unavailable
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function ResumeFileCard({ name, size, uploadedAt, isPrimary, onPreview, onDownload, onSetPrimary, onDelete }) {
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -6 }}
-      className="group flex items-center gap-3 rounded-xl border border-input bg-background/50 p-4 transition-all hover:border-primary/40 hover:shadow-md"
-    >
-      <button
-        type="button"
-        onClick={onPreview || undefined}
-        disabled={!onPreview}
-        aria-label={onPreview ? `Preview ${name}` : name}
-        className="flex min-w-0 flex-1 items-center gap-3 text-left rounded-lg outline-none disabled:cursor-default focus-visible:ring-2 focus-visible:ring-primary/50"
-      >
-        <div className="h-11 w-11 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center shrink-0">
-          <FileText className="h-5 w-5 text-primary" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-foreground truncate">{name}</p>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-xs text-muted-foreground">
-              {[size, uploadedAt].filter(Boolean).join(" - ")}
-            </span>
-            <span
-              className={`text-[10px] font-semibold uppercase tracking-wide rounded-full px-2 py-0.5 ${
-                isPrimary
-                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                  : "bg-muted text-muted-foreground"
-              }`}
-            >
-              {isPrimary ? "Primary" : "Saved"}
-            </span>
-          </div>
-        </div>
-      </button>
-      <div className="flex items-center gap-1 shrink-0">
-        {onPreview && <IconButton label="View resume" icon={Eye} onClick={onPreview} />}
-        {onDownload && <IconButton label="Download resume" icon={Download} onClick={onDownload} />}
-        {!isPrimary && onSetPrimary && (
-          <IconButton label="Set as primary resume" icon={Star} onClick={onSetPrimary} />
-        )}
-        <IconButton label="Delete resume" icon={Trash2} tone="danger" onClick={onDelete} />
-      </div>
-    </motion.div>
-  )
-}
-
-function ResumeDropzone({ resumeInputRef, handleResumeChange, uploading }) {
-  const [dragActive, setDragActive] = useState(false)
-  return (
-    <div
-      role="button"
-      tabIndex={uploading ? -1 : 0}
-      aria-disabled={uploading}
-      onDragOver={(e) => { if (!uploading) { e.preventDefault(); setDragActive(true) } }}
-      onDragLeave={() => setDragActive(false)}
-      onDrop={(e) => {
-        e.preventDefault()
-        setDragActive(false)
-        if (uploading) return
-        const file = e.dataTransfer?.files?.[0]
-        if (file) handleResumeChange({ target: { files: [file] } })
-      }}
-      onClick={() => { if (!uploading) resumeInputRef.current?.click() }}
-      onKeyDown={(e) => { if (!uploading && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); resumeInputRef.current?.click() } }}
-      className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-all ${
-        uploading ? "cursor-wait opacity-70 border-input bg-background/50" :
-        dragActive ? "border-primary bg-primary/5" : "border-input bg-background/50 hover:border-primary hover:bg-primary/5"
-      }`}
-    >
-      <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center mb-3">
-        {uploading ? (
-          <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
-        ) : (
-          <Plus className="h-6 w-6 text-muted-foreground" />
-        )}
-      </div>
-      <p className="text-sm font-medium text-foreground">
-        {uploading ? "Uploading resume..." : "Drop a resume here or click to browse"}
-      </p>
-      <p className="text-xs text-muted-foreground mt-1">PDF only, max 5MB</p>
-    </div>
-  )
-}
-
-function ResumeTab({
-  resumes, uploadingResume, token, resumeInputRef, handleResumeChange,
-  onDeleteResume, onSetPrimaryResume,
-}) {
-  const [previewResumeId, setPreviewResumeId] = useState(null)
-
-  const authedResumeUrl = (resumeId, extra = "") =>
-    `${USER_API_END_POINT}/resumes/${resumeId}?token=${encodeURIComponent(token || "")}${extra}`
-
-  const previewResume = resumes.find((r) => r._id === previewResumeId) || null
-  const previewSrc = previewResume ? authedResumeUrl(previewResume._id) : null
-  const downloadHref = previewResume ? authedResumeUrl(previewResume._id, "&download=1") : null
-
-  const atCapacity = resumes.length >= MAX_RESUMES
-
-  return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
         <h3 className="text-lg font-bold text-foreground">Resume & Portfolio</h3>
-        <p className="text-sm text-muted-foreground mt-1">Upload up to {MAX_RESUMES} resumes and mark one as primary for recruiters to see first.</p>
+        <p className="text-sm text-muted-foreground mt-1">Upload your resume to let recruiters know about your experience.</p>
       </div>
 
-      <div className="space-y-3">
-        <label className="block text-sm font-medium text-foreground">Resumes (PDF)</label>
-
-        {resumes.length > 0 && (
-          <div className="space-y-2">
-            {resumes.map((resume) => (
-              <ResumeFileCard
-                key={resume._id}
-                name={resume.originalName || "Resume"}
-                size={formatBytes(resume.size)}
-                uploadedAt={formatDate(resume.uploadedAt)}
-                isPrimary={resume.isPrimary}
-                onPreview={() => setPreviewResumeId(resume._id)}
-                onDownload={() => { window.location.href = authedResumeUrl(resume._id, "&download=1") }}
-                onSetPrimary={() => onSetPrimaryResume(resume._id)}
-                onDelete={() => onDeleteResume(resume._id)}
-              />
-            ))}
+      {resumeUrl && !resumeFile && (
+        <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-green-100 dark:bg-green-800 flex items-center justify-center">
+                <FileText className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">{resumeName || "Resume"}</p>
+                <p className="text-xs text-muted-foreground">Uploaded and saved</p>
+              </div>
+            </div>
+            <a href={resumeUrl} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary/10 text-primary px-4 py-2 text-sm font-medium hover:bg-primary/20 transition-colors"
+            >
+              <ExternalLink className="h-4 w-4" />
+              View CV
+            </a>
           </div>
-        )}
-
-        {atCapacity ? (
-          <p className="text-xs text-muted-foreground text-center py-3 bg-muted/30 rounded-xl border border-dashed border-input">
-            Maximum of {MAX_RESUMES} resumes reached. Delete one to add another.
-          </p>
-        ) : (
-          <ResumeDropzone resumeInputRef={resumeInputRef} handleResumeChange={handleResumeChange} uploading={uploadingResume} />
-        )}
-        <input ref={resumeInputRef} type="file" accept="application/pdf" onChange={handleResumeChange} className="hidden" />
-      </div>
-
-      <ResumePreviewModal
-        open={Boolean(previewResumeId)}
-        onOpenChange={(open) => { if (!open) setPreviewResumeId(null) }}
-        title={previewResume?.originalName || "Resume preview"}
-        previewSrc={previewSrc}
-        downloadHref={downloadHref}
-        downloadFilename={previewResume?.originalName}
-      />
-    </div>
-  )
-}
-
-function PreferencesTab({
-  form, changeHandler,
-  willingToRelocate, setWillingToRelocate,
-  visibility, onSaveVisibility, savingVisibility,
-}) {
-  const [visDraft, setVisDraft] = useState(visibility)
-
-  useEffect(() => { setVisDraft(visibility) }, [visibility])
-
-  return (
-    <div className="space-y-8">
-      <div>
-        <h3 className="text-lg font-bold text-foreground">Preferences</h3>
-        <p className="text-sm text-muted-foreground mt-1">Fine-tune your availability and who can see your profile.</p>
-      </div>
+        </div>
+      )}
 
       <div>
-        <h4 className="text-sm font-semibold text-foreground mb-3">Job Preferences</h4>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <SelectField
-            label="Notice Period" name="noticePeriod" value={form.noticePeriod} onChange={changeHandler}
-            options={["Immediate", "15 Days", "1 Month", "2 Months", "3+ Months"]}
-          />
-          <InputField label="Available From" name="availableFrom" type="date" value={form.availableFrom} onChange={changeHandler} optional />
-        </div>
-        <div className="mt-5">
-          <ToggleField
-            label="Willing to relocate"
-            description="Let recruiters know you're open to relocating for the right role."
-            checked={willingToRelocate}
-            onChange={setWillingToRelocate}
-          />
-        </div>
-        <p className="text-xs text-muted-foreground mt-3">Saved with the main "Save Changes" button.</p>
-      </div>
-
-      <div className="pt-2 border-t border-border">
-        <SectionHeaderInline
-          title="Visibility"
-          onSave={() => onSaveVisibility(visDraft)}
-          saving={savingVisibility}
-        />
-        <div className="space-y-3 mt-4">
-          <ToggleField
-            label="Profile visible to recruiters"
-            description="Turn off to hide your profile from recruiter search entirely."
-            checked={visDraft.profileVisible}
-            onChange={(value) => setVisDraft((prev) => ({ ...prev, profileVisible: value }))}
-          />
-          <ToggleField
-            label="Resume visible to recruiters"
-            description="Turn off to keep your resume private even if your profile is visible."
-            checked={visDraft.resumeVisible}
-            onChange={(value) => setVisDraft((prev) => ({ ...prev, resumeVisible: value }))}
-          />
-          <ToggleField
-            label="Show email on public profile"
-            description="Let recruiters see your email address without applying first."
-            checked={visDraft.showEmail}
-            onChange={(value) => setVisDraft((prev) => ({ ...prev, showEmail: value }))}
-          />
-          <ToggleField
-            label="Open to work"
-            description="Show an 'Open to Work' badge on your profile."
-            checked={visDraft.openToWork}
-            onChange={(value) => setVisDraft((prev) => ({ ...prev, openToWork: value }))}
-          />
+        <label className="block text-sm font-medium text-foreground mb-1.5">Resume (PDF)</label>
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault()
+            const file = e.dataTransfer?.files?.[0]
+            if (file && file.type === "application/pdf") {
+              const event = { target: { files: [file] } }
+              handleResumeChange(event)
+            } else if (file) {
+              toast.error("Please upload a PDF file")
+            }
+          }}
+          onClick={() => resumeInputRef.current?.click()}
+          className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-input bg-background/50 p-8 transition-all hover:border-primary hover:bg-primary/5"
+        >
+          {resumeFile || resumeName ? (
+            <div className="flex w-full items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+                  <FileText className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">{resumeFile?.name || resumeName}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {resumeFile ? `${(resumeFile.size / 1024).toFixed(0)} KB` : "Uploaded"}
+                  </p>
+                </div>
+              </div>
+              <button type="button" onClick={(e) => { e.stopPropagation(); onRemoveResume() }}
+                className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-500 flex items-center justify-center hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+              ><X className="h-4 w-4" /></button>
+            </div>
+          ) : (
+            <>
+              <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center mb-3">
+                <Upload className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-medium text-foreground">Drop your resume here or click to browse</p>
+              <p className="text-xs text-muted-foreground mt-1">PDF only, max 5MB</p>
+            </>
+          )}
+          <input ref={resumeInputRef} type="file" accept="application/pdf" onChange={handleResumeChange} className="hidden" />
         </div>
       </div>
-    </div>
-  )
-}
 
-function SectionHeaderInline({ title, onSave, saving }) {
-  return (
-    <div className="flex items-center justify-between">
-      <h4 className="text-sm font-semibold text-foreground">{title}</h4>
-      <button
-        type="button"
-        onClick={onSave}
-        disabled={saving}
-        className="inline-flex items-center gap-2 rounded-lg bg-primary text-primary-foreground px-4 py-2 text-xs font-semibold hover:bg-primary/90 transition-all disabled:opacity-50"
-      >
-        {saving ? "Saving..." : "Save"}
-      </button>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <InputField label="Portfolio URL" name="portfolio" value={form.portfolio} onChange={changeHandler} icon={Link} placeholder="https://..." optional />
+        <InputField label="GitHub URL" name="github" value={form.github} onChange={changeHandler} icon={GithubIcon} placeholder="https://github.com/..." optional />
+      </div>
+
+      <InputField label="Certifications" name="certifications" value={form.certifications} onChange={changeHandler} type="textarea" placeholder="AWS Certified Solutions Architect, Google Analytics Individual Qualification..." optional />
     </div>
   )
 }

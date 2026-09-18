@@ -17,11 +17,11 @@ const values = [
   { icon: Heart, title: "Empathy First", desc: "We understand the job search journey because we've been there. Every feature is built with real user needs in mind." },
   { icon: Zap, title: "Innovation Driven", desc: "We leverage cutting-edge AI and machine learning to give job seekers a competitive edge in their applications." },
   { icon: Users, title: "Community Focused", desc: "We believe in the power of community. Our platform connects job seekers, mentors, and recruiters in meaningful ways." },
-  { icon: Globe, title: "Global Reach", desc: "From Bangalore to San Francisco, we help professionals across the globe find opportunities that match their aspirations." },
+  { icon: Globe, title: "Global Reach", desc: "Built in Uttarakhand, India, JobPilot Ai helps professionals across the globe find opportunities that match their aspirations." },
 ];
 
 const timeline = [
-  { year: "2023", title: "The Beginning", desc: "JobHub was founded with a mission to make job searching smarter, not harder." },
+  { year: "2023", title: "The Beginning", desc: "            JobPilot Ai was founded with a mission to make job searching smarter, not harder." },
   { year: "2024", title: "AI Integration", desc: "Launched AI-powered resume builder and cover letter generator, helping thousands of users." },
   { year: "2025", title: "Platform Growth", desc: "Reached 50,000 active users and partnered with 10,000+ companies across India and US." },
   { year: "2026", title: "Global Expansion", desc: "Expanded to 20+ countries, launched mobile apps, and introduced enterprise solutions." },
@@ -48,7 +48,7 @@ export default function About() {
               We're on a Mission to
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-cyan-200">Transform Careers</span>
             </h1>
-            <p className="text-lg text-blue-200 max-w-2xl mx-auto">JobHub is building the future of career development — one application at a time.</p>
+            <p className="text-lg text-blue-200 max-w-2xl mx-auto">JobPilot Ai is building the future of career development — one application at a time.</p>
           </motion.div>
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#F3F2EF] dark:from-[#0D1117] to-transparent" />
@@ -128,7 +128,7 @@ export default function About() {
         <div className="mb-16">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Our Journey</h2>
-            <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto">Key milestones that shaped JobHub</p>
+            <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto">Key milestones that shaped JobPilot Ai</p>
           </div>
           <div className="relative">
             <div className="absolute left-1/2 -translate-x-px top-0 bottom-0 w-0.5 bg-blue-200 dark:bg-blue-800 hidden md:block" />
@@ -159,43 +159,30 @@ export default function About() {
 
         <div className="mb-16">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Meet Our Team</h2>
-            <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto">The people behind JobHub</p>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Meet the Founder</h2>
+            <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto">The engineer who designed and built JobPilot Ai</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
+          <div className="max-w-2xl mx-auto">
             <FounderCard founder={{
               name: "Abhishek Bisht",
-              position: "CTO & Co-Founder",
-              role: "Software Engineer • AI/ML Engineer • Full Stack Developer",
-              bio: "Abhishek Bisht is responsible for the technology, AI systems, backend architecture, and product engineering of JobHub. He specializes in Full Stack Development, Artificial Intelligence, Machine Learning, scalable backend systems, cloud deployment, and modern web technologies. His vision is to build AI-powered career solutions that simplify job searching and career growth for millions of users.",
-              skills: ["Artificial Intelligence", "Machine Learning", "Full Stack Development", "React", "Next.js", "FastAPI", "Django", "Node.js", "PostgreSQL", "Docker", "LangChain", "LangGraph", "RAG", "MCP", "Cloud Computing"],
+              position: "Founder & Software Engineer",
+              role: "Full Stack Engineer • AI/ML Engineer • Product Developer",
+              bio: "Abhishek Bisht is the Founder and Software Engineer behind JobPilot AI. He designed and developed the platform's core architecture, backend systems, APIs, AI-powered career features, and user experience. As a full-stack engineer, he works across frontend, backend, databases, cloud deployment, authentication, integrations, and AI systems to build scalable and production-ready products.\n\nJobPilot AI was created to make the job search and career development process smarter, faster, and more personalized. The platform brings together job discovery, AI-powered resume tools, career guidance, interview preparation, and other career-focused features in one place.\n\nAbhishek specializes in Full Stack Development, MERN, Next.js, FastAPI, Django REST, REST API architecture, AI/ML, RAG systems, automation, and modern cloud-based applications. His focus is on building practical AI-powered products that solve real-world problems and deliver a better experience for job seekers.",
+              skills: ["Artificial Intelligence", "Machine Learning", "Full Stack Development", "React", "Next.js", "FastAPI", "Django REST", "MERN", "Node.js", "REST API Architecture", "RAG Systems", "Automation", "Cloud Deployment"],
               avatarInitials: "AB",
               avatarColor: "from-blue-500 to-cyan-500",
-              linkedInUrl: "https://www.linkedin.com/in/darshan-goswami-b09137222/",
-              githubUrl: "https://github.com/Darshangoswami07",
-              portfolioUrl: "https://darshangoswami.com",
-              email: "darshan@jobhub.com"
+              linkedInUrl: "https://linkedin.com/in/abhishek-bisht-876541308",
+              githubUrl: "https://github.com/abhishekbisht0203",
+              portfolioUrl: "https://abhishekbisht.vercel.app/",
+              email: "abhiyanshbisht@gmail.com"
             }} />
-            <FounderCard founder={{
-              name: "Darshan Goswami",
-              position: "CEO & Co-Founder",
-              role: "Full Stack Developer • Software Engineer • AI/ML Engineer • Product Strategist",
-              bio: "Darshan Goswami leads the overall vision, product strategy, business development, and growth of JobHub. He also works as a Full Stack Developer, managing the database, backend, and frontend of the JobHub platform. He works closely on AI-driven innovation, user experience, and building a world-class platform that connects job seekers with the best career opportunities through intelligent automation.",
-              skills: ["Artificial Intelligence", "Machine Learning", "Full Stack Development", "React", "Next.js", "Python", "Node.js", "Product Strategy", "Leadership", "Software Engineering", "Business Development", "Product Management", "System Design", "Cloud Computing"],
-              avatarInitials: "DG",
-              avatarColor: "from-purple-500 to-pink-500",
-              linkedInUrl: "https://www.linkedin.com/in/darshan-goswami-b09137222/",
-              githubUrl: "https://github.com/Darshangoswami07",
-              portfolioUrl: "https://darshangoswami.com",
-              email: "darshan@jobhub.com"
-            } }/>
           </div>
         </div>
       </div>
 
       <CTABanner
         title="Ready to Transform Your Career?"
-        subtitle="Join 50,000+ professionals who are already using JobHub to advance their careers."
+        subtitle="Join 50,000+ professionals who are already using JobPilot Ai to advance their careers."
         buttonText="Get Started Free"
         buttonLink="/signup"
         gradient="from-[#0A66C2] via-[#004182] to-[#002244]"

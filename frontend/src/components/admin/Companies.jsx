@@ -6,52 +6,95 @@ import CompanyTable from "./CompanyTable";
 import { useNavigate } from "react-router-dom";
 import useGetAllCompanies from "@/hooks/useGetAllCompanies";
 import { setSearchCompanyByText } from "@/store/slices/companySlice";
-import { useDispatch } from "react-redux";
-import { Search, Plus } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { Search, Plus, Building2, Briefcase, MapPin, LayoutGrid, List } from "lucide-react";
+import PageHeader from "@/components/recruiter/PageHeader";
+import StatCard from "@/components/recruiter/StatCard";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 export default function Companies() {
   useGetAllCompanies();
   const [input, setInput] = useState("");
+  const [view, setView] = useState("grid");
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const { companies = [] } = useSelector((store) => store.company || {});
+  const { allAdminJobs = [] } = useSelector((store) => store.job || {});
+
   useEffect(() => {
-    dispatch(setSearchCompanyByText(input));
+    const t = setTimeout(() => dispatch(setSearchCompanyByText(input)), 200);
+    return () => clearTimeout(t);
   }, [input, dispatch]);
+
+  const totalJobs = allAdminJobs.length;
+  const totalApplications = allAdminJobs.reduce(
+    (s, j) => s + (j.applicantsCount ?? j.applications?.length ?? 0),
+    0
+  );
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        <div className="space-y-6">
-          <div className="bg-white card-shadow rounded-lg p-6 sm:p-8">
-            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Companies</h1>
-                <p className="mt-1 text-sm text-gray-500">Manage and review registered companies.</p>
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <Input
-                    className="w-full min-w-0 rounded-lg border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm shadow-sm focus:border-[#0A66C2] focus:ring-2 focus:ring-[#0A66C2]/20"
-                    placeholder="Filter by name"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                  />
-                </div>
-                <Button
-                  className="btn-primary rounded-lg px-5 py-2.5 text-sm font-semibold"
-                  onClick={() => navigate("/admin/companies/create")}
-                >
-                  <Plus className="h-4 w-4" />
-                  New Company
-                </Button>
-              </div>
+      <div className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+        <PageHeader
+          eyebrow="Company Directory"
+          title="Companies"
+          subtitle="Manage your registered companies, company profiles, and job postings."
+          icon={Building2}
+        >
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                className="w-56 rounded-xl pl-9 sm:w-64"
+                placeholder="Search companies..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+              />
             </div>
+            <div className="hidden rounded-xl bg-muted p-1 md:flex">
+              {[
+                { id: "grid", icon: LayoutGrid },
+                { id: "list", icon: List },
+              ].map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => setView(v.id)}
+                  className={cn(
+                    "relative flex size-8 items-center justify-center rounded-[10px] transition",
+                    view === v.id ? "text-white" : "text-muted-foreground hover:text-foreground"
+                  )}
+                  aria-label={`${v.id} view`}
+                >
+                  {view === v.id && (
+                    <motion.span
+                      layoutId="company-view"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      className="absolute inset-0 rounded-[10px] bg-gradient-to-r from-indigo-500 to-blue-600 shadow"
+                    />
+                  )}
+                  <v.icon className="relative z-10 size-4" />
+                </button>
+              ))}
+            </div>
+            <Button
+              onClick={() => navigate("/admin/companies/create")}
+              className="rounded-xl bg-gradient-to-r from-indigo-500 to-blue-600 shadow-lg shadow-indigo-500/25 hover:from-indigo-600 hover:to-blue-700"
+            >
+              <Plus className="size-4" /> New Company
+            </Button>
           </div>
-          <CompanyTable />
+        </PageHeader>
+
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <StatCard label="Total Companies" value={companies.length} icon={Building2} variant="indigo" index={0} />
+          <StatCard label="Active Jobs" value={totalJobs} icon={Briefcase} variant="violet" index={1} />
+          <StatCard label="Applications" value={totalApplications} icon={MapPin} variant="emerald" index={2} />
         </div>
+
+        <CompanyTable view={view} />
       </div>
     </div>
   );

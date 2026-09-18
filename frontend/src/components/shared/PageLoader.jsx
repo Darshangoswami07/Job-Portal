@@ -34,7 +34,7 @@ export default function PageLoader({ isLoading = true }) {
               transition={{ delay: 0.2, duration: 0.4 }}
               className="text-center"
             >
-              <h1 className="text-3xl font-bold text-gradient">JobHub</h1>
+              <h1 className="text-3xl font-bold text-gradient">JobPilot Ai</h1>
               <p className="mt-1.5 text-sm text-muted-foreground">
                 Finding the perfect opportunity...
               </p>

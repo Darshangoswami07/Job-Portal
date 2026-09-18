@@ -1,363 +1,477 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-import { ArrowLeft, Send, Briefcase, ExternalLink, AlertCircle, RotateCw } from "lucide-react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import { getSocket } from "@/lib/socket";
+import { useNavigate } from "react-router-dom";
 import {
-  getConversationById,
-  getMessages,
-  sendMessage as sendMessageApi,
+  fetchConversation,
+  fetchMessages,
+  sendMessageApi,
+  markReadApi,
+  editMessageApi,
+  deleteMessageApi,
+  toggleReactionApi,
+  toggleMessagePinApi,
+  updateConversationApi,
+  deleteConversationApi,
+  uploadChatFilesApi,
+} from "@/api/chatApi";
+import {
+  setActiveConversation,
+  upsertConversation,
+  setMessages,
+  prependMessages,
+  setHasMore,
+  setMessagesLoading,
+  addMessage,
+  replaceMessage,
+  failMessage,
+  updateMessage,
+  removeMessageFromState,
+  removeConversation,
   markConversationRead,
-} from "@/services/chat.api";
-import {
-  markConversationRead as markConversationReadAction,
-  upsertConversationPreview,
-  decrementUnreadCount,
+  setLightbox,
 } from "@/store/slices/chatSlice";
+import ChatHeader from "./ChatHeader";
+import ApplicationInfoCard from "./ApplicationInfoCard";
+import MessageList from "./MessageList";
+import MessageInput from "./MessageInput";
+import QuickActions from "./QuickActions";
+import ChatBackground from "./ChatBackground";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
-const statusStyles = {
-  pending: "bg-yellow-100 text-yellow-800",
-  reviewed: "bg-blue-100 text-blue-800",
-  interviewing: "bg-purple-100 text-purple-800",
-  accepted: "bg-green-100 text-green-800",
-  rejected: "bg-red-100 text-red-800",
-  hired: "bg-green-100 text-green-800",
+const isGoneError = (error) => {
+  const status = error?.response?.status;
+  return status === 403 || status === 404;
 };
 
-function formatTime(dateStr) {
-  return new Date(dateStr).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-}
+export default function ChatWindow({ conversationId, onBack, onDeleted }) {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const user = useSelector((s) => s.auth.user);
+  const userId = String(user?._id || "");
 
-function MessageBubble({ message, isMine, isRead }) {
-  const isFailed = message._status === "failed";
-  const isSending = message._status === "sending";
+  const conversation = useSelector((s) =>
+    s.chat.conversations.find((c) => String(c._id) === String(conversationId))
+  );
+  const messages = useSelector((s) => s.chat.messages[conversationId] || []);
+  const hasMore = useSelector((s) => Boolean(s.chat.hasMore[conversationId]));
+  const messagesLoading = useSelector((s) => Boolean(s.chat.messagesLoading[conversationId]));
+  const typing = useSelector((s) => Boolean(s.chat.typing[conversationId]));
+  const socketConnected = useSelector((s) => s.chat.socketConnected);
+  const onlineUsers = useSelector((s) => s.chat.onlineUsers);
+
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const loadingOlderRef = useRef(false);
+  const [replyTo, setReplyTo] = useState(null);
+  const [forwardTarget, setForwardTarget] = useState(null);
+  const onDeletedRef = useRef(onDeleted);
+
+  useEffect(() => {
+    onDeletedRef.current = onDeleted;
+  });
+
+  const handleGone = useCallback(() => {
+    dispatch(removeConversation(conversationId));
+    toast.error("This conversation is no longer available.");
+    onDeletedRef.current?.();
+  }, [conversationId, dispatch]);
+
+  const otherId = conversation?.otherParticipantId || null;
+  const otherUser = (conversation?.participants || []).find(
+    (p) => String(p?._id || p) === String(otherId)
+  );
+  const otherOnline =
+    otherId !== null && onlineUsers[otherId] !== undefined
+      ? Boolean(onlineUsers[otherId])
+      : Boolean(conversation?.otherOnline);
+
+  useEffect(() => {
+    if (!conversationId) return;
+    setInfoOpen(false);
+    dispatch(setActiveConversation(conversationId));
+    dispatch(setMessagesLoading({ conversationId, loading: true }));
+    dispatch(markConversationRead(conversationId));
+
+    markReadApi(conversationId).catch(() => {});
+    fetchConversation(conversationId)
+      .then((res) => {
+        if (res.data?.success) {
+          dispatch(upsertConversation(res.data.conversation));
+        }
+      })
+      .catch((error) => {
+        if (isGoneError(error)) handleGone();
+      });
+
+    fetchMessages({ conversationId })
+      .then((res) => {
+        if (res.data?.success) {
+          dispatch(setMessages({ conversationId, messages: res.data.messages }));
+          dispatch(setHasMore({ conversationId, hasMore: res.data.hasMore }));
+        }
+      })
+      .catch((error) => {
+        if (isGoneError(error)) handleGone();
+      })
+      .finally(() => {
+        dispatch(setMessagesLoading({ conversationId, loading: false }));
+      });
+  }, [conversationId, dispatch, handleGone]);
+
+  const loadOlder = useCallback(() => {
+    if (!conversationId || loadingOlderRef.current) return;
+    const first = messages[0];
+    if (!first) return;
+    loadingOlderRef.current = true;
+    setLoadingOlder(true);
+    fetchMessages({ conversationId, before: first.createdAt })
+      .then((res) => {
+        if (res.data?.success) {
+          dispatch(prependMessages({ conversationId, messages: res.data.messages }));
+          dispatch(setHasMore({ conversationId, hasMore: res.data.hasMore }));
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        loadingOlderRef.current = false;
+        setLoadingOlder(false);
+      });
+  }, [conversationId, messages, dispatch]);
+
+  const sendMessage = useCallback(
+    async ({ body, type, attachment, audio }) => {
+      if (!conversationId) return;
+      const payload = { body: body || "", type: type || "text" };
+      if (attachment) payload.attachment = attachment;
+      if (replyTo?._id) payload.replyTo = replyTo._id;
+
+      if (audio?.blob) {
+        try {
+          const file = new File([audio.blob], "voice-message.webm", {
+            type: audio.mime || "audio/webm",
+          });
+          const up = await uploadChatFilesApi([file]);
+          const uploaded = up.data?.files?.[0];
+          if (!uploaded) throw new Error("Upload failed");
+          payload.audio = { url: uploaded.url, duration: audio.duration };
+          payload.type = "voice";
+        } catch {
+          toast.error("Failed to upload voice message");
+          return;
+        }
+      }
+
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const temp = {
+        _id: tempId,
+        tempId,
+        conversation: conversationId,
+        sender: userId,
+        senderName: user?.fullname || "You",
+        body: payload.body,
+        type: payload.type,
+        attachment: payload.attachment,
+        audio: payload.audio,
+        replyTo: replyTo?._id ? { _id: replyTo._id, body: replyTo.body } : undefined,
+        createdAt: new Date().toISOString(),
+        status: "sending",
+        justSent: true,
+        readBy: [],
+        deliveredTo: [userId],
+      };
+      dispatch(addMessage({ conversationId, message: temp }));
+
+      try {
+        const res = await sendMessageApi({ conversationId, payload });
+        if (res.data?.success) {
+          dispatch(
+            replaceMessage({ conversationId, tempId, message: { ...res.data.message, status: "sent" } })
+          );
+          dispatch(
+            upsertConversation({
+              _id: conversationId,
+              lastMessagePreview: res.data.message.preview,
+              lastMessageAt: res.data.message.createdAt,
+              lastMessageSender: userId,
+            })
+          );
+        }
+        setReplyTo(null);
+      } catch (error) {
+        if (isGoneError(error)) {
+          handleGone();
+        } else {
+          dispatch(failMessage({ conversationId, tempId }));
+          toast.error("Failed to send message. Please try again.");
+        }
+      }
+    },
+    [conversationId, userId, user?.fullname, replyTo, dispatch, handleGone]
+  );
+
+  const handleForward = useCallback(
+    async (message, targetConversationId) => {
+      try {
+        const payload = { body: message.body || "", type: message.type === "text" ? "text" : message.type };
+        if (message.attachment?.url) payload.attachment = message.attachment;
+        if (message.audio?.url) payload.audio = message.audio;
+        await sendMessageApi({ conversationId: targetConversationId, payload });
+        toast.success("Message forwarded");
+        setForwardTarget(null);
+      } catch {
+        toast.error("Failed to forward message");
+      }
+    },
+    []
+  );
+
+  const handleCopy = useCallback(
+    async (message) => {
+      const text =
+        message.type === "text"
+          ? message.body
+          : message.type === "image"
+            ? message.attachment?.url
+            : message.attachment?.name || "";
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        toast.success("Copied to clipboard");
+      } catch {
+        toast.error("Failed to copy");
+      }
+    },
+    []
+  );
+
+  const handleTogglePin = useCallback(
+    (messageId) => {
+      toggleMessagePinApi(messageId)
+        .then((res) => {
+          if (res.data?.success) {
+            dispatch(updateMessage({ conversationId, message: res.data.message }));
+          }
+        })
+        .catch(() => toast.error("Failed to update message"));
+    },
+    [conversationId, dispatch]
+  );
+
+  const handleReact = useCallback(
+    (messageId, emoji) => {
+      toggleReactionApi(messageId, emoji)
+        .then((res) => {
+          if (res.data?.success) {
+            dispatch(updateMessage({ conversationId, message: res.data.message }));
+          }
+        })
+        .catch(() => {});
+    },
+    [conversationId, dispatch]
+  );
+
+  const handleEdit = useCallback(
+    (messageId, body) => {
+      editMessageApi(messageId, body)
+        .then((res) => {
+          if (res.data?.success) {
+            dispatch(updateMessage({ conversationId, message: res.data.message }));
+          }
+        })
+        .catch(() => toast.error("Failed to edit message"));
+    },
+    [conversationId, dispatch]
+  );
+
+  const handleDelete = useCallback(
+    (messageId) => {
+      deleteMessageApi(messageId)
+        .then(() => {
+          dispatch(removeMessageFromState({ conversationId, messageId }));
+        })
+        .catch(() => toast.error("Failed to delete message"));
+    },
+    [conversationId, dispatch]
+  );
+
+  const handleOpenImage = useCallback(
+    (url) => dispatch(setLightbox({ url, name: "Chat image" })),
+    [dispatch]
+  );
+
+  const toggleAction = useCallback(
+    (action) => {
+      updateConversationApi(conversationId, action)
+        .then((res) => {
+          if (res.data?.success) {
+            dispatch(
+              upsertConversation({
+                ...conversation,
+                isPinned: res.data.conversation.isPinned,
+                isArchived: res.data.conversation.isArchived,
+                isMuted: res.data.conversation.isMuted,
+              })
+            );
+          }
+        })
+        .catch(() => toast.error("Failed to update conversation"));
+    },
+    [conversationId, conversation, dispatch]
+  );
+
+  const handleDeleteConversation = async () => {
+    setConfirmDelete(false);
+    try {
+      await deleteConversationApi(conversationId);
+      dispatch(removeConversation(conversationId));
+      toast.success("Conversation deleted");
+      onDeleted?.();
+    } catch {
+      toast.error("Failed to delete conversation");
+    }
+  };
+
+  const role = user?.currentRole === "recruiter" ? "recruiter" : "applicant";
+
   return (
-    <div className={cn("flex", isMine ? "justify-end" : "justify-start")}>
-      <div className={cn("max-w-[75%] sm:max-w-[65%]")}>
-        <div
-          className={cn(
-            "whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
-            isMine
-              ? "rounded-br-sm bg-[#0A66C2] text-white"
-              : "rounded-bl-sm bg-gray-100 text-gray-800",
-            isFailed && "border border-red-300 bg-red-50 text-red-700"
-          )}
-        >
-          {message.content}
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden">
+      <ChatBackground />
+      <div className="relative z-10 flex h-full min-h-0 flex-col">
+        <ChatHeader
+          conversation={{ ...conversation, infoOpen, otherOnline }}
+          userId={userId}
+          onBack={onBack}
+          onToggleInfo={() => setInfoOpen((v) => !v)}
+          onTogglePin={() => toggleAction(conversation?.isPinned ? "pin:remove" : "pin:add")}
+          onToggleArchive={() => toggleAction(conversation?.isArchived ? "archive:remove" : "archive:add")}
+          onToggleMute={() => toggleAction(conversation?.isMuted ? "mute:remove" : "mute:add")}
+          onDelete={() => setConfirmDelete(true)}
+        />
+
+        <ApplicationInfoCard
+          conversation={{ ...conversation, infoOpen }}
+          onClose={() => setInfoOpen(false)}
+          onViewJob={(id) => id && navigate(`/description/${id}`)}
+        />
+
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+          <MessageList
+            conversationId={conversationId}
+            messages={messages}
+            hasMore={hasMore}
+            loadingOlder={loadingOlder}
+            loadingInitial={messagesLoading}
+            userId={userId}
+            typing={typing}
+            otherUser={otherUser}
+            socketConnected={socketConnected}
+            onLoadOlder={loadOlder}
+            onReact={handleReact}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onOpenImage={handleOpenImage}
+            onReply={setReplyTo}
+            onForward={setForwardTarget}
+            onCopy={handleCopy}
+            onTogglePin={handleTogglePin}
+          />
         </div>
-        <div className={cn("mt-1 flex items-center gap-1 text-[11px] text-gray-400", isMine ? "justify-end" : "justify-start")}>
-          {isSending ? (
-            <span>Sending…</span>
-          ) : isFailed ? (
-            <button
-              onClick={message._retry}
-              className="flex items-center gap-1 font-medium text-red-500 hover:text-red-600"
-            >
-              <RotateCw className="h-3 w-3" /> Failed — retry
-            </button>
-          ) : (
-            <>
-              <span>{formatTime(message.createdAt)}</span>
-              {isMine && <span>{isRead ? "· Read" : "· Sent"}</span>}
-            </>
-          )}
+
+        <div className="relative z-10">
+          <QuickActions role={role} onSend={(t) => sendMessage({ body: t, type: "text" })} visible={!messagesLoading && messages.length === 0} />
+          <MessageInput
+            conversationId={conversationId}
+            onSend={sendMessage}
+            replyTo={replyTo}
+            onClearReply={() => setReplyTo(null)}
+            disabled={Boolean(conversation?.deletedBy?.length)}
+          />
         </div>
       </div>
+
+      <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete conversation?</DialogTitle>
+            <DialogDescription>
+              This conversation will be removed from your list. The other person can still see it.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDelete(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConversation}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ForwardDialog
+        open={Boolean(forwardTarget)}
+        message={forwardTarget}
+        currentConversationId={conversationId}
+        userId={userId}
+        onClose={() => setForwardTarget(null)}
+        onForward={handleForward}
+      />
     </div>
   );
 }
 
-export default function ChatWindow({ conversationId }) {
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { user } = useSelector((store) => store.auth);
-
-  const [conversation, setConversation] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [draft, setDraft] = useState("");
-  const [sending, setSending] = useState(false);
-  const [readByOther, setReadByOther] = useState(false);
-
-  const scrollRef = useRef(null);
-  const bottomRef = useRef(null);
-
-  const isSeeker = conversation && String(conversation.jobSeeker?._id) === String(user?._id);
-  const other = conversation ? (isSeeker ? conversation.recruiter : conversation.jobSeeker) : null;
-
-  const scrollToBottom = useCallback((smooth = true) => {
-    bottomRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-    setConversation(null);
-    setMessages([]);
-
-    (async () => {
-      try {
-        const [convRes, msgRes] = await Promise.all([
-          getConversationById(conversationId),
-          getMessages(conversationId),
-        ]);
-        if (cancelled) return;
-        setConversation(convRes.data.conversation);
-        setMessages(msgRes.data.messages);
-        setTimeout(() => scrollToBottom(false), 0);
-
-        const readRes = await markConversationRead(conversationId);
-        dispatch(markConversationReadAction(conversationId));
-        if (readRes.data.updatedCount > 0) {
-          dispatch(decrementUnreadCount(readRes.data.updatedCount));
-        }
-      } catch (err) {
-        if (cancelled) return;
-        if (err.response?.status === 403) {
-          setError("You don't have access to this conversation.");
-        } else if (err.response?.status === 404) {
-          setError("This conversation could not be found.");
-        } else {
-          setError("Something went wrong while loading this conversation.");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [conversationId, dispatch, scrollToBottom]);
-
-  useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
-
-    const handleNewMessage = (payload) => {
-      if (payload.conversationId !== conversationId) return;
-      // The server echoes this event to both participants (so a sender's other
-      // open tabs stay in sync). On the tab that just sent it, this can race
-      // the REST response that swaps the optimistic temp message in: reconcile
-      // against a matching pending temp message first, then fall back to an
-      // id check, so the message never ends up rendered twice.
-      setMessages((prev) => {
-        if (prev.some((m) => m._id === payload.message._id)) return prev;
-        const pendingIndex = prev.findIndex(
-          (m) =>
-            m._status === "sending" &&
-            String(m.sender) === String(payload.message.sender) &&
-            m.content === payload.message.content
-        );
-        if (pendingIndex !== -1) {
-          const next = [...prev];
-          next[pendingIndex] = payload.message;
-          return next;
-        }
-        return [...prev, payload.message];
-      });
-      setTimeout(() => scrollToBottom(true), 0);
-
-      if (String(payload.message.receiver) === String(user._id)) {
-        markConversationRead(conversationId)
-          .then((res) => {
-            if (res.data.updatedCount > 0) dispatch(decrementUnreadCount(res.data.updatedCount));
-          })
-          .catch(() => {});
-        dispatch(markConversationReadAction(conversationId));
-      }
-    };
-
-    const handleRead = (payload) => {
-      if (payload.conversationId !== conversationId) return;
-      setReadByOther(true);
-    };
-
-    socket.on("chat:new-message", handleNewMessage);
-    socket.on("chat:read", handleRead);
-    return () => {
-      socket.off("chat:new-message", handleNewMessage);
-      socket.off("chat:read", handleRead);
-    };
-  }, [conversationId, user, dispatch, scrollToBottom]);
-
-  const handleSend = async () => {
-    const content = draft.trim();
-    if (!content || sending) return;
-
-    const tempId = `temp-${Date.now()}`;
-    const optimisticMessage = {
-      _id: tempId,
-      conversation: conversationId,
-      sender: user._id,
-      receiver: other?._id,
-      content,
-      isRead: false,
-      createdAt: new Date().toISOString(),
-      _status: "sending",
-    };
-
-    setMessages((prev) => [...prev, optimisticMessage]);
-    setDraft("");
-    setSending(true);
-    setTimeout(() => scrollToBottom(true), 0);
-
-    const doSend = async () => {
-      try {
-        const res = await sendMessageApi(conversationId, content);
-        setMessages((prev) => prev.map((m) => (m._id === tempId ? res.data.message : m)));
-        dispatch(
-          upsertConversationPreview({
-            conversationId,
-            lastMessage: content,
-            lastMessageAt: res.data.message.createdAt,
-            lastMessageSender: user._id,
-            unreadDelta: 0,
-          })
-        );
-      } catch (err) {
-        toast.error(err.response?.data?.message || "Failed to send message");
-        setMessages((prev) =>
-          prev.map((m) =>
-            m._id === tempId ? { ...m, _status: "failed", _retry: doSend } : m
-          )
-        );
-      } finally {
-        setSending(false);
-      }
-    };
-
-    doSend();
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0A66C2] border-t-transparent" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-        <AlertCircle className="h-10 w-10 text-gray-300" />
-        <p className="text-sm font-medium text-gray-600">{error}</p>
-        <Button variant="outline" onClick={() => navigate("/messages")}>
-          Back to Messages
-        </Button>
-      </div>
-    );
-  }
-
-  const applicationStatus = (conversation?.application?.status || "pending").toLowerCase();
-  const lastMineIndex = [...messages].map((m) => String(m.sender) === String(user._id)).lastIndexOf(true);
+function ForwardDialog({ open, message, currentConversationId, userId, onClose, onForward }) {
+  const conversations = useSelector((s) => s.chat.conversations);
+  const targets = (conversations || []).filter(
+    (c) => String(c._id) !== String(currentConversationId)
+  );
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3">
-        <button
-          onClick={() => navigate("/messages")}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 md:hidden"
-          aria-label="Back to conversations"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </button>
-        <Avatar size="default" className="shrink-0">
-          <AvatarImage src={other?.profile?.profilePhoto} alt={other?.fullname} />
-          <AvatarFallback>{(other?.fullname || "?").charAt(0).toUpperCase()}</AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-gray-900">{other?.fullname}</p>
-          <p className="truncate text-xs text-gray-500">
-            {isSeeker ? conversation?.job?.company?.name || "Recruiter" : conversation?.job?.title}
-          </p>
-        </div>
-        <Badge className={cn("shrink-0 font-medium", statusStyles[applicationStatus] || "bg-gray-100 text-gray-600")}>
-          {applicationStatus.charAt(0).toUpperCase() + applicationStatus.slice(1)}
-        </Badge>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-gray-100 bg-gray-50/60 px-4 py-2 text-xs text-gray-500">
-        <span className="flex items-center gap-1.5">
-          <Briefcase className="h-3.5 w-3.5" />
-          {conversation?.job?.title}
-        </span>
-        {conversation?.job?._id && (
-          <Link
-            to={`/description/${conversation.job._id}`}
-            className="flex items-center gap-1 font-medium text-[#0A66C2] hover:underline"
-          >
-            View Job <ExternalLink className="h-3 w-3" />
-          </Link>
-        )}
-        <Link
-          to={isSeeker ? "/profile" : `/admin/jobs/${conversation?.job?._id}/applicants`}
-          className="flex items-center gap-1 font-medium text-[#0A66C2] hover:underline"
-        >
-          View Application <ExternalLink className="h-3 w-3" />
-        </Link>
-      </div>
-
-      <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
-        {messages.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center text-center">
-            <p className="text-sm font-semibold text-gray-700">Start the conversation</p>
-            <p className="mt-1 text-xs text-gray-400">
-              Send a message {isSeeker ? "to the recruiter" : "to the applicant"} regarding this application.
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Forward message</DialogTitle>
+          <DialogDescription>
+            Choose a conversation to forward this message to.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="max-h-[50vh] space-y-1 overflow-y-auto">
+          {targets.length === 0 ? (
+            <p className="py-6 text-center text-sm text-slate-400">
+              No other conversations available.
             </p>
-          </div>
-        ) : (
-          messages.map((m, idx) => (
-            <MessageBubble
-              key={m._id}
-              message={m}
-              isMine={String(m.sender) === String(user._id)}
-              isRead={idx === lastMineIndex ? readByOther || m.isRead : m.isRead}
-            />
-          ))
-        )}
-        <div ref={bottomRef} />
-      </div>
-
-      <div className="border-t border-gray-200 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-        <div className="flex items-end gap-2">
-          <Textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
-            aria-label="Message"
-            maxLength={5000}
-            rows={1}
-            className="max-h-32 min-h-10 flex-1 resize-none"
-          />
-          <Button
-            onClick={handleSend}
-            disabled={!draft.trim() || sending}
-            size="icon"
-            className="btn-primary h-10 w-10 shrink-0 rounded-lg"
-            aria-label="Send message"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+          ) : (
+            targets.map((c) => {
+              const other = (c.participants || []).find(
+                (p) => String(p?._id || p) !== String(userId)
+              );
+              return (
+                <button
+                  key={String(c._id)}
+                  type="button"
+                  onClick={() => onForward(message, String(c._id))}
+                  className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+                    {((other?.fullname || "U").split(" ")[0] || "U")[0].toUpperCase()}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-slate-700 dark:text-slate-200">
+                      {other?.fullname || "User"}
+                    </span>
+                    <span className="block truncate text-xs text-slate-400">
+                      {c.job?.title || c.lastMessagePreview || "Conversation"}
+                    </span>
+                  </span>
+                </button>
+              );
+            })
+          )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

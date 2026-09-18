@@ -15,8 +15,7 @@ export default function useGetAllAdminJobs() {
                 } else {
                     dispatch(setAllAdminJobs([]));
                 }
-            } catch (error) {
-                console.log(error);
+            } catch {
                 dispatch(setAllAdminJobs([]));
             }
         }

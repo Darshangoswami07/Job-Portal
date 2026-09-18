@@ -1,11 +1,13 @@
 import { motion } from "framer-motion"
-import { Search, MapPin, Building2, Users, Briefcase, TrendingUp, ArrowRight } from "lucide-react"
-import { useState } from "react"
+import { Search, MapPin, Building2, Radio, Briefcase, TrendingUp, ArrowRight } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useDispatch } from "react-redux"
 import { useNavigate } from "react-router-dom"
 
 import { setSearchQuery } from "@/store/slices/jobSlice"
 import AnimatedCounter from "@/components/shared/AnimatedCounter"
+import useCatalogStats from "@/hooks/useCatalogStats"
+import { searchJobs } from "@/api/jobsApi"
 
 const containerVariants = {
   hidden: {},
@@ -27,33 +29,45 @@ const scaleIn = {
   visible: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: "easeOut" } },
 }
 
-const trustCompanies = [
-  { name: "Google", color: "#4285F4" },
-  { name: "Microsoft", color: "#00A4EF" },
-  { name: "Amazon", color: "#FF9900" },
-  { name: "Spotify", color: "#1DB954" },
-  { name: "Netflix", color: "#E50914" },
-]
-
-const jobCards = [
-  { id: 0, company: "Google", role: "Senior React Dev", color: "#4285F4", top: "8%", left: "-8%", floatY: 7 },
-  { id: 1, company: "Microsoft", role: "Product Manager", color: "#00A4EF", top: "2%", right: "-5%", floatY: 8 },
-  { id: 2, company: "Amazon", role: "Backend Engineer", color: "#FF9900", bottom: "14%", left: "6%", floatY: 6 },
-  { id: 3, company: "Spotify", role: "UX Designer", color: "#1DB954", bottom: "2%", right: "-3%", floatY: 9 },
+const CARD_SLOTS = [
+  { color: "#0A66C2", top: "8%", left: "-8%", floatY: 7 },
+  { color: "#6366F1", top: "2%", right: "-5%", floatY: 8 },
+  { color: "#059669", bottom: "14%", left: "6%", floatY: 6 },
+  { color: "#D97706", bottom: "2%", right: "-3%", floatY: 9 },
 ]
 
 export default function HeroSection() {
   const [query, setQuery] = useState("")
   const [location, setLocation] = useState("")
   const [focusField, setFocusField] = useState(null)
+  const [featured, setFeatured] = useState([])
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const { stats, sourceNames, loading } = useCatalogStats()
+
+  useEffect(() => {
+    let alive = true
+    searchJobs({ sort: "newest", limit: 4 })
+      .then((res) => alive && res.data?.success && setFeatured(res.data.jobs || []))
+      .catch(() => {})
+    return () => { alive = false }
+  }, [])
 
   const searchJobHandler = () => {
-    const final = [query, location].filter(Boolean).join(" ")
-    dispatch(setSearchQuery(final))
-    navigate("/browse")
+    const params = new URLSearchParams()
+    if (query.trim()) params.set("q", query.trim())
+    if (location.trim()) params.set("location", location.trim())
+    dispatch(setSearchQuery([query, location].filter(Boolean).join(" ")))
+    navigate(`/jobs${params.toString() ? `?${params}` : ""}`)
   }
+
+  const cards = featured.slice(0, 4).map((j, i) => ({
+    ...CARD_SLOTS[i],
+    id: i,
+    company: j.company?.name || j.companyName || "Company",
+    role: j.title || "",
+    jobId: j._id,
+  }))
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-[#F6F9FC] via-white to-white">
@@ -76,7 +90,11 @@ export default function HeroSection() {
               className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 px-4 py-1.5 text-sm font-medium text-blue-700 mb-8"
             >
               <TrendingUp className="h-4 w-4" />
-              <span>12,000+ active jobs waiting for you</span>
+              <span>
+                {loading || !stats
+                  ? "Live job aggregation"
+                  : `${stats.activeJobGroups.toLocaleString()} active openings from ${stats.sources} live source${stats.sources === 1 ? "" : "s"}`}
+              </span>
             </motion.div>
 
             <motion.h1
@@ -94,7 +112,7 @@ export default function HeroSection() {
               variants={fadeUp}
               className="mt-6 text-lg text-gray-500 leading-relaxed max-w-lg"
             >
-              Discover thousands of verified opportunities from the world's top companies. Your next career move starts here.
+              Real openings, continuously aggregated from authorized job APIs and company boards. One search across every connected source.
             </motion.p>
 
             <motion.div
@@ -177,38 +195,18 @@ export default function HeroSection() {
               className="mt-12 pt-8 border-t border-gray-100"
             >
               <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-5">
-                Trusted by industry leaders
+                Live job sources
               </p>
-              <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
-                {trustCompanies.map((c) => (
-                  <div
-                    key={c.name}
-                    className="flex items-center gap-2 group cursor-default"
-                  >
-                    <div
-                      className="h-6 w-6 rounded-md flex items-center justify-center text-[11px] font-bold transition-all duration-300"
-                      style={{
-                        backgroundColor: "#F3F4F6",
-                        color: "#9CA3AF",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = `${c.color}15`
-                        e.currentTarget.style.color = c.color
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "#F3F4F6"
-                        e.currentTarget.style.color = "#9CA3AF"
-                      }}
-                    >
-                      {c.name[0]}
-                    </div>
-                    <span
-                      className="text-sm font-semibold text-gray-400 group-hover:text-gray-600 transition-colors duration-300"
-                    >
-                      {c.name}
-                    </span>
+              <div className="flex flex-wrap items-center gap-x-8 gap-y-4 min-h-[1.5rem]">
+                {(sourceNames.length ? sourceNames : loading ? [] : []).map((name) => (
+                  <div key={name} className="flex items-center gap-2">
+                    <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="text-sm font-semibold text-gray-500">{name}</span>
                   </div>
                 ))}
+                {!loading && sourceNames.length === 0 && (
+                  <span className="text-sm text-gray-400">Sources are being connected…</span>
+                )}
               </div>
             </motion.div>
 
@@ -218,15 +216,36 @@ export default function HeroSection() {
             >
               <div className="text-center">
                 <Briefcase className="h-5 w-5 text-blue-600 mx-auto mb-2" />
-                <AnimatedCounter end={12000} suffix="+" label="Active Jobs" />
+                {loading || !stats ? (
+                  <>
+                    <div className="mx-auto h-8 w-16 rounded bg-gray-200 animate-pulse" />
+                    <p className="mt-1 text-sm text-gray-500">Active Jobs</p>
+                  </>
+                ) : (
+                  <AnimatedCounter end={stats.activeJobGroups} label="Active Jobs" />
+                )}
               </div>
               <div className="text-center">
                 <Building2 className="h-5 w-5 text-indigo-600 mx-auto mb-2" />
-                <AnimatedCounter end={500} suffix="+" label="Companies" />
+                {loading || !stats ? (
+                  <>
+                    <div className="mx-auto h-8 w-16 rounded bg-gray-200 animate-pulse" />
+                    <p className="mt-1 text-sm text-gray-500">Companies</p>
+                  </>
+                ) : (
+                  <AnimatedCounter end={stats.companies} label="Companies" />
+                )}
               </div>
               <div className="text-center">
-                <Users className="h-5 w-5 text-emerald-600 mx-auto mb-2" />
-                <AnimatedCounter end={25000} suffix="+" label="Placements" />
+                <Radio className="h-5 w-5 text-emerald-600 mx-auto mb-2" />
+                {loading || !stats ? (
+                  <>
+                    <div className="mx-auto h-8 w-16 rounded bg-gray-200 animate-pulse" />
+                    <p className="mt-1 text-sm text-gray-500">Live Sources</p>
+                  </>
+                ) : (
+                  <AnimatedCounter end={stats.sources} label="Live Sources" />
+                )}
               </div>
             </motion.div>
           </motion.div>
@@ -294,14 +313,14 @@ export default function HeroSection() {
                 <rect x="50" y="84" width="148" height="52" rx="10" className="fill-blue-50" stroke="#0A66C2" strokeOpacity="0.2" strokeWidth="1" />
                 <rect x="60" y="96" width="20" height="20" rx="4" className="fill-[#0A66C2]/10" />
                 <path d="M65 102h10M68 102v-2a1 1 0 011-1h2a1 1 0 011 1v2" stroke="#0A66C2" strokeWidth="1.2" strokeLinecap="round" />
-                <text x="90" y="104" className="fill-gray-500" fontSize="8" fontWeight="500">Total Jobs</text>
-                <text x="90" y="122" className="fill-gray-900" fontSize="16" fontWeight="800">12.4K</text>
+                <text x="90" y="104" className="fill-gray-500" fontSize="8" fontWeight="500">Active Jobs</text>
+                <text x="90" y="122" className="fill-gray-900" fontSize="16" fontWeight="800">{stats ? stats.activeJobGroups.toLocaleString() : "—"}</text>
 
                 <rect x="212" y="84" width="148" height="52" rx="10" className="fill-indigo-50" stroke="#6366F1" strokeOpacity="0.2" strokeWidth="1" />
                 <rect x="222" y="96" width="20" height="20" rx="4" className="fill-indigo-500/10" />
                 <text x="232" y="109" textAnchor="middle" className="fill-indigo-600" fontSize="10" fontWeight="700">+</text>
-                <text x="252" y="104" className="fill-gray-500" fontSize="8" fontWeight="500">Applications</text>
-                <text x="252" y="122" className="fill-gray-900" fontSize="16" fontWeight="800">2.8K</text>
+                <text x="252" y="104" className="fill-gray-500" fontSize="8" fontWeight="500">Companies</text>
+                <text x="252" y="122" className="fill-gray-900" fontSize="16" fontWeight="800">{stats ? stats.companies.toLocaleString() : "—"}</text>
 
                 <rect x="50" y="148" width="310" height="100" rx="10" fill="#FAFBFC" stroke="#E5E7EB" strokeWidth="1" />
 
@@ -331,20 +350,21 @@ export default function HeroSection() {
                 <rect x="50" y="258" width="148" height="32" rx="8" fill="white" stroke="#E5E7EB" strokeWidth="1" />
                 <rect x="58" y="266" width="18" height="18" rx="4" className="fill-blue-500/10" />
                 <text x="67" y="278" textAnchor="middle" className="fill-[#0A66C2]" fontSize="7" fontWeight="700">G</text>
-                <text x="84" y="273" className="fill-gray-700" fontSize="8" fontWeight="600">Google Inc.</text>
-                <text x="84" y="283" className="fill-gray-400" fontSize="7">12 open positions</text>
+                <text x="84" y="273" className="fill-gray-700" fontSize="8" fontWeight="600">Company board</text>
+                <text x="84" y="283" className="fill-gray-400" fontSize="7">ATS integration</text>
 
                 <rect x="212" y="258" width="148" height="32" rx="8" fill="white" stroke="#E5E7EB" strokeWidth="1" />
                 <rect x="220" y="266" width="18" height="18" rx="4" className="fill-sky-500/10" />
                 <text x="229" y="278" textAnchor="middle" className="fill-sky-600" fontSize="7" fontWeight="700">M</text>
-                <text x="246" y="273" className="fill-gray-700" fontSize="8" fontWeight="600">Microsoft</text>
-                <text x="246" y="283" className="fill-gray-400" fontSize="7">8 open positions</text>
+                <text x="246" y="273" className="fill-gray-700" fontSize="8" fontWeight="600">Licensed API</text>
+                <text x="246" y="283" className="fill-gray-400" fontSize="7">aggregator feed</text>
               </svg>
 
-              {jobCards.map((card) => (
+              {cards.map((card) => (
                 <motion.div
                   key={card.id}
-                  className="absolute w-44 rounded-xl border border-gray-100 bg-white p-3 shadow-lg shadow-gray-200/60 backdrop-blur-sm"
+                  onClick={() => card.jobId && navigate(`/description/${card.jobId}`)}
+                  className="absolute w-44 cursor-pointer rounded-xl border border-gray-100 bg-white p-3 shadow-lg shadow-gray-200/60 backdrop-blur-sm"
                   style={{
                     top: card.top,
                     left: card.left,
@@ -364,13 +384,13 @@ export default function HeroSection() {
                       className="h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0"
                       style={{ backgroundColor: card.color }}
                     >
-                      {card.company[0]}
+                      {(card.company || "?")[0]}
                     </div>
                     <div className="min-w-0">
                       <span className="text-xs font-semibold text-gray-900 block truncate leading-tight">
                         {card.company}
                       </span>
-                      <span className="text-[10px] text-blue-600 font-medium">● Hiring Now</span>
+                      <span className="text-[10px] text-blue-600 font-medium">● Open role</span>
                     </div>
                   </div>
                   <p className="text-[11px] text-gray-500 leading-tight truncate pl-[42px]">

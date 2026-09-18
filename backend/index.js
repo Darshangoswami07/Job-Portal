@@ -1,21 +1,18 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import express from "express";
 import http from "http";
-import mongoose from "mongoose";
+import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import session from "express-session";
-import passport from "passport";
 
 import connectDB from "./config/database.js";
-import "./config/passport.js";
+import passport, { initPassport } from "./config/passport.js";
 import { getAllowedOrigins } from "./config/runtimeUrls.js";
-import { initSocket } from "./config/socket.js";
+import { initChatSocket } from "./socket/index.js";
 
 import userRoutes from "./routes/user.route.js";
-import authRoutes from "./routes/auth.route.js";
 import companyRoutes from "./routes/company.route.js";
 import jobRoutes from "./routes/job.route.js";
 import applicationRoutes from "./routes/application.route.js";
@@ -36,17 +33,29 @@ import contactRoutes from "./routes_new/contact.routes.js";
 import supportTicketRoutes from "./routes_new/supportTicket.routes.js";
 import subscriptionRoutes from "./routes_new/subscription.routes.js";
 import notificationRoutes from "./routes_new/notification.routes.js";
+import chatRoutes from "./routes_new/chat.routes.js";
+import socialRoutes from "./routes_new/social.routes.js";
 import companyAggregatorRoutes from "./routes_new/companyAggregator.routes.js";
 import jobAggregationRoutes from "./routes_new/jobAggregation.routes.js";
-import chatRoutes from "./routes_new/chat.routes.js";
+import adminJobSourceRoutes from "./routes_new/adminJobSource.routes.js";
+import adminJobGroupRoutes from "./routes_new/adminJobGroup.routes.js";
+import adminAuditRoutes from "./routes_new/adminAudit.routes.js";
+import recommendationRoutes from "./routes_new/recommendation.routes.js";
+import adminRecoRoutes from "./routes_new/adminReco.routes.js";
+import { clientRouter as analyticsClientRoutes, adminRouter as adminAnalyticsRoutes } from "./routes_new/analytics.routes.js";
+import { bootstrapAiProvider } from "./services/jobs/aiProvider.js";
 import { aggregateCompanies } from "./services/companyAggregator.js";
-import { runJobAggregation } from "./services/jobAggregationPipeline.js";
-import cron from "node-cron";
 import { seedBlogs } from "./seed/blogs.js";
 import { seedInterviewQuestions } from "./seed/interviewQuestions.js";
 import { seedResumeTemplates } from "./seed/resumeTemplates.js";
 import { seedCareerGuides } from "./seed/careerGuides.js";
-import { seedJobs } from "./seed/jobs.js";
+import { seedSubscriptionPlans } from "./seed/subscriptionPlans.js";
+import { seedFeedPosts } from "./seed/feedPosts.js";
+// Sample job seeding is no longer run on boot. It fabricated listings against
+// real company names, which conflicts with the "real job data only" direction.
+// Use `npm run seed:dev` (scripts/seed-dev-jobs.js) for local development only.
+
+initPassport();
 
 const app = express();
 app.set("trust proxy", 1);
@@ -80,6 +89,12 @@ app.use(
     secret: process.env.SESSION_SECRET || "job-portal-secret",
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    },
   })
 );
 
@@ -88,7 +103,6 @@ app.use(passport.session());
 
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/user", oauthRoutes);
-app.use("/api/auth", authRoutes);
 app.use("/api/v1/company", companyRoutes);
 app.use("/api/v1/job", jobRoutes);
 app.use("/api/v1/application", applicationRoutes);
@@ -108,9 +122,17 @@ app.use("/api/v1/contact", contactRoutes);
 app.use("/api/v1/support-tickets", supportTicketRoutes);
 app.use("/api/v1/subscriptions", subscriptionRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
-app.use("/api/v1/company-profiles", companyAggregatorRoutes);
-app.use("/api/v1/job-aggregation", jobAggregationRoutes);
 app.use("/api/v1/chat", chatRoutes);
+app.use("/api/v1/company-profiles", companyAggregatorRoutes);
+app.use("/api/v1/jobs", jobAggregationRoutes);
+app.use("/api/v1/admin/job-sources", adminJobSourceRoutes);
+app.use("/api/v1/admin/job-groups", adminJobGroupRoutes);
+app.use("/api/v1/admin/audit", adminAuditRoutes);
+app.use("/api/v1/recommendations", recommendationRoutes);
+app.use("/api/v1/admin/reco-metrics", adminRecoRoutes);
+app.use("/api/v1/analytics", analyticsClientRoutes);
+app.use("/api/v1/admin/analytics", adminAnalyticsRoutes);
+app.use("/api/v1/social", socialRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running 🚀");
@@ -118,85 +140,83 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 8000;
 
-async function runStartupDataSync() {
-  console.log("Database connection established, checking jobs...");
-  try {
-    const Job = mongoose.connection.model("Job");
-    const jobCount = await Job.countDocuments().catch(() => 0);
-    if (jobCount < 100) {
-      console.log(`Initializing ${100 - jobCount} sample jobs...`);
-      await seedJobs();
-    }
-  } catch (error) {
-    console.log("Job seeding check failed, attempting full seed...");
-    await seedJobs();
-  }
-  console.log("Loading jobs from all sources...");
-  const syncResult = await aggregateCompanies();
-  console.log(`Startup completed: ${syncResult.count || 0} profiles aggregated`);
-
-  runJobAggregation().catch((error) => console.error("Initial job aggregation failed:", error.message));
-}
-
 connectDB()
   .then(() => {
-    // Bind the port and register shutdown handlers immediately so nodemon/process
-    // managers can restart cleanly without racing a slow startup data sync.
     const server = http.createServer(app);
-    initSocket(server, allowedOrigins);
-
-    let bindAttemptsLeft = 15;
+    initChatSocket(server);
     server.on("error", (err) => {
-      // On Windows, nodemon force-kills the previous process instead of signaling it
-      // (Node doesn't get real POSIX signal delivery there), so the OS can take a
-      // moment to release the port on restart. Retry (bounded) instead of crashing.
-      if (err.code === "EADDRINUSE" && bindAttemptsLeft > 0) {
-        bindAttemptsLeft -= 1;
-        console.log(`Port still in use, retrying in 300ms... (${bindAttemptsLeft} attempts left)`);
-        setTimeout(() => server.listen(PORT), 300);
+      if (err.code === "EADDRINUSE") {
+        console.error(`❌ Error: Port ${PORT} is already in use by another process.`);
+        process.exit(1);
       } else {
         console.error("❌ Server error:", err);
-        process.exit(1);
       }
     });
-
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📊 Jobs loaded from all providers - Ready to serve!`);
     });
 
-    const openSockets = new Set();
-    server.on("connection", (socket) => {
-      openSockets.add(socket);
-      socket.on("close", () => openSockets.delete(socket));
-    });
+    // Phase 9: register the real LLM match provider IF the feature flag is on
+    // AND the provider is fully configured. Missing config → deterministic-only.
+    // Never fails startup.
+    try {
+      const ai = bootstrapAiProvider();
+      console.log(
+        `AI recommendations: feature=${ai.featureEnabled} provider=${ai.providerName} configured=${ai.providerConfigured}`
+      );
+    } catch (err) {
+      console.error("AI provider bootstrap failed (deterministic-only):", err.message);
+    }
 
-    const jobAggregationTask = cron.schedule("0 */4 * * *", () => {
-      console.log("Running scheduled job aggregation sync...");
-      runJobAggregation().catch((error) => console.error("Scheduled job aggregation failed:", error.message));
-    });
+    // Ensure subscription plans exist so the Pricing page + subscribe flow work.
+    // Idempotent (upsert by slug); never blocks startup.
+    seedSubscriptionPlans();
 
-    let shuttingDown = false;
-    const shutdown = (signal) => {
-      if (shuttingDown) return;
-      shuttingDown = true;
-      console.log(`\n${signal} received, shutting down gracefully...`);
-      jobAggregationTask.stop();
-      server.close(() => {
-        mongoose.connection.close(true).then(() => {
-          console.log("Shutdown complete.");
-          process.exit(0);
-        });
-      });
-      for (const socket of openSockets) socket.destroy();
-      setTimeout(() => process.exit(1), 3000).unref();
-    };
+    // Ensure the Feed has editorial content so it is never an empty page.
+    // Idempotent (skips when the editorial posts already exist).
+    seedFeedPosts();
 
-    process.on("SIGINT", () => shutdown("SIGINT"));
-    process.on("SIGTERM", () => shutdown("SIGTERM"));
-    process.on("SIGUSR2", () => shutdown("SIGUSR2"));
+    // Refresh derived company profiles in the background — never block startup.
+    aggregateCompanies()
+      .then((syncResult) =>
+        console.log(`Company profiles aggregated: ${syncResult?.count || 0}`)
+      )
+      .catch((err) => console.error("Company aggregation failed:", err.message));
 
-    runStartupDataSync().catch((error) => console.error("Startup data sync failed:", error));
+    // Search reads the JobGroup collection. If it is empty but recruiter jobs
+    // exist, the grouped search would show nothing — bootstrap the internal
+    // source once, in the background (internal only: no external HTTP). Idempotent.
+    (async () => {
+      try {
+        const { Job } = await import("./models/job.model.js");
+        const { JobGroup } = await import("./models_new/JobGroup.js");
+        const [jobs, groups] = await Promise.all([
+          Job.estimatedDocumentCount(),
+          JobGroup.estimatedDocumentCount(),
+        ]);
+        if (jobs > 0 && groups === 0) {
+          console.log(`Bootstrapping job groups from ${jobs} existing jobs…`);
+          const { runSourceSync } = await import("./services/jobs/sync.js");
+          const r = await runSourceSync("internal");
+          console.log(`Job group bootstrap: ${JSON.stringify(r?.counts || r)}`);
+        }
+      } catch (err) {
+        console.error("Job group bootstrap failed:", err.message);
+      }
+    })();
+
+    // Job-sync scheduler. OFF by default: run the dedicated `npm run worker`
+    // process instead. This fallback is only for a single-instance deploy that
+    // cannot afford a separate worker — the advisory lock keeps it safe.
+    if (process.env.RUN_SYNC_WORKER === "true") {
+      import("./services/jobs/scheduler.js")
+        .then(({ startScheduler, stopScheduler }) => {
+          startScheduler();
+          process.on("SIGTERM", () => stopScheduler());
+          process.on("SIGINT", () => stopScheduler());
+        })
+        .catch((err) => console.error("Scheduler failed to start:", err.message));
+    }
   })
   .catch((err) => {
     console.error("❌ Database connection failed:", err);

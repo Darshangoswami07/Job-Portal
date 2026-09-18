@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/shared/Navbar";
 import Job from "@/components/job/Job";
-import { CompanyLogo } from "@/components/shared/CompanyLogo";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { COMPANY_PROFILE_API_END_POINT } from "@/utils/constant";
@@ -257,7 +257,12 @@ export default function CompanyDetails() {
             <div className="px-6 sm:px-8 pb-6 sm:pb-8">
               <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12 mb-6">
                 <div className="h-24 w-24 rounded-2xl overflow-hidden border-4 border-white bg-white shadow-lg shrink-0">
-                  <CompanyLogo name={company.name} logo={company.logo} className="h-full w-full rounded-2xl" />
+                  <Avatar className="h-full w-full rounded-2xl">
+                    <AvatarImage src={company.logo} alt={company.name} />
+                    <AvatarFallback className="rounded-2xl bg-blue-100 text-blue-700 text-xl font-bold">
+                      {(company.name || "C")[0]}
+                    </AvatarFallback>
+                  </Avatar>
                 </div>
                 <div className="flex-1 min-w-0 pt-2 sm:pt-0 sm:pb-1">
                   <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{company.name}</h1>

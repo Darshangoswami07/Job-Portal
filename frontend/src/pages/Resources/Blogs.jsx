@@ -97,7 +97,7 @@ export default function Blogs() {
       <Navbar />
       <PageHero
         badge="Career Insights"
-        title="JobHub Blog"
+        title="JobPilot Ai Blog"
         subtitle="Expert advice, career tips, and industry insights to help you navigate your career journey."
         gradient="from-sky-600 via-blue-700 to-indigo-900"
       >

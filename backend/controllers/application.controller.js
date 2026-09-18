@@ -1,5 +1,7 @@
 import { Job } from "../models/job.model.js";
 import { Application } from "../models/application.model.js";
+import { invalidateUser } from "../services/jobs/recoCache.js";
+import { recordEvent } from "../services/analytics/events.js";
 export const applyjob = async (req, res) => {
   try {
     const userId = req.id;
@@ -37,6 +39,9 @@ export const applyjob = async (req, res) => {
     });
     job.applications.push(newApplication._id);
     await job.save();
+    invalidateUser(userId); // applying changes recommendation signal
+    recordEvent("job_apply_click", { userId, meta: { applyType: "internal" } });
+    if (req.body?.fromRecommendation) recordEvent("recommendation_applied", { userId });
 
     return res.status(201).json({
         message: "Applied successfully",

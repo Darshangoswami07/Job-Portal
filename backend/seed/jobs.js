@@ -256,17 +256,17 @@ export async function seedJobs() {
       return;
     }
 
-    let systemUser = await User.findOne({ email: "system@jobhub.com" });
+    let systemUser = await User.findOne({ email: "system@jobpilot.ai" });
     if (!systemUser) {
       systemUser = await User.create({
-        fullname: "JobHub System",
-        email: "system@jobhub.com",
+        fullname: "JobPilot Ai System",
+        email: "system@jobpilot.ai",
         password: "system-seed-account-do-not-use",
         profileCompleted: true,
         roles: { jobSeeker: true, recruiter: true },
         currentRole: "recruiter",
         profile: {
-          headline: "JobHub System Account",
+          headline: "JobPilot Ai System Account",
           bio: "System account for job seeding",
           profilePhoto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200",
         },
@@ -357,9 +357,9 @@ export async function seedJobs() {
           "https://www.coursera.org",
           "https://www.udemy.com",
         ],
-        source: "JobHub",
+        source: "JobPilot Ai",
         sourceUrl: "",
-        externalId: `jobhub-${i}`,
+        externalId: `jobpilot-${i}`,
         hash: generateHash(tmpl.title, companyData.name, location),
         deadline: new Date(now + randomInt(10, 60) * 86400000),
         publishedAt: publishedDate,
@@ -426,7 +426,7 @@ export async function seedJobs() {
         interviewDifficulty: ["easy", "medium", "hard"][randomInt(0, 2)],
         estimatedSalary: `₹${Math.max(3, tmpl.salary - 8)}-${tmpl.salary + 12} LPA`,
         careerGrowth: `Career progression opportunities in ${tmpl.industry} sector`,
-        source: "JobHub",
+        source: "JobPilot Ai",
         hash: `${tmpl.title.toLowerCase().replace(/\s+/g, "-")}-${companyData.name.toLowerCase().replace(/\s+/g, "-")}-${location.toLowerCase().replace(/\s+/g, "-")}-${idx}`,
         deadline: new Date(now + randomInt(10, 45) * 86400000),
         publishedAt: publishedDate,

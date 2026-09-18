@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, Clock, Send, ChevronDown, Linkedin, Twitter, Github, MessageCircle, Loader2 } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Send, ChevronDown, Linkedin, Github, Globe, Loader2 } from "lucide-react";
 import Navbar from "@/components/shared/Navbar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -9,16 +9,15 @@ import { toast } from "sonner";
 import { CONTACT_API_END_POINT } from "@/utils/constant";
 
 const offices = [
-  { city: "Bangalore, India", address: "456, MG Road, Indiranagar, Bangalore - 560038", phone: "+91 80 4123 4567", email: "blr@jobhub.com" },
-  { city: "San Francisco, USA", address: "123 Market Street, Suite 400, SF, CA 94105", phone: "+1 (415) 555-0123", email: "sf@jobhub.com" },
-  { city: "London, UK", address: "71 Queen Victoria Street, London EC4V 4AY", phone: "+44 20 7123 4567", email: "london@jobhub.com" },
+  { city: "Nainital", region: "Uttarakhand, India" },
+  { city: "Haldwani", region: "Uttarakhand, India" },
+  { city: "Bageshwar", region: "Uttarakhand, India" },
 ];
 
 const socialLinks = [
-  { icon: Linkedin, label: "LinkedIn", href: "https://www.linkedin.com/in/darshan-goswami-b09137222/" },
-  { icon: Twitter, label: "Twitter", href: "#" },
-  { icon: Github, label: "GitHub", href: "https://github.com/Darshangoswami07" },
-  { icon: MessageCircle, label: "Discord", href: "#" },
+  { icon: Github, label: "GitHub", href: "https://github.com/abhishekbisht0203" },
+  { icon: Linkedin, label: "LinkedIn", href: "https://linkedin.com/in/abhishek-bisht-876541308" },
+  { icon: Globe, label: "Portfolio", href: "https://abhishekbisht.vercel.app/" },
 ];
 
 const faqs = [
@@ -116,7 +115,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white text-sm">Email</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">support@jobhub.com</p>
+                    <a href="mailto:abhiyanshbisht@gmail.com" className="text-sm text-gray-500 dark:text-gray-400 hover:text-[#0A66C2] dark:hover:text-blue-400 transition-colors break-all">abhiyanshbisht@gmail.com</a>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -125,7 +124,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white text-sm">Phone</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">+1 (555) 123-4567</p>
+                    <a href="tel:+917456849590" className="text-sm text-gray-500 dark:text-gray-400 hover:text-[#0A66C2] dark:hover:text-blue-400 transition-colors">+91 7456849590</a>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -133,8 +132,8 @@ export default function Contact() {
                     <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white text-sm">Headquarters</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">456, MG Road, Indiranagar<br />Bangalore - 560038, India</p>
+                    <p className="font-medium text-gray-900 dark:text-white text-sm">Location</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Nainital, Uttarakhand, India</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -153,7 +152,7 @@ export default function Contact() {
               <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Follow Us</h3>
               <div className="flex gap-3">
                 {socialLinks.map((s) => (
-                  <a key={s.label} href={s.href} className="h-10 w-10 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-[#0A66C2] hover:text-white transition-all">
+                  <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} title={s.label} className="h-10 w-10 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-[#0A66C2] hover:text-white transition-all">
                     <s.icon className="h-5 w-5" />
                   </a>
                 ))}
@@ -168,10 +167,8 @@ export default function Contact() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {offices.map((office) => (
                 <div key={office.city} className="p-4 rounded-xl bg-gray-50 dark:bg-gray-750 border border-gray-100 dark:border-gray-700">
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-2">{office.city}</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{office.address}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{office.phone}</p>
-                  <p className="text-xs text-[#0A66C2] dark:text-blue-400">{office.email}</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1">{office.city}</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{office.region}</p>
                 </div>
               ))}
             </div>

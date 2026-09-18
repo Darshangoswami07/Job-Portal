@@ -1,210 +1,218 @@
 import { useMemo, useState } from "react";
-import { ChevronDown, MapPin, Briefcase, DollarSign, Clock, SlidersHorizontal } from "lucide-react";
+import {
+  ChevronDown,
+  MapPin,
+  Briefcase,
+  DollarSign,
+  Clock,
+  SlidersHorizontal,
+  Building2,
+  Laptop,
+  Wrench,
+  TrendingUp,
+  CalendarDays,
+  Layers,
+  Tag,
+  X,
+} from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
-
-const SALARY_RANGES = [
-  { label: "0-3 LPA", min: 0, max: 3 },
-  { label: "3-6 LPA", min: 3, max: 6 },
-  { label: "6-12 LPA", min: 6, max: 12 },
-  { label: "12-20 LPA", min: 12, max: 20 },
-  { label: "20+ LPA", min: 20, max: null },
-];
-
-const FILTER_OPTIONS = {
-  location: ["Delhi NCR", "Bangalore", "Hyderabad", "Pune", "Mumbai", "Chennai", "Kolkata", "Remote"],
-  industry: ["Frontend", "Backend", "Fullstack", "DevOps", "Data Science", "AI/ML", "Mobile", "QA"],
-  salary: SALARY_RANGES.map((r) => r.label),
-  experience: ["Entry (0-1 yrs)", "Mid (2-4 yrs)", "Senior (5-8 yrs)", "Lead (8+ yrs)"],
-};
+import { countActiveFilters } from "@/utils/jobFilters";
 
 const FIELD_LABELS = {
+  source: "Source",
   location: "Location",
-  industry: "Industry / Role",
+  jobType: "Job Type",
+  workType: "Work Mode",
+  department: "Department",
+  industry: "Industry",
   salary: "Salary Range",
-  experience: "Experience Level",
+  experience: "Experience",
+  postedDate: "Posted",
+  company: "Company",
+  skills: "Skills",
+  tags: "Tags",
 };
 
 const FIELD_ICONS = {
   location: MapPin,
+  company: Building2,
   industry: Briefcase,
+  department: Layers,
+  jobType: Clock,
+  workType: Laptop,
+  source: Building2,
+  skills: Wrench,
+  tags: Tag,
   salary: DollarSign,
-  experience: Clock,
+  experience: TrendingUp,
+  postedDate: CalendarDays,
 };
 
-const sectionVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: (i) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.08, duration: 0.35 },
-  }),
-};
+const DEFAULT_OPEN = new Set(["source", "location"]);
 
-export default function FilterCard({
-  selectedFilters,
-  onToggle,
-  onClearAll,
-  salaryRange,
-  onSalaryRangeChange,
-}) {
-  const activeCount = useMemo(
-    () => Object.values(selectedFilters).reduce((total, set) => total + set.size, 0),
-    [selectedFilters]
-  );
+export default function FilterCard({ selectedFilters, onToggle, onClearAll, options = {} }) {
+  const reduceMotion = useReducedMotion();
+  const activeCount = useMemo(() => countActiveFilters(selectedFilters), [selectedFilters]);
 
   const chipList = useMemo(
     () =>
       Object.entries(selectedFilters).flatMap(([category, values]) =>
-        [...values].map((value) => ({ category, value }))
+        values && values.size ? [...values].map((value) => ({ category, value })) : []
       ),
     [selectedFilters]
   );
 
-  const [openSections, setOpenSections] = useState({
-    location: true,
-    industry: true,
-    salary: true,
-    experience: true,
-  });
+  const categories = useMemo(
+    () => Object.keys(FIELD_LABELS).filter((c) => options[c]?.length > 0),
+    [options]
+  );
 
-  const toggleSection = (category) => {
+  const [openSections, setOpenSections] = useState(() => ({ ...Object.fromEntries([...DEFAULT_OPEN].map((k) => [k, true])) }));
+  const toggleSection = (category) =>
     setOpenSections((prev) => ({ ...prev, [category]: !prev[category] }));
-  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="bg-white border border-gray-200 rounded-xl card-shadow overflow-hidden"
-    >
-      <div className="p-5 space-y-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal className="h-4 w-4 text-gray-500" />
-            <h2 className="text-lg font-bold text-gray-900">Filters</h2>
-          </div>
-          <button
-            onClick={onClearAll}
-            disabled={!activeCount}
-            className={cn(
-              "text-xs font-semibold rounded-full px-3.5 py-1.5 border transition-all",
-              activeCount
-                ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                : "bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed"
-            )}
-          >
-            Clear All
-          </button>
+    <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
+        <div className="flex items-center gap-2">
+          <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-sm font-bold text-foreground">Filters</h2>
+          {activeCount > 0 && (
+            <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[11px] font-bold text-primary">
+              {activeCount}
+            </span>
+          )}
         </div>
+        <button
+          onClick={onClearAll}
+          disabled={!activeCount}
+          className={cn(
+            "rounded-md px-2 py-1 text-xs font-semibold transition-colors",
+            activeCount
+              ? "text-primary hover:bg-primary/10"
+              : "cursor-not-allowed text-muted-foreground/40"
+          )}
+        >
+          Clear all
+        </button>
+      </div>
 
-        {chipList.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
+      {chipList.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 border-b border-border px-5 py-3">
+          <AnimatePresence initial={false}>
             {chipList.map(({ category, value }) => (
               <motion.span
                 key={`${category}-${value}`}
-                initial={{ opacity: 0, scale: 0.85 }}
+                initial={reduceMotion ? false : { opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.85 }}
-                transition={{ duration: 0.2 }}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium border border-gray-200"
+                exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.85 }}
+                transition={{ duration: 0.15 }}
+                className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 py-1 pl-2.5 pr-1.5 text-xs font-medium text-primary"
               >
-                {value}
+                <span className="max-w-[9rem] truncate">{value}</span>
                 <button
                   onClick={() => onToggle(category, value, false)}
-                  className="hover:text-gray-900 ml-0.5"
+                  className="rounded-full p-0.5 hover:bg-primary/20"
+                  aria-label={`Remove ${value} filter`}
                 >
-                  &#x2715;
+                  <X className="h-3 w-3" />
                 </button>
               </motion.span>
             ))}
-          </div>
-        )}
+          </AnimatePresence>
+        </div>
+      )}
 
-        <hr className="border-gray-200" />
+      <div className="divide-y divide-border">
+        {categories.map((category) => {
+          const Icon = FIELD_ICONS[category] || Briefcase;
+          const selectedCount = selectedFilters[category]?.size || 0;
+          const isOpen = !!openSections[category];
+          const values = options[category] || [];
 
-        <div className="space-y-3">
-          {Object.entries(FILTER_OPTIONS).map(([category, values], index) => {
-            const Icon = FIELD_ICONS[category];
-            const selectedCount = selectedFilters[category]?.size || 0;
-            const isOpen = openSections[category];
-
-            return (
-              <motion.div
-                key={category}
-                variants={sectionVariants}
-                initial="hidden"
-                animate="visible"
-                custom={index}
-                className="bg-white rounded-lg border border-gray-200 overflow-hidden"
+          return (
+            <div key={category}>
+              <button
+                type="button"
+                onClick={() => toggleSection(category)}
+                aria-expanded={isOpen}
+                className="flex w-full items-center justify-between px-5 py-3 text-left transition-colors hover:bg-muted/60"
               >
-                <button
-                  type="button"
-                  onClick={() => toggleSection(category)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-600">
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-sm font-semibold text-gray-700">
-                        {FIELD_LABELS[category]}
-                      </p>
-                      <p className="text-[11px] text-gray-400">
-                        {selectedCount} selected
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronDown
+                <span className="flex items-center gap-2.5">
+                  <span
                     className={cn(
-                      "h-4 w-4 text-gray-400 transition-transform duration-200",
-                      isOpen && "rotate-180"
+                      "flex h-7 w-7 items-center justify-center rounded-lg",
+                      selectedCount > 0 ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
                     )}
-                  />
-                </button>
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="text-sm font-semibold text-foreground">{FIELD_LABELS[category]}</span>
+                  {selectedCount > 0 && (
+                    <span className="rounded-full bg-primary/10 px-1.5 text-[11px] font-bold text-primary">
+                      {selectedCount}
+                    </span>
+                  )}
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none",
+                    isOpen && "rotate-180"
+                  )}
+                />
+              </button>
 
+              <AnimatePresence initial={false}>
                 {isOpen && (
-                  <div className="px-4 pb-4 pt-1 grid grid-cols-2 gap-2">
-                    {values.map((value) => {
-                      const checked = selectedFilters[category]?.has(value);
-                      return (
-                        <button
-                          key={value}
-                          onClick={() => onToggle(category, value, !checked)}
-                          className={cn(
-                            "flex items-center gap-2 p-2.5 rounded-lg text-xs font-medium border transition-all",
-                            checked
-                              ? "bg-blue-50 text-blue-700 border-blue-200 shadow-sm"
-                              : "bg-white text-gray-600 border-gray-200 hover:border-blue-200 hover:bg-blue-50"
-                          )}
-                        >
-                          <div
+                  <motion.div
+                    initial={reduceMotion ? false : { height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={reduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="max-h-64 space-y-1 overflow-y-auto px-4 pb-3 pt-0.5">
+                      {values.map((value) => {
+                        const checked = !!selectedFilters[category]?.has(value);
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => onToggle(category, value, !checked)}
+                            aria-pressed={checked}
                             className={cn(
-                              "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all",
+                              "flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left text-[13px] font-medium transition-colors",
                               checked
-                                ? "bg-blue-600 border-blue-600 text-white"
-                                : "bg-white border-gray-300"
+                                ? "border-primary/30 bg-primary/10 text-primary"
+                                : "border-transparent text-muted-foreground hover:bg-muted"
                             )}
                           >
-                            {checked && (
-                              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                <path d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </div>
-                          {value}
-                        </button>
-                      );
-                    })}
-                  </div>
+                            <span
+                              className={cn(
+                                "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
+                                checked ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background"
+                              )}
+                            >
+                              {checked && (
+                                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                  <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              )}
+                            </span>
+                            <span className="truncate">{value}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
                 )}
-              </motion.div>
-            );
-          })}
-        </div>
+              </AnimatePresence>
+            </div>
+          );
+        })}
       </div>
-    </motion.div>
+    </div>
   );
 }
