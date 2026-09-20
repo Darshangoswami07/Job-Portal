@@ -164,17 +164,18 @@ export default function About() {
           </div>
           <div className="max-w-2xl mx-auto">
             <FounderCard founder={{
-              name: "Abhishek Bisht",
-              position: "Founder & Software Engineer",
-              role: "Full Stack Engineer • AI/ML Engineer • Product Developer",
-              bio: "Abhishek Bisht is the Founder and Software Engineer behind JobPilot AI. He designed and developed the platform's core architecture, backend systems, APIs, AI-powered career features, and user experience. As a full-stack engineer, he works across frontend, backend, databases, cloud deployment, authentication, integrations, and AI systems to build scalable and production-ready products.\n\nJobPilot AI was created to make the job search and career development process smarter, faster, and more personalized. The platform brings together job discovery, AI-powered resume tools, career guidance, interview preparation, and other career-focused features in one place.\n\nAbhishek specializes in Full Stack Development, MERN, Next.js, FastAPI, Django REST, REST API architecture, AI/ML, RAG systems, automation, and modern cloud-based applications. His focus is on building practical AI-powered products that solve real-world problems and deliver a better experience for job seekers.",
-              skills: ["Artificial Intelligence", "Machine Learning", "Full Stack Development", "React", "Next.js", "FastAPI", "Django REST", "MERN", "Node.js", "REST API Architecture", "RAG Systems", "Automation", "Cloud Deployment"],
-              avatarInitials: "AB",
+              name: "Darshan Goswami",
+              position: "Founder & Full Stack Developer",
+              role: "MERN • React Native • FastAPI • Python",
+              bio: "Darshan Goswami is the Founder and Full Stack Developer behind JobPilot AI. He designed and developed the platform's core architecture, backend systems, APIs, and user experience. He works across frontend, backend, databases, REST APIs, and authentication to build scalable, production-ready products.\n\nJobPilot AI was created to make the job search and career development process smarter, faster, and more personalized. The platform brings together job discovery, AI-powered resume tools, career guidance, interview preparation, and other career-focused features in one place.\n\nDarshan specializes in the MERN stack, React Native, FastAPI, Python, REST API design, JWT authentication, and role-based access control, working with both SQL (PostgreSQL) and NoSQL (MongoDB) databases. His focus is on building practical, reliable products that deliver a better experience for job seekers.",
+              skills: ["React", "React Native", "Node.js", "Express.js", "FastAPI", "Python", "MongoDB", "PostgreSQL", "Redux Toolkit", "Tailwind CSS", "REST API Design", "JWT Authentication"],
+              avatarInitials: "DG",
               avatarColor: "from-blue-500 to-cyan-500",
-              linkedInUrl: "https://linkedin.com/in/abhishek-bisht-876541308",
-              githubUrl: "https://github.com/abhishekbisht0203",
-              portfolioUrl: "https://abhishekbisht.vercel.app/",
-              email: "abhiyanshbisht@gmail.com"
+              // No verified LinkedIn URL on file — update this placeholder once Darshan's LinkedIn is confirmed.
+              linkedInUrl: "",
+              githubUrl: "https://github.com/Darshangoswami07",
+              portfolioUrl: "",
+              email: "goswamidarshan12345@gmail.com"
             }} />
           </div>
         </div>

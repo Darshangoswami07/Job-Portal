@@ -90,7 +90,7 @@ export default function Terms() {
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800 p-6 sm:p-8 mt-8">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Contact</h2>
           <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-            For questions about these terms, please contact us at abhiyanshbisht@gmail.com.
+            For questions about these terms, please contact us at goswamidarshan12345@gmail.com.
           </p>
         </div>
       </div>

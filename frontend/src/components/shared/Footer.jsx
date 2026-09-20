@@ -2,9 +2,7 @@ import { Link } from "react-router-dom";
 import { Linkedin, Github, Globe, Sparkles, BookOpen } from "lucide-react";
 
 const socialLinks = [
-  { icon: Github, href: "https://github.com/abhishekbisht0203", label: "GitHub" },
-  { icon: Linkedin, href: "https://linkedin.com/in/abhishek-bisht-876541308", label: "LinkedIn" },
-  { icon: Globe, href: "https://abhishekbisht.vercel.app/", label: "Portfolio" },
+  { icon: Github, href: "https://github.com/Darshangoswami07", label: "GitHub" },
 ];
 
 const quickLinks = [

@@ -26,9 +26,9 @@ const categories = [
 ];
 
 const contactOptions = [
-  { icon: Mail, title: "Email Support", desc: "We respond within 24 hours", action: "abhiyanshbisht@gmail.com" },
+  { icon: Mail, title: "Email Support", desc: "We respond within 24 hours", action: "goswamidarshan12345@gmail.com" },
   { icon: MessageCircle, title: "Live Chat", desc: "Available 9 AM - 6 PM IST", action: "Start Chat" },
-  { icon: Phone, title: "Phone Support", desc: "Mon-Fri, 9 AM - 5 PM", action: "+91 7456849590" },
+  { icon: Phone, title: "Phone Support", desc: "Mon-Fri, 9 AM - 5 PM", action: "+91 8865928963" },
 ];
 
 export default function HelpCenter() {

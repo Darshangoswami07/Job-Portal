@@ -13,8 +13,8 @@ const socialIcons = {
 
 const founderStats = [
   { label: "Years Exp.", value: "2+", icon: Award },
-  { label: "Production Apps", value: "10+", icon: Brain },
-  { label: "REST APIs", value: "150+", icon: Code },
+  { label: "Projects Built", value: "4+", icon: Brain },
+  { label: "Tech Stack", value: "12+", icon: Code },
 ];
 
 export default function FounderCard({ founder }) {
@@ -100,7 +100,7 @@ export default function FounderCard({ founder }) {
             </Badge>
             <Badge className="bg-gradient-to-r from-purple-600 to-pink-500 text-white border-0 shadow-md text-xs px-3 py-1">
               <Brain className="h-3 w-3 mr-1" />
-              AI/ML
+              MERN
             </Badge>
             <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-md text-xs px-3 py-1">
               <Code className="h-3 w-3 mr-1" />

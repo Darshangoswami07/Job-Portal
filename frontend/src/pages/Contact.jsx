@@ -15,9 +15,7 @@ const offices = [
 ];
 
 const socialLinks = [
-  { icon: Github, label: "GitHub", href: "https://github.com/abhishekbisht0203" },
-  { icon: Linkedin, label: "LinkedIn", href: "https://linkedin.com/in/abhishek-bisht-876541308" },
-  { icon: Globe, label: "Portfolio", href: "https://abhishekbisht.vercel.app/" },
+  { icon: Github, label: "GitHub", href: "https://github.com/Darshangoswami07" },
 ];
 
 const faqs = [
@@ -115,7 +113,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white text-sm">Email</p>
-                    <a href="mailto:abhiyanshbisht@gmail.com" className="text-sm text-gray-500 dark:text-gray-400 hover:text-[#0A66C2] dark:hover:text-blue-400 transition-colors break-all">abhiyanshbisht@gmail.com</a>
+                    <a href="mailto:goswamidarshan12345@gmail.com" className="text-sm text-gray-500 dark:text-gray-400 hover:text-[#0A66C2] dark:hover:text-blue-400 transition-colors break-all">goswamidarshan12345@gmail.com</a>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -124,7 +122,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white text-sm">Phone</p>
-                    <a href="tel:+917456849590" className="text-sm text-gray-500 dark:text-gray-400 hover:text-[#0A66C2] dark:hover:text-blue-400 transition-colors">+91 7456849590</a>
+                    <a href="tel:+918865928963" className="text-sm text-gray-500 dark:text-gray-400 hover:text-[#0A66C2] dark:hover:text-blue-400 transition-colors">+91 8865928963</a>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -133,7 +131,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white text-sm">Location</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Nainital, Uttarakhand, India</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Haldwani, Uttarakhand, India</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">

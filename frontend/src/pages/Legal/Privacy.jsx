@@ -31,7 +31,7 @@ const sections = [
   {
     icon: Mail,
     title: "Contact Us",
-    content: "If you have questions about this privacy policy or your data rights, please contact us at abhiyanshbisht@gmail.com.",
+    content: "If you have questions about this privacy policy or your data rights, please contact us at goswamidarshan12345@gmail.com.",
   },
 ];
 
@@ -90,7 +90,7 @@ export default function Privacy() {
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800 p-6 sm:p-8 mt-8">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Your Rights</h2>
           <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-            You have the right to access, update, or delete your personal data at any time. You can manage your privacy settings from your profile page. For any data-related requests, contact us at abhiyanshbisht@gmail.com. We will respond to your request within 30 days.
+            You have the right to access, update, or delete your personal data at any time. You can manage your privacy settings from your profile page. For any data-related requests, contact us at goswamidarshan12345@gmail.com. We will respond to your request within 30 days.
           </p>
         </div>
       </div>
