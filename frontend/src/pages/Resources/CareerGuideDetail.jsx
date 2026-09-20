@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CAREER_GUIDE_API_END_POINT } from "@/utils/constant";
 import { useSelector } from "react-redux";
+import { copyToClipboard } from "@/utils/clipboard";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 function renderMarkdownToHtml(markdown) {
   let html = markdown;
@@ -299,7 +301,7 @@ export default function CareerGuideDetail() {
 
               <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-gray-500 dark:text-gray-400 mb-8 pb-6 border-b border-gray-200 dark:border-gray-700">
                 <span className="flex items-center gap-1.5">
-                  <User className="h-4 w-4" /> {guide.author?.fullname || "JobHub Editorial"}
+                  <User className="h-4 w-4" /> {guide.author?.fullname || "JobPilot Ai Editorial"}
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Calendar className="h-4 w-4" /> {formatDate(guide.publishedAt || guide.createdAt)}
@@ -335,7 +337,7 @@ export default function CareerGuideDetail() {
 
               <div
                 className="prose prose-lg dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: htmlContent }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(htmlContent) }}
               />
 
               {guide.tags?.length > 0 && (
@@ -391,7 +393,7 @@ export default function CareerGuideDetail() {
                 <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`)}>
                   <Linkedin className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={() => navigator.clipboard.writeText(shareUrl)}>
+                <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={() => copyToClipboard(shareUrl)}>
                   <Share2 className="h-4 w-4" />
                 </Button>
               </div>

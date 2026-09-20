@@ -17,6 +17,7 @@ import axios from "axios";
 import { QUESTION_API_END_POINT } from "@/utils/constant";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
+import { copyToClipboard } from "@/utils/clipboard";
 
 const DIFFICULTIES = ["All", "easy", "medium", "hard"];
 const CATEGORIES = [
@@ -228,7 +229,7 @@ export default function InterviewQuestions() {
         });
       } catch {}
     } else {
-      await navigator.clipboard.writeText(
+      await copyToClipboard(
         `${window.location.origin}/interview-questions/${question._id}`
       );
       toast.success("Link copied to clipboard!");

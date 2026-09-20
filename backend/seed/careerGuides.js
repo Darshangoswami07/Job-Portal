@@ -448,18 +448,18 @@ export async function seedCareerGuides() {
       return;
     }
 
-    let systemUser = await User.findOne({ email: "system@jobhub.com" });
+    let systemUser = await User.findOne({ email: "system@jobpilot.ai" });
     if (!systemUser) {
       systemUser = await User.create({
-        fullname: "JobHub Editorial Team",
-        email: "system@jobhub.com",
+        fullname: "JobPilot Ai Editorial Team",
+        email: "system@jobpilot.ai",
         password: "system-seed-account-do-not-use",
         profileCompleted: true,
         roles: { jobSeeker: true, recruiter: true },
         currentRole: "recruiter",
         profile: {
           headline: "Career & Technology Education",
-          bio: "JobHub Editorial Team — expert career guides for tech professionals",
+          bio: "JobPilot Ai Editorial Team — expert career guides for tech professionals",
           profilePhoto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200",
         },
       });

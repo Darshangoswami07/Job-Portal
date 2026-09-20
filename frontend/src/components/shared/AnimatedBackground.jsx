@@ -1,18 +1,14 @@
 import { motion } from "framer-motion";
-import { useMemo } from "react";
+
+const dots = Array.from({ length: 12 }, (_, i) => ({
+  id: i,
+  x: Math.random() * 100,
+  size: Math.random() * 2.5 + 1,
+  delay: Math.random() * 8,
+  duration: Math.random() * 8 + 18,
+}));
 
 export default function AnimatedBackground() {
-  const dots = useMemo(
-    () =>
-      Array.from({ length: 12 }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        size: Math.random() * 2.5 + 1,
-        delay: Math.random() * 8,
-        duration: Math.random() * 8 + 18,
-      })),
-    []
-  );
 
   return (
     <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">

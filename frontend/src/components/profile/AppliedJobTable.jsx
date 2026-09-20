@@ -10,9 +10,32 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { MessageSquare, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { createConversation } from "@/api/chatApi";
 
 export default function AppliedJobTable() {
   const { allAppliedJobs } = useSelector((store) => store.job);
+  const navigate = useNavigate();
+  const [messagingId, setMessagingId] = useState(null);
+
+  const handleMessage = async (appliedjob) => {
+    const applicationId = appliedjob?._id;
+    if (!applicationId) return;
+    setMessagingId(applicationId);
+    try {
+      const res = await createConversation(applicationId);
+      if (res.data?.success) {
+        navigate(`/chat/${res.data.conversation._id}`);
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Could not open chat");
+    } finally {
+      setMessagingId(null);
+    }
+  };
 
   const getStatusBadge = (status) => {
     const statusLower = (status || "pending").toLowerCase();
@@ -73,9 +96,25 @@ export default function AppliedJobTable() {
                       {company.name || "-"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Badge className={`px-2 py-1 rounded-full text-xs font-semibold transition-colors ${getStatusBadge(appliedjob.status)}`}>
-                        {(appliedjob.status || "pending").charAt(0).toUpperCase() + (appliedjob.status || "pending").slice(1).toLowerCase()}
-                      </Badge>
+                      <div className="flex items-center justify-end gap-2">
+                        <Badge className={`px-2 py-1 rounded-full text-xs font-semibold transition-colors ${getStatusBadge(appliedjob.status)}`}>
+                          {(appliedjob.status || "pending").charAt(0).toUpperCase() + (appliedjob.status || "pending").slice(1).toLowerCase()}
+                        </Badge>
+                        <button
+                          type="button"
+                          onClick={() => handleMessage(appliedjob)}
+                          disabled={messagingId === appliedjob._id}
+                          className="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-50 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
+                          aria-label="Message recruiter"
+                        >
+                          {messagingId === appliedjob._id ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <MessageSquare className="size-3.5" />
+                          )}
+                          Message
+                        </button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );

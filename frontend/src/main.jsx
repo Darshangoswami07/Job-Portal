@@ -18,7 +18,7 @@ createRoot(document.getElementById("root")).render(
       <PersistGate loading={null} persistor={persistor}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
           enableSystem={false}
           disableTransitionOnChange
         >

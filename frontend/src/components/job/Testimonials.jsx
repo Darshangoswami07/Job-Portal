@@ -6,7 +6,7 @@ const testimonials = [
     name: "Sarah Johnson",
     role: "Software Engineer",
     company: "Google",
-    text: "JobHub helped me find my dream role at Google. The platform made it incredibly easy to connect with recruiters.",
+    text: "JobPilot Ai helped me find my dream role at Google. The platform made it incredibly easy to connect with recruiters.",
     avatar: "SJ",
   },
   {
@@ -51,7 +51,7 @@ export default function Testimonials() {
       <div className="max-w-3xl mx-auto text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">What Our Users Say</h2>
         <p className="text-gray-500 mb-10 max-w-xl mx-auto">
-          Hear from professionals who found their next opportunity through JobHub
+          Hear from professionals who found their next opportunity through JobPilot Ai
         </p>
 
         <div className="relative min-h-[260px]">

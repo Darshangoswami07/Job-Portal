@@ -14,6 +14,7 @@ import Underline from "@tiptap/extension-underline";
 import LinkExtension from "@tiptap/extension-link";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
+import { copyToClipboard } from "@/utils/clipboard";
 import Navbar from "@/components/shared/Navbar";
 import PageHero from "@/components/sections/PageHero";
 import CTABanner from "@/components/sections/CTABanner";
@@ -141,7 +142,7 @@ export default function CoverLetter() {
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({ link: false, underline: false }),
       Underline,
       LinkExtension.configure({ openOnClick: false }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
@@ -383,7 +384,7 @@ export default function CoverLetter() {
     const content = editor ? editor.getHTML() : editorContentRef.current;
     const plainText = content ? content.replace(/<[^>]*>/g, "") : "";
     try {
-      await navigator.clipboard.writeText(plainText);
+      await copyToClipboard(plainText);
       toast.success("Copied to clipboard!");
     } catch {
       toast.error("Failed to copy.");

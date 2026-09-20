@@ -10,6 +10,7 @@ import html2canvas from "html2canvas";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
 import { saveAs } from "file-saver";
 import Navbar from "@/components/shared/Navbar";
+import { copyToClipboard } from "@/utils/clipboard";
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -457,7 +458,7 @@ function AiResume() {
       r.education.forEach((edu) => parts.push(`  ${edu.degree} in ${edu.field} - ${edu.institution}`));
     }
     if (r.skills?.length > 0) parts.push(`Skills: ${r.skills.join(", ")}`);
-    navigator.clipboard.writeText(parts.filter(Boolean).join("\n"));
+    copyToClipboard(parts.filter(Boolean).join("\n"));
     toast.success("Copied to clipboard!");
   };
 

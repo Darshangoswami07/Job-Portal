@@ -10,7 +10,7 @@ import {
   Shield, Zap, BarChart3, Hash, Layers, Grid, List,
 } from "lucide-react";
 import Navbar from "@/components/shared/Navbar";
-import { CompanyLogo } from "@/components/shared/CompanyLogo";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -420,7 +420,12 @@ export default function BrowseCompanies() {
         <div className="p-6">
           <div className="flex items-start gap-4 mb-4">
             <div className="h-16 w-16 rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 group-hover:scale-105 transition-transform duration-300 shrink-0">
-              <CompanyLogo name={company.name} logo={company.logo} className="h-full w-full rounded-2xl" />
+              <Avatar className="h-full w-full rounded-2xl">
+                <AvatarImage src={company.logo} alt={company.name} />
+                <AvatarFallback className="rounded-2xl bg-blue-100 text-blue-700 text-lg font-bold">
+                  {(company.name || "C")[0]}
+                </AvatarFallback>
+              </Avatar>
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="font-semibold text-lg text-gray-900 truncate group-hover:text-[#0A66C2] transition-colors">
@@ -525,7 +530,7 @@ export default function BrowseCompanies() {
               <Building2 className="h-4 w-4 text-blue-200" />
               <span className="text-sm font-medium text-blue-100">
                 {stats?.totalCompanies
-                  ? `${stats.totalCompanies.toLocaleString()} companies on JobHub`
+                  ? `${stats.totalCompanies.toLocaleString()} companies on JobPilot Ai`
                   : "Explore great companies"}
               </span>
             </motion.div>
@@ -710,7 +715,12 @@ export default function BrowseCompanies() {
                         className="bg-white rounded-2xl border border-gray-100 card-shadow hover:card-shadow-hover hover:border-[#0A66C2]/30 cursor-pointer transition-all duration-300 p-5 flex items-center gap-5"
                       >
                         <div className="h-14 w-14 rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-100 shrink-0">
-                          <CompanyLogo name={company.name} logo={company.logo} className="h-full w-full rounded-xl" />
+                          <Avatar className="h-full w-full rounded-xl">
+                            <AvatarImage src={company.logo} alt={company.name} />
+                            <AvatarFallback className="rounded-xl bg-blue-100 text-blue-700 text-sm font-bold">
+                              {(company.name || "C")[0]}
+                            </AvatarFallback>
+                          </Avatar>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">

@@ -12,9 +12,9 @@ const socialIcons = {
 };
 
 const founderStats = [
-  { label: "Years Exp.", value: "5+", icon: Award },
-  { label: "AI Apps", value: "20+", icon: Brain },
-  { label: "Technologies", value: "15+", icon: Code },
+  { label: "Years Exp.", value: "2+", icon: Award },
+  { label: "Production Apps", value: "10+", icon: Brain },
+  { label: "REST APIs", value: "150+", icon: Code },
 ];
 
 export default function FounderCard({ founder }) {
@@ -56,7 +56,7 @@ export default function FounderCard({ founder }) {
             </div>
           </div>
 
-          <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-6 text-sm sm:text-base">
+          <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-6 text-sm sm:text-base whitespace-pre-line">
             {founder.bio}
           </p>
 
@@ -104,15 +104,16 @@ export default function FounderCard({ founder }) {
             </Badge>
             <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-md text-xs px-3 py-1">
               <Code className="h-3 w-3 mr-1" />
-              {founder.position.includes("CTO") ? "Engineering" : "Leadership"}
+              Engineering
             </Badge>
           </div>
 
           <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700/50">
             <div className="flex items-center justify-center sm:justify-start gap-4">
               {Object.entries(socialIcons).map(([key, { icon: Icon, href, label }]) => {
-                const url = founder[href];
-                if (!url) return null;
+                const value = founder[href];
+                if (!value) return null;
+                const url = key === "email" ? `mailto:${value}` : value;
                 return (
                   <a
                     key={key}

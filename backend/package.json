@@ -6,9 +6,24 @@
   "author": "",
   "type": "module",
   "main": "index.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "migrate": "node scripts/migrate.js",
+    "seed:dev": "node scripts/seed-dev-jobs.js",
+    "backfill:jobs": "node scripts/backfill-job-fields.js",
+    "worker": "node worker.js",
+    "sync:jobs": "node scripts/sync-jobs.js",
+    "setup:greenhouse": "node scripts/setup-greenhouse-source.js",
+    "setup:ats": "node scripts/setup-ats-source.js",
+    "setup:aggregators": "node scripts/setup-aggregator-sources.js",
+    "rebuild:groups": "node scripts/rebuild-job-groups.js",
+    "verify:links": "node scripts/verify-apply-links.js",
+    "set-admin": "node scripts/set-admin.js",
+    "test": "vitest run"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -22,17 +37,18 @@
     "express-session": "^1.19.0",
     "jsonwebtoken": "^9.0.3",
     "mammoth": "^1.12.0",
+    "mongodb": "^6.12.0",
     "mongoose": "^9.1.2",
     "multer": "^2.0.2",
-    "node-cron": "^4.6.0",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
     "pdf-parse": "^2.4.5",
-    "socket.io": "^4.8.3",
-    "zod": "^4.4.3"
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "mongodb-memory-server": "^10.1.4",
+    "nodemon": "^3.1.14",
+    "vitest": "^2.1.9"
   }
 }

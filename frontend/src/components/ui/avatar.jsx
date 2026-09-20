@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Avatar as AvatarPrimitive } from "radix-ui"
 
-import { cn } from "@/lib/utils"
+import { cn, sanitizeCompanyLogoUrl } from "@/lib/utils"
 
 function Avatar({
   className,
@@ -22,12 +22,19 @@ function Avatar({
 
 function AvatarImage({
   className,
+  src,
+  onError,
   ...props
 }) {
+  const [failed, setFailed] = React.useState(false);
+  const safeSrc = React.useMemo(() => sanitizeCompanyLogoUrl(src), [src]);
+
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
       className={cn("aspect-square size-full", className)}
+      src={failed ? "" : safeSrc}
+      onError={(e) => { setFailed(true); onError?.(e); }}
       {...props} />
   );
 }

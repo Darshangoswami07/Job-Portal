@@ -6,7 +6,7 @@ const sections = [
   {
     icon: FileText,
     title: "1. Acceptance of Terms",
-    content: "By accessing or using JobHub, you agree to be bound by these Terms of Service. If you do not agree to all the terms, you may not access or use our services. These terms apply to all visitors, users, and others who access or use our platform.",
+    content: "By accessing or using JobPilot Ai, you agree to be bound by these Terms of Service. If you do not agree to all the terms, you may not access or use our services. These terms apply to all visitors, users, and others who access or use our platform.",
   },
   {
     icon: UserCheck,
@@ -21,7 +21,7 @@ const sections = [
   {
     icon: AlertCircle,
     title: "4. Job Listings & Applications",
-    content: "Employers are responsible for the accuracy of their job listings. JobHub does not guarantee employment or interview opportunities. We reserve the right to remove listings that violate our policies or applicable laws.",
+    content: "Employers are responsible for the accuracy of their job listings. JobPilot Ai does not guarantee employment or interview opportunities. We reserve the right to remove listings that violate our policies or applicable laws.",
   },
   {
     icon: Ban,
@@ -31,7 +31,7 @@ const sections = [
   {
     icon: Gavel,
     title: "6. Limitation of Liability",
-    content: "JobHub shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of the platform. We do not guarantee the accuracy of job listings or the conduct of employers. Our total liability is limited to the amount you have paid us in the past 12 months.",
+    content: "JobPilot Ai shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of the platform. We do not guarantee the accuracy of job listings or the conduct of employers. Our total liability is limited to the amount you have paid us in the past 12 months.",
   },
 ];
 
@@ -54,10 +54,10 @@ export default function Terms() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 card-shadow p-8 sm:p-10 mb-8">
           <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
-            Welcome to JobHub. These Terms of Service govern your use of our website, mobile applications, and related services. Please read these terms carefully before using our platform.
+            Welcome to JobPilot Ai. These Terms of Service govern your use of our website, mobile applications, and related services. Please read these terms carefully before using our platform.
           </p>
           <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-            By creating an account or using JobHub, you acknowledge that you have read, understood, and agree to be bound by these terms. We reserve the right to update these terms at any time, and we will notify you of material changes.
+            By creating an account or using JobPilot Ai, you acknowledge that you have read, understood, and agree to be bound by these terms. We reserve the right to update these terms at any time, and we will notify you of material changes.
           </p>
         </div>
 
@@ -90,7 +90,7 @@ export default function Terms() {
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800 p-6 sm:p-8 mt-8">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Contact</h2>
           <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-            For questions about these terms, please contact us at legal@jobhub.com or write to us at: JobHub Legal, 456 MG Road, Indiranagar, Bangalore - 560038, India.
+            For questions about these terms, please contact us at abhiyanshbisht@gmail.com.
           </p>
         </div>
       </div>

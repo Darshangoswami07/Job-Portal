@@ -1,11 +1,12 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, useLocation, BrowserRouter, Navigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setCredentials } from "@/store/slices/authSlice";
-import { toast } from "sonner";
+import axios from "axios";
+import { USER_API_END_POINT } from "@/utils/constant";
 import Home from "./pages/Home";
 import Login from "./components/auth/Login";
 import Signup from "./components/auth/Signup";
@@ -29,9 +30,7 @@ import SavedJobs from "./pages/SavedJobs";
 import BrowseCompanies from "./pages/BrowseCompanies";
 import NotFound from "./components/shared/NotFound";
 import ScrollToTop from "./components/shared/ScrollToTop";
-import CursorGlow from "./components/shared/CursorGlow";
 import PageLoader from "./components/shared/PageLoader";
-import useChatConnection from "./hooks/useChatConnection";
 
 const AiResume = lazy(() => import("./pages/Careers/AiResume"));
 const CoverLetter = lazy(() => import("./pages/Careers/CoverLetter"));
@@ -56,7 +55,20 @@ const Contact = lazy(() => import("./pages/Contact"));
 const Privacy = lazy(() => import("./pages/Legal/Privacy"));
 const Terms = lazy(() => import("./pages/Legal/Terms"));
 const CompanyDetails = lazy(() => import("./components/company/CompanyDetails"));
-const ChatLayout = lazy(() => import("./pages/Messages/ChatLayout"));
+const RecruiterDashboard = lazy(() => import("./components/recruiter/RecruiterDashboard"));
+const ChatPage = lazy(() => import("./pages/ChatPage"));
+const FeedPage = lazy(() => import("./components/social/FeedPage"));
+const NetworkPage = lazy(() => import("./components/social/NetworkPage"));
+const SavedPostsPage = lazy(() => import("./components/social/SavedPostsPage"));
+const SearchPage = lazy(() => import("./components/social/SearchPage"));
+const HashtagPage = lazy(() => import("./components/social/HashtagPage"));
+const PostDetailPage = lazy(() => import("./components/social/PostDetailPage"));
+const PeopleProfilePage = lazy(() => import("./components/social/PeopleProfilePage"));
+const AdminSocialModeration = lazy(() => import("./components/social/AdminSocialModeration"));
+const AdminJobSources = lazy(() => import("./pages/AdminJobSources"));
+const AdminJobGroups = lazy(() => import("./pages/AdminJobGroups"));
+const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
+const RecommendedJobs = lazy(() => import("./pages/RecommendedJobs"));
 
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
@@ -74,6 +86,18 @@ function AuthGuard({ children }) {
   const location = useLocation();
   if (!user) {
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
+  }
+  return children;
+}
+
+function AdminGuard({ children }) {
+  const { user } = useSelector((s) => s.auth);
+  const location = useLocation();
+  if (!user) {
+    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
+  }
+  if (!user?.roles?.admin) {
+    return <Navigate to="/" replace />;
   }
   return children;
 }
@@ -102,60 +126,44 @@ function SuspenseWrapper({ children }) {
 function OAuthCallbackHandler() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const handledRef = useRef(false);
 
   useEffect(() => {
-    // React 18 StrictMode double-invokes effects in development. The first
-    // invocation reads token/user off the URL and navigates away (replace)
-    // to /profile or /login; by the time a second invocation runs,
-    // window.location.search no longer has those params, so it would fall
-    // into the "no token" branch and immediately navigate to /login,
-    // clobbering the correct redirect that just happened. Guard so the
-    // params are only ever processed once per mount.
-    if (handledRef.current) return;
-    handledRef.current = true;
-
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
-    const userStr = params.get("user");
 
-    if (!token || !userStr) {
-      navigate("/login", { replace: true });
-      return;
-    }
-
-    if (token.split(".").length !== 3) {
-      console.error("OAuth callback received a malformed token (not 3 JWT segments):", token);
-      toast.error("Login failed — the session token from the provider looked invalid. Please try again.");
-      navigate("/login", { replace: true });
-      return;
-    }
-
-    try {
-      // URLSearchParams.get() already URL-decodes the value once; decoding
-      // again here would throw "URI malformed" whenever any profile field
-      // contains a literal "%" (e.g. "50% complete" in a bio), silently
-      // bouncing the user back to /login after a successful Google/GitHub
-      // login.
-      const user = JSON.parse(userStr);
-      dispatch(setCredentials({ user, token }));
-      if (!user.profileCompleted) {
-        navigate("/profile", { replace: true });
-      } else {
-        navigate("/", { replace: true });
-      }
-    } catch (error) {
-      console.error("OAuth callback received an unparseable user payload:", userStr, error);
-      toast.error("Login failed — couldn't read your account details. Please try again.");
-      navigate("/login", { replace: true });
+    if (token) {
+      dispatch(setCredentials({ user: null, token }));
+      const fetchProfile = async () => {
+        try {
+          const res = await axios.get(`${USER_API_END_POINT}/profile`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.data.success) {
+            dispatch(setCredentials({ user: res.data.user, token }));
+            if (!res.data.user.profileCompleted) {
+              navigate("/profile", { replace: true });
+            } else {
+              navigate("/", { replace: true });
+            }
+          } else {
+            navigate("/login?error=oauth_failed", { replace: true });
+          }
+        } catch {
+          navigate("/login?error=oauth_failed", { replace: true });
+        }
+      };
+      fetchProfile();
+    } else {
+      navigate("/login?error=oauth_failed", { replace: true });
     }
   }, [dispatch, navigate]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#F3F2EF]">
+    <div className="flex items-center justify-center min-h-screen bg-[#F3F2EF] dark:bg-[#0D1117]">
       <div className="text-center">
-        <div className="w-10 h-10 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-sm text-gray-600">Completing authentication...</p>
+        <img src="/logo.png" alt="JobPilot Ai" className="size-16 object-contain mx-auto mb-6" />
+        <div className="w-10 h-10 border-[3px] border-[#0A66C2] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-sm text-gray-600 dark:text-gray-400">Completing authentication...</p>
       </div>
     </div>
   );
@@ -163,12 +171,10 @@ function OAuthCallbackHandler() {
 
 function AnimatedRoutes() {
   const location = useLocation();
-  useChatConnection();
 
   return (
     <>
       <ScrollToTop />
-      <CursorGlow />
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
@@ -180,8 +186,10 @@ function AnimatedRoutes() {
           <Route path="/description/:id" element={<PageWrapper><JobDescription /></PageWrapper>} />
           <Route path="/profile" element={<PageWrapper><AuthGuard><Profile /></AuthGuard></PageWrapper>} />
           <Route path="/saved-jobs" element={<PageWrapper><AuthGuard><SavedJobs /></AuthGuard></PageWrapper>} />
+          <Route path="/recommended-jobs" element={<SuspenseWrapper><PageWrapper><AuthGuard><RecommendedJobs /></AuthGuard></PageWrapper></SuspenseWrapper>} />
           <Route path="/browse-companies" element={<PageWrapper><BrowseCompanies /></PageWrapper>} />
           <Route path="/company/:id" element={<SuspenseWrapper><PageWrapper><CompanyDetails /></PageWrapper></SuspenseWrapper>} />
+          <Route path="/admin/dashboard" element={<SuspenseWrapper><PageWrapper><AuthGuard><RecruiterDashboard /></AuthGuard></PageWrapper></SuspenseWrapper>} />
           <Route path="/admin/companies" element={<PageWrapper><AuthGuard><Companies /></AuthGuard></PageWrapper>} />
           <Route path="/admin/companies/create" element={<PageWrapper><AuthGuard><CompanyCreate /></AuthGuard></PageWrapper>} />
           <Route path="/admin/companies/:id" element={<PageWrapper><AuthGuard><CompanySetup /></AuthGuard></PageWrapper>} />
@@ -196,9 +204,6 @@ function AnimatedRoutes() {
           <Route path="/admin/blogs/:id" element={<PageWrapper><AuthGuard><AdminBlogEdit /></AuthGuard></PageWrapper>} />
           <Route path="/admin/career-guides" element={<PageWrapper><AuthGuard><AdminCareerGuides /></AuthGuard></PageWrapper>} />
           <Route path="/admin/career-guides/create" element={<PageWrapper><AuthGuard><AdminCareerGuideCreate /></AuthGuard></PageWrapper>} />
-          <Route path="/messages" element={<SuspenseWrapper><PageWrapper><AuthGuard><ChatLayout /></AuthGuard></PageWrapper></SuspenseWrapper>} />
-          <Route path="/messages/:conversationId" element={<SuspenseWrapper><PageWrapper><AuthGuard><ChatLayout /></AuthGuard></PageWrapper></SuspenseWrapper>} />
-          <Route path="/admin/messages" element={<Navigate to="/messages" replace />} />
 
           <Route path="/ai-resume" element={<SuspenseWrapper><PageWrapper><AuthGuard><AiResume /></AuthGuard></PageWrapper></SuspenseWrapper>} />
           <Route path="/cover-letter" element={<SuspenseWrapper><PageWrapper><AuthGuard><CoverLetter /></AuthGuard></PageWrapper></SuspenseWrapper>} />
@@ -217,6 +222,22 @@ function AnimatedRoutes() {
           <Route path="/career-guides" element={<SuspenseWrapper><PageWrapper><CareerGuides /></PageWrapper></SuspenseWrapper>} />
           <Route path="/career-guides/:slug" element={<SuspenseWrapper><PageWrapper><CareerGuideDetail /></PageWrapper></SuspenseWrapper>} />
           <Route path="/help-center" element={<SuspenseWrapper><PageWrapper><HelpCenter /></PageWrapper></SuspenseWrapper>} />
+
+          <Route path="/chat" element={<SuspenseWrapper><PageWrapper><AuthGuard><ChatPage /></AuthGuard></PageWrapper></SuspenseWrapper>} />
+          <Route path="/chat/:conversationId" element={<SuspenseWrapper><PageWrapper><AuthGuard><ChatPage /></AuthGuard></PageWrapper></SuspenseWrapper>} />
+
+          <Route path="/feed" element={<SuspenseWrapper><PageWrapper><AuthGuard><FeedPage /></AuthGuard></PageWrapper></SuspenseWrapper>} />
+          <Route path="/feed/network" element={<SuspenseWrapper><PageWrapper><AuthGuard><NetworkPage /></AuthGuard></PageWrapper></SuspenseWrapper>} />
+          <Route path="/feed/saved" element={<SuspenseWrapper><PageWrapper><AuthGuard><SavedPostsPage /></AuthGuard></PageWrapper></SuspenseWrapper>} />
+          <Route path="/feed/search" element={<SuspenseWrapper><PageWrapper><AuthGuard><SearchPage /></AuthGuard></PageWrapper></SuspenseWrapper>} />
+          <Route path="/feed/hashtag/:tag" element={<SuspenseWrapper><PageWrapper><AuthGuard><HashtagPage /></AuthGuard></PageWrapper></SuspenseWrapper>} />
+          <Route path="/feed/post/:id" element={<SuspenseWrapper><PageWrapper><AuthGuard><PostDetailPage /></AuthGuard></PageWrapper></SuspenseWrapper>} />
+          <Route path="/feed/:id" element={<SuspenseWrapper><PageWrapper><AuthGuard><PostDetailPage /></AuthGuard></PageWrapper></SuspenseWrapper>} />
+          <Route path="/feed/people/:userId" element={<SuspenseWrapper><PageWrapper><AuthGuard><PeopleProfilePage /></AuthGuard></PageWrapper></SuspenseWrapper>} />
+          <Route path="/admin/social/moderation" element={<SuspenseWrapper><PageWrapper><AuthGuard><AdminSocialModeration /></AuthGuard></PageWrapper></SuspenseWrapper>} />
+          <Route path="/admin/job-sources" element={<SuspenseWrapper><PageWrapper><AdminGuard><AdminJobSources /></AdminGuard></PageWrapper></SuspenseWrapper>} />
+          <Route path="/admin/job-groups" element={<SuspenseWrapper><PageWrapper><AdminGuard><AdminJobGroups /></AdminGuard></PageWrapper></SuspenseWrapper>} />
+          <Route path="/admin/analytics" element={<SuspenseWrapper><PageWrapper><AdminGuard><AdminAnalytics /></AdminGuard></PageWrapper></SuspenseWrapper>} />
 
           <Route path="/pricing" element={<SuspenseWrapper><PageWrapper><Pricing /></PageWrapper></SuspenseWrapper>} />
           <Route path="/about" element={<SuspenseWrapper><PageWrapper><About /></PageWrapper></SuspenseWrapper>} />

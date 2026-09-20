@@ -7,6 +7,12 @@ import cloudinary from "../config/cloudinary.js";
 export const registerCompany = async (req, res) => {
     try {
         const user = await User.findById(req.id);
+        if (!user) {
+            return res.status(401).json({
+                message: "User not found, please login again",
+                success: false,
+            });
+        }
         if (!user.roles?.recruiter) {
             return res.status(403).json({
                 message: "Enable recruiter mode in profile settings to register a company",
@@ -43,6 +49,10 @@ export const registerCompany = async (req, res) => {
         });
     } catch (error) {
         console.error("Error in registerCompany:", error);
+        return res.status(500).json({
+            message: "Server error while registering company",
+            success: false,
+        });
     }
 };
 
@@ -58,6 +68,10 @@ export const getCompany = async (req, res) => {
         });
     } catch (error) {
         console.error("Error in getCompany:", error);
+        return res.status(500).json({
+            message: "Server error while fetching companies",
+            success: false,
+        });
     }
 };
 
@@ -80,6 +94,10 @@ export const getCompanyById = async (req, res) => {
         });
     } catch (error) {
         console.error("Error in getCompanyById:", error);
+        return res.status(500).json({
+            message: "Server error while fetching company",
+            success: false,
+        });
     }
 };
 

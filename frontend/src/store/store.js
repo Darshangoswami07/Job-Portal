@@ -2,6 +2,7 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import authSlice from "./slices/authSlice";
 import jobSlice from "./slices/jobSlice";
 import companySlice from "./slices/companySlice";
+import chatSlice from "./slices/chatSlice";
 import {
   persistReducer,
   FLUSH,
@@ -13,13 +14,13 @@ import {
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import applicationSlice from "./slices/applicationSlice";
-import chatSlice from "./slices/chatSlice";
+import socialSlice from "./slices/socialSlice";
 
 const persistConfig = {
   key: "root",
   version: 1,
   storage,
-  blacklist: ["job", "chat"],
+  blacklist: ["job", "chat", "social"],
 };
 
 const rootReducer = combineReducers({
@@ -28,6 +29,7 @@ const rootReducer = combineReducers({
   company: companySlice,
   application: applicationSlice,
   chat: chatSlice,
+  social: socialSlice,
 });
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 

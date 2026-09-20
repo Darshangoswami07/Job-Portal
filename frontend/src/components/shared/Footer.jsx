@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom";
-import { Facebook, Twitter, Linkedin, Github, Mail, Sparkles, BookOpen } from "lucide-react";
+import { Linkedin, Github, Globe, Sparkles, BookOpen } from "lucide-react";
 
 const socialLinks = [
-  { icon: Facebook, href: "#", label: "Facebook" },
-  { icon: Twitter, href: "#", label: "Twitter" },
-  { icon: Linkedin, href: "https://www.linkedin.com/in/darshan-goswami-b09137222/", label: "LinkedIn" },
-  { icon: Github, href: "https://github.com/Darshangoswami07", label: "GitHub" },
+  { icon: Github, href: "https://github.com/abhishekbisht0203", label: "GitHub" },
+  { icon: Linkedin, href: "https://linkedin.com/in/abhishek-bisht-876541308", label: "LinkedIn" },
+  { icon: Globe, href: "https://abhishekbisht.vercel.app/", label: "Portfolio" },
 ];
 
 const quickLinks = [
@@ -47,14 +46,16 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-5">
-              <span className="text-xl font-bold text-white">JobHub</span>
+              <img src="/logo.png" alt="JobPilot Ai" className="size-10 object-contain brightness-0 invert" />
+              <span className="text-xl font-bold text-white">JobPilot Ai</span>
             </div>
             <p className="text-sm text-gray-400 leading-relaxed">
               Your premier destination for connecting top talent with leading companies.
             </p>
             <div className="flex items-center gap-2.5 mt-6">
               {socialLinks.map((social) => (
-                <a key={social.label} href={social.href} aria-label={social.label}
+                <a key={social.label} href={social.href} aria-label={social.label} title={social.label}
+                  target="_blank" rel="noopener noreferrer"
                   className="flex size-9 items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 hover:-translate-y-0.5 hover:rotate-3 transition-all duration-300">
                   <social.icon className="size-4" />
                 </a>
@@ -127,7 +128,7 @@ export default function Footer() {
       <div className="border-t border-gray-700">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm text-gray-500">
-            <p>&copy; {new Date().getFullYear()} JobHub. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} JobPilot Ai. All rights reserved.</p>
             <div className="flex items-center gap-6">
               <Link to="/privacy" className="hover:text-gray-300 transition-colors">Privacy Policy</Link>
               <Link to="/terms" className="hover:text-gray-300 transition-colors">Terms of Service</Link>

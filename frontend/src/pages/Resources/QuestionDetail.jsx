@@ -14,6 +14,7 @@ import axios from "axios";
 import { QUESTION_API_END_POINT } from "@/utils/constant";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
+import { copyToClipboard } from "@/utils/clipboard";
 
 const difficultyColor = (d) => {
   const val = d?.toLowerCase?.() || "";
@@ -105,7 +106,7 @@ export default function QuestionDetail() {
         await navigator.share({ title: question?.question || "", url: window.location.href });
       } catch {}
     } else {
-      await navigator.clipboard.writeText(window.location.href);
+      await copyToClipboard(window.location.href);
       toast.success("Link copied!");
     }
   };

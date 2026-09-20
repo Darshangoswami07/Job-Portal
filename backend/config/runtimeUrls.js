@@ -1,5 +1,3 @@
-const PRODUCTION_FRONTEND_URL = "https://job-portal-kappa-nine.vercel.app";
-const PRODUCTION_BACKEND_URL = "https://job-portal-backend-o9lb.onrender.com";
 const LOCAL_FRONTEND_URL = "http://localhost:5173";
 const LOCAL_BACKEND_URL = "http://localhost:8000";
 
@@ -11,6 +9,9 @@ const splitOrigins = (value) =>
     .map((origin) => normalizeUrl(origin.trim()))
     .filter(Boolean);
 
+export const getJwtSecret = () =>
+  process.env.JWT_SECRET || process.env.SECRET_KEY;
+
 export const getFrontendUrl = () => {
   const explicitUrl = process.env.FRONTEND_URL || process.env.VITE_FRONTEND_URL;
 
@@ -18,9 +19,7 @@ export const getFrontendUrl = () => {
     return normalizeUrl(explicitUrl);
   }
 
-  return process.env.NODE_ENV === "production"
-    ? PRODUCTION_FRONTEND_URL
-    : LOCAL_FRONTEND_URL;
+  return LOCAL_FRONTEND_URL;
 };
 
 export const getBackendUrl = () => {
@@ -31,15 +30,12 @@ export const getBackendUrl = () => {
     return normalizeUrl(explicitUrl);
   }
 
-  return process.env.NODE_ENV === "production"
-    ? PRODUCTION_BACKEND_URL
-    : LOCAL_BACKEND_URL;
+  return LOCAL_BACKEND_URL;
 };
 
 export const getAllowedOrigins = () =>
   new Set([
     ...splitOrigins(process.env.FRONTEND_URL),
-    PRODUCTION_FRONTEND_URL,
     LOCAL_FRONTEND_URL,
     "http://localhost:5174",
   ]);

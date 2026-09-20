@@ -1,5 +1,5 @@
 const LOCAL_BACKEND_URL = "http://localhost:8000";
-const PRODUCTION_BACKEND_URL = "https://job-portal-backend-o9lb.onrender.com";
+const PRODUCTION_BACKEND_URL = "https://job-pilot-web-ovjk.onrender.com";
 
 const normalizeUrl = (value) => value?.replace(/\/$/, "");
 
@@ -38,7 +38,8 @@ export const CAREER_GUIDE_API_END_POINT = `${BACKEND_URL}/api/v1/career-guides`;
 export const RESUME_TEMPLATE_API_END_POINT = `${BACKEND_URL}/api/v1/resume-templates`;
 export const CONTACT_API_END_POINT = `${BACKEND_URL}/api/v1/contact`;
 export const SUPPORT_TICKET_API_END_POINT = `${BACKEND_URL}/api/v1/support-tickets`;
+export const CHAT_API_END_POINT = `${BACKEND_URL}/api/v1/chat`;
 export const SUBSCRIPTION_API_END_POINT = `${BACKEND_URL}/api/v1/subscriptions`;
 export const NOTIFICATION_API_END_POINT = `${BACKEND_URL}/api/v1/notifications`;
 export const COMPANY_PROFILE_API_END_POINT = `${BACKEND_URL}/api/v1/company-profiles`;
-export const CHAT_API_END_POINT = `${BACKEND_URL}/api/v1/chat`;
+export const SOCIAL_API_END_POINT = `${BACKEND_URL}/api/v1/social`;

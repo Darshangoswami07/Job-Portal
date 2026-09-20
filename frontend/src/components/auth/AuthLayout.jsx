@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion"
 import { useEffect, useState } from "react"
-import { Briefcase, ArrowLeft } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 const trustCompanies = [
@@ -84,10 +84,8 @@ export default function AuthLayout({ children }) {
             transition={{ duration: 0.5, ease: "easeOut" }}
             className="flex items-center gap-2.5 mb-10"
           >
-            <div className="h-10 w-10 rounded-xl bg-[#0A66C2] dark:bg-[#2F81F7] flex items-center justify-center">
-              <Briefcase className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900 dark:text-white">JobHub</span>
+            <img src="/logo.png" alt="JobPilot Ai" className="size-12 object-contain" />
+            <span className="text-xl font-bold text-gray-900 dark:text-white">JobPilot Ai</span>
           </motion.div>
 
           <motion.h1

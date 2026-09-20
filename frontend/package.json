@@ -12,6 +12,7 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/vite": "^4.1.18",
+    "@tanstack/react-virtual": "^3.14.9",
     "@tiptap/extension-link": "^3.28.0",
     "@tiptap/extension-placeholder": "^3.28.0",
     "@tiptap/extension-text-align": "^3.28.0",
@@ -23,7 +24,9 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "docx": "^9.7.1",
+    "dompurify": "^3.4.12",
     "embla-carousel-react": "^8.6.0",
+    "emoji-picker-react": "^4.19.1",
     "file-saver": "^2.0.5",
     "framer-motion": "^12.38.0",
     "html2canvas": "^1.4.1",
@@ -46,6 +49,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@tailwindcss/typography": "^0.5.20",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",

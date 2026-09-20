@@ -19,16 +19,16 @@ const faqs = [
 ];
 
 const categories = [
-  { icon: FileText, title: "Getting Started", desc: "New to JobHub? Start here", articles: "12 articles" },
+  { icon: FileText, title: "Getting Started", desc: "New to JobPilot Ai? Start here", articles: "12 articles" },
   { icon: MessageCircle, title: "Account & Profile", desc: "Manage your account settings", articles: "8 articles" },
   { icon: HelpCircle, title: "Job Applications", desc: "Everything about applying", articles: "15 articles" },
   { icon: Mail, title: "Recruiter Tools", desc: "For employers and recruiters", articles: "10 articles" },
 ];
 
 const contactOptions = [
-  { icon: Mail, title: "Email Support", desc: "We respond within 24 hours", action: "support@jobhub.com" },
+  { icon: Mail, title: "Email Support", desc: "We respond within 24 hours", action: "abhiyanshbisht@gmail.com" },
   { icon: MessageCircle, title: "Live Chat", desc: "Available 9 AM - 6 PM IST", action: "Start Chat" },
-  { icon: Phone, title: "Phone Support", desc: "Mon-Fri, 9 AM - 5 PM", action: "+1 (555) 123-4567" },
+  { icon: Phone, title: "Phone Support", desc: "Mon-Fri, 9 AM - 5 PM", action: "+91 7456849590" },
 ];
 
 export default function HelpCenter() {
