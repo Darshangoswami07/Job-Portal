@@ -1,7 +1,7 @@
 /**
  * JSearch adapter — JSearch job API on RapidAPI (https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch).
  *
- *   GET https://jsearch.p.rapidapi.com/search?query=<keyword>&page=1&num_pages=1
+ *   GET https://jsearch.p.rapidapi.com/search-v2?query=<keyword>&page=1&num_pages=1
  *   Headers: X-RapidAPI-Key, X-RapidAPI-Host
  *
  * Credential (env-var NAME only): config.apiKeyRef  default "RAPIDAPI_KEY".
@@ -71,7 +71,7 @@ export class JSearchAdapter extends BaseSourceAdapter {
     const raw = [];
     for (const keyword of queries) {
       await throttleHost(HOST, source.rateLimitPerMin);
-      const url = `https://${HOST}/search?query=${encodeURIComponent(keyword + suffix)}&page=1&num_pages=${numPages}`;
+      const url = `https://${HOST}/search-v2?query=${encodeURIComponent(keyword + suffix)}&page=1&num_pages=${numPages}`;
 
       let payload;
       try {
@@ -86,8 +86,12 @@ export class JSearchAdapter extends BaseSourceAdapter {
         throw err instanceof SourceHttpError ? err : new SourceHttpError(err.message, "network");
       }
 
-      if (!payload || !Array.isArray(payload.data)) continue;
-      for (const job of payload.data) {
+      const jobs = Array.isArray(payload?.data)
+        ? payload.data
+        : Array.isArray(payload?.data?.jobs)
+          ? payload.data.jobs
+          : [];
+      for (const job of jobs) {
         const mapped = mapJSearchJob(job);
         if (mapped) raw.push(mapped);
       }

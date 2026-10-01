@@ -18,7 +18,7 @@ import { SEARCH_KEYWORDS, stripHtml, extractSalary, resolveEnvRefs } from "./agg
 import { isHttpUrl } from "../jobs/normalize.js";
 
 export const JOOBLE_ADAPTER = "jooble";
-const HOST = "jooble.org";
+const HOST = "in.jooble.org";
 
 export function mapJoobleJob(job) {
   if (!job) return null;
