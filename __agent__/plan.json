@@ -2,26 +2,22 @@
   "schema_version": 1,
   "items": [
     {
-      "title": "Map backend structure and project instructions",
+      "title": "Map repository and ingestion entry points",
       "status": "done"
     },
     {
-      "title": "Audit all job providers and trace result flow",
+      "title": "Inspect providers, persistence, scheduling, and safety controls",
       "status": "in-progress"
     },
     {
-      "title": "Audit CV scoring and Groq integration readiness",
+      "title": "Inspect deduplication, expiration, indexes, and frontend counts",
       "status": "pending"
     },
     {
-      "title": "Verify the 283-job cause with targeted checks",
-      "status": "pending"
-    },
-    {
-      "title": "Deliver audit report and safe architecture recommendations",
+      "title": "Produce source-specific production ingestion plan and stop",
       "status": "pending"
     }
   ],
-  "updated_at": "2026-10-01T07:07:50.809Z",
-  "session_id": "01a0f645-73f0-76ce-9f3e-5b3c66130e50"
+  "updated_at": "2026-10-01T15:05:34.182Z",
+  "session_id": "01a0f7ee-6a7b-71b2-83a1-dad9ce1e7391"
 }
